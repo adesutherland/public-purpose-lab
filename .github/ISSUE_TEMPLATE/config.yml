@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security concern
+    url: https://github.com/adesutherland/public-purpose-lab/security/advisories/new
+    about: Please report vulnerabilities and privacy weaknesses privately.

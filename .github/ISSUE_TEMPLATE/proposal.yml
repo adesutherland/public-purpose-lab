@@ -1,0 +1,45 @@
+name: Experiment or design proposal
+description: Propose a bounded experiment, scenario change, or architecture decision.
+title: "proposal: "
+labels:
+  - proposal
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the public-purpose problem and the evidence that would decide the proposal.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and people affected
+      description: What service or organisational problem are we trying to understand?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome sought
+      description: What would improve, for whom, and how would we observe it?
+    validations:
+      required: true
+  - type: textarea
+    id: experiment
+    attributes:
+      label: Smallest decisive experiment
+      description: Describe the minimum complete test and the evidence it should produce.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Privacy, security, authority, and scope boundaries
+      description: Identify data, trust, human-decision, and explicit non-goal boundaries.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and trade-offs
+      description: What simpler or different approaches should be considered?
+    validations:
+      required: true

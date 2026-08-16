@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
+  <title id="title">Public Purpose Lab mark</title>
+  <desc id="desc">Four open coloured arcs collaborate around a shared gold purpose point.</desc>
+  <g fill="none" stroke-width="14" stroke-linecap="round">
+    <path d="M22 54 A38 38 0 0 1 54 22" stroke="#17324D"/>
+    <path d="M66 22 A38 38 0 0 1 98 54" stroke="#1E7A72"/>
+    <path d="M98 66 A38 38 0 0 1 66 98" stroke="#E4775B"/>
+    <path d="M54 98 A38 38 0 0 1 22 66" stroke="#E5AD45"/>
+  </g>
+  <circle cx="60" cy="60" r="10" fill="#E5AD45"/>
+</svg>

@@ -1,0 +1,25 @@
+name: Documentation issue
+description: Report an unclear claim, missing risk, inconsistency, or factual problem.
+title: "docs: "
+labels:
+  - documentation
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Document or location
+      placeholder: README.md or a direct link
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What needs attention?
+      description: Explain what is unclear, missing, inconsistent, or unsupported.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Suggested correction or evidence
+      description: Link authoritative public evidence where relevant. Do not include confidential information.

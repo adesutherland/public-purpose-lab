@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 180" role="img" aria-labelledby="title desc">
+  <title id="title">Public Purpose Lab primary logo</title>
+  <desc id="desc">Four open arcs around a shared purpose point beside the words Public Purpose Lab.</desc>
+  <g transform="translate(20 30)">
+    <g fill="none" stroke-width="14" stroke-linecap="round">
+      <path d="M22 54 A38 38 0 0 1 54 22" stroke="#17324D"/>
+      <path d="M66 22 A38 38 0 0 1 98 54" stroke="#1E7A72"/>
+      <path d="M98 66 A38 38 0 0 1 66 98" stroke="#E4775B"/>
+      <path d="M54 98 A38 38 0 0 1 22 66" stroke="#E5AD45"/>
+    </g>
+    <circle cx="60" cy="60" r="10" fill="#E5AD45"/>
+  </g>
+  <text x="160" y="83" fill="#17324D" font-family="Inter, Arial, Helvetica, sans-serif" font-size="54" font-weight="700" letter-spacing="-1">Public Purpose</text>
+  <text x="163" y="126" fill="#1E7A72" font-family="Inter, Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="8">LAB</text>
+</svg>
