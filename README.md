@@ -4,6 +4,8 @@
 
 <p align="center"><strong>Open systems. Public purpose.</strong></p>
 
+<p align="center"><a href="https://publicpurposelab.org">publicpurposelab.org</a></p>
+
 Public Purpose Lab is an emerging open-source lab for trustworthy service
 integration and automation. We explore how small, experienced teams can help
 charities and public services understand fragmented systems, connect operational
@@ -43,13 +45,23 @@ The intended technology foundation is cloud native and component oriented:
   practical;
 - replaceable adapters for charity, NHS, and UK social-care interfaces, added
   only when a demonstrator defines a real need; and
-- cREXX assets where cREXX is a good fit—for example portable rules,
-  transformations, scenario automation, or integration logic. cREXX is an
-  option, not a platform-wide mandate.
+- cREXX as the preferred open implementation surface for inspectable business
+  rules, transformations and scenario scripting where those responsibilities
+  exist. It is not mandated for user interfaces, general services, storage or
+  infrastructure, and every use must document its value and operational
+  impact.
 
 We will build the smallest complete path that can answer a meaningful question.
 The architecture will grow from demonstrated needs rather than from an empty
 estate of services.
+
+## Portfolio relationship
+
+[Architecture Portal](https://architectureportal.org) owns the shared
+architecture method and logical system blueprint. Public Purpose Lab may apply
+selected blueprint components in synthetic demonstrations and return specific
+test results, operating observations, limitations and lessons. No integrated
+portfolio demonstrator has yet been published.
 
 ## Repository guide
 
@@ -63,6 +75,11 @@ estate of services.
 - [Brand foundation](docs/brand/README.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
+
+New contributors and agent sessions should also read `AGENTS.md` before making
+changes. The website source and release configuration are maintained separately
+in the private `site-publicpurposelab-org` repository; this public repository is
+authoritative for the Lab's governance, scenarios and architecture direction.
 
 ## Project status and licensing
 
