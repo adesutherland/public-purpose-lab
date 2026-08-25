@@ -125,8 +125,9 @@ when different authority, delivery or compatibility rules require it.
 | [`I-004`](contracts/identity/i-004-demonstration-sign-in-grant.md)      | Demonstration sign-in grant      | `CTL-01`, demonstration signer, `IAM-01`                    | Requests and issues a signed, short-lived, one-time, environment-bound grant for a named synthetic actor and surface.             |
 | [`I-005`](contracts/identity/i-005-synthetic-session-outcome.md)        | Synthetic session outcome        | `IAM-01`, `CTL-02`, target application, `CTL-01`            | Reports session establishment, refusal, expiry, replay, revocation and termination without exposing a usable credential.          |
 
-The linked `IAM-01` and `I-001` to `I-005` specifications are working drafts;
-they define reviewable semantics but do not claim implementation or approval.
+The linked `IAM-01` and `I-001` to `I-005` logical specifications are accepted.
+Acceptance fixes their semantics and invariants for implementation; it does not
+claim that the component is implemented or production-ready.
 
 ### Service and evidence contracts
 

@@ -1,6 +1,6 @@
 # I-002: Workload identity context
 
-Status: Working draft
+Status: Accepted
 
 Last reviewed: 25 August 2026
 

@@ -1,6 +1,6 @@
 # IAM-01: Identity, trust and synthetic session broker
 
-Status: Working draft
+Status: Accepted
 
 Last reviewed: 25 August 2026
 

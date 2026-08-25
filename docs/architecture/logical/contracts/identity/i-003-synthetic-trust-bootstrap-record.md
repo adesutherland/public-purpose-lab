@@ -1,6 +1,6 @@
 # I-003: Synthetic trust bootstrap record
 
-Status: Working draft
+Status: Accepted
 
 Last reviewed: 25 August 2026
 

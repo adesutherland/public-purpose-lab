@@ -1,6 +1,6 @@
 # I-001: External human identity context
 
-Status: Working draft
+Status: Accepted
 
 Last reviewed: 25 August 2026
 

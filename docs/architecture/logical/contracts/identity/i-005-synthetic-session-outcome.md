@@ -1,6 +1,6 @@
 # I-005: Synthetic session outcome
 
-Status: Working draft
+Status: Accepted
 
 Last reviewed: 25 August 2026
 

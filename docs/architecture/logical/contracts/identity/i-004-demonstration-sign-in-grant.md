@@ -1,6 +1,6 @@
 # I-004: Demonstration Sign-In Grant
 
-Status: Working draft
+Status: Accepted
 
 Last reviewed: 25 August 2026
 

@@ -118,7 +118,7 @@
       "id": "I-001",
       "name": "External human identity context",
       "group": "identity",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-001-external-human-identity-context.md",
       "schema": null
     },
@@ -126,7 +126,7 @@
       "id": "I-002",
       "name": "Workload identity context",
       "group": "identity",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-002-workload-identity-context.md",
       "schema": null
     },
@@ -134,7 +134,7 @@
       "id": "I-003",
       "name": "Synthetic trust bootstrap record",
       "group": "identity",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-003-synthetic-trust-bootstrap-record.md",
       "schema": null
     },
@@ -142,7 +142,7 @@
       "id": "I-004",
       "name": "Demonstration sign-in grant",
       "group": "identity",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-004-demonstration-sign-in-grant.md",
       "schema": null
     },
@@ -150,7 +150,7 @@
       "id": "I-005",
       "name": "Synthetic session outcome",
       "group": "identity",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-005-synthetic-session-outcome.md",
       "schema": null
     },
