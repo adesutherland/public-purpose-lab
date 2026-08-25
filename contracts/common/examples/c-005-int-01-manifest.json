@@ -1,0 +1,26 @@
+{
+  "contractId": "C-005",
+  "contractVersion": "1.0.0",
+  "componentId": "INT-01",
+  "componentName": "Interaction infrastructure and contract registry",
+  "releaseVersion": "0.1.0",
+  "maturity": "in-development",
+  "generatedAt": "2030-08-25T12:00:00Z",
+  "supportedProfiles": ["development-assurance"],
+  "capabilities": [
+    {
+      "capabilityId": "interaction.conformance-probe",
+      "description": "Validate and durably reconcile one local M1 assurance command",
+      "contracts": [
+        { "contractId": "C-001", "versions": ["1.0.0"] },
+        { "contractId": "C-003", "versions": ["1.0.0"] },
+        { "contractId": "C-004", "versions": ["1.0.0"] }
+      ]
+    }
+  ],
+  "readinessDependencies": [
+    "interaction-state.writable",
+    "interaction-state.consistent"
+  ],
+  "evidence": []
+}

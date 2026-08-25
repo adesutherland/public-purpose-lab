@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:C-001:1.0.0",
+  "title": "C-001 Interaction envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "messageId",
+    "messageType",
+    "messageKind",
+    "sourceComponent",
+    "targetComponent",
+    "audience",
+    "issuedAt",
+    "correlationId",
+    "authority",
+    "classification",
+    "security",
+    "trace",
+    "payload"
+  ],
+  "properties": {
+    "contractId": { "const": "C-001" },
+    "contractVersion": { "const": "1.0.0" },
+    "messageId": { "$ref": "#/$defs/identifier" },
+    "messageType": { "$ref": "#/$defs/typeName" },
+    "messageKind": {
+      "enum": [
+        "business-command",
+        "business-event",
+        "demonstration-control",
+        "trust-command",
+        "presentation-cue",
+        "operational-signal",
+        "analytical-projection"
+      ]
+    },
+    "sourceComponent": { "$ref": "#/$defs/componentId" },
+    "targetComponent": { "$ref": "#/$defs/componentId" },
+    "audience": { "$ref": "#/$defs/componentId" },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "correlationId": { "$ref": "#/$defs/identifier" },
+    "causationId": { "$ref": "#/$defs/identifier" },
+    "idempotencyKey": { "$ref": "#/$defs/identifier" },
+    "authority": {
+      "$ref": "urn:public-purpose-lab:contract:C-002:1.0.0"
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "categories", "handling"],
+      "properties": {
+        "level": {
+          "enum": ["public", "synthetic", "internal", "restricted-security"]
+        },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/typeName" }
+        },
+        "handling": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/typeName" }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authenticationContextRef"],
+      "properties": {
+        "authenticationContextRef": { "$ref": "#/$defs/identifier" },
+        "integrityReference": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["traceId"],
+      "properties": {
+        "traceId": { "$ref": "#/$defs/identifier" },
+        "parentSpanId": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "payload": {
+      "type": "object",
+      "maxProperties": 64
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "messageKind": {
+            "enum": [
+              "business-command",
+              "demonstration-control",
+              "trust-command",
+              "presentation-cue"
+            ]
+          }
+        },
+        "required": ["messageKind"]
+      },
+      "then": {
+        "properties": {
+          "idempotencyKey": true,
+          "expiresAt": true
+        },
+        "required": ["idempotencyKey", "expiresAt"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "messageKind": { "const": "business-event" } },
+        "required": ["messageKind"]
+      },
+      "then": {
+        "properties": { "occurredAt": true },
+        "required": ["occurredAt"]
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "typeName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "componentId": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,3}-[0-9]{2}$"
+    }
+  }
+}

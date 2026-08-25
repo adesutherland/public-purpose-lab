@@ -34,3 +34,14 @@ while investigating.
 - Preserve provenance, policy decisions, human approvals, and audit evidence.
 - Design explicit refusal, abstention, failure, and escalation outcomes.
 - Prefer contained, replaceable adapters at external-system boundaries.
+
+## Architecture baseline
+
+The versioned
+[framework security model](docs/architecture/security/framework-security-model.md)
+defines the current trust zones, principals, authority, information handling
+and recovery invariants. The
+[M1 threat model](docs/architecture/security/m1-threat-model.md) states the
+narrower controls and limitations of the local common-interaction reference
+path. Both are working baselines pending founder review; neither is a production
+security or compliance qualification.

@@ -1,0 +1,63 @@
+{
+  "contractId": "C-001",
+  "contractVersion": "1.0.0",
+  "messageId": "message-m1-conformance-001",
+  "messageType": "ppl.interaction.conformance-probe.command",
+  "messageKind": "demonstration-control",
+  "sourceComponent": "CTL-01",
+  "targetComponent": "INT-01",
+  "audience": "INT-01",
+  "issuedAt": "2030-08-25T12:00:00Z",
+  "expiresAt": "2030-08-25T12:05:00Z",
+  "correlationId": "correlation-m1-conformance-001",
+  "causationId": "scenario-step-m1-conformance-001",
+  "idempotencyKey": "idempotency-m1-conformance-001",
+  "authority": {
+    "contractId": "C-002",
+    "contractVersion": "1.0.0",
+    "environmentId": "env-local-001",
+    "requester": {
+      "principalType": "workload",
+      "principalId": "workload-framework-host",
+      "environmentId": "env-local-001",
+      "issuer": "issuer-local-assurance",
+      "trustDomain": "trust-local-assurance"
+    },
+    "actor": {
+      "principalType": "synthetic-human",
+      "principalId": "synthetic-actor-reviewer",
+      "environmentId": "env-local-001",
+      "issuer": "issuer-synthetic-assurance",
+      "trustDomain": "trust-synthetic-local-001"
+    },
+    "roles": ["interaction-assurance"],
+    "delegatedAuthority": ["C-001:submit"],
+    "purpose": {
+      "code": "assurance.conformance",
+      "description": "Exercise the M1 common interaction reference path"
+    },
+    "constraints": {
+      "demonstrationSessionId": "demo-session-m1-001",
+      "targetComponents": ["INT-01"],
+      "informationLevels": ["synthetic"],
+      "expiresAt": "2030-08-25T12:05:00Z"
+    },
+    "policyVersion": "0.1.0",
+    "decisionReference": "decision-local-assurance-001"
+  },
+  "classification": {
+    "level": "synthetic",
+    "categories": ["conformance-evidence"],
+    "handling": ["environment-bound"]
+  },
+  "security": {
+    "authenticationContextRef": "auth-context-assurance-001"
+  },
+  "trace": {
+    "traceId": "trace-m1-conformance-001",
+    "parentSpanId": "span-scenario-step-001"
+  },
+  "payload": {
+    "probe": "m1-common-interaction"
+  }
+}

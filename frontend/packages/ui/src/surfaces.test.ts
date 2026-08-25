@@ -10,6 +10,7 @@ describe("surface catalogue", () => {
     const surface = surfaceById(id);
 
     expect(surface.id).toBe(id);
+    expect(surface.maturity).toBe("repository-skeleton");
     expect(surface.purpose.toLowerCase()).toContain("future");
     expect(surface.actions).toHaveLength(3);
     expect(surface.evidence).toHaveLength(3);

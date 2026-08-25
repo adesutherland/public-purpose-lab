@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-001",
+  "describedContractName": "Interaction envelope",
+  "describedVersion": "1.0.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:C-001:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2030-08-25T12:00:00Z",
+  "examples": ["contracts/common/examples/c-001-m1-conformance-command.json"],
+  "producerExpectations": [
+    "Produce exact version 1.0.0 and preserve actor and workload attribution"
+  ],
+  "consumerExpectations": [
+    "Refuse undeclared versions and do not infer authority from transport access"
+  ],
+  "evidence": []
+}

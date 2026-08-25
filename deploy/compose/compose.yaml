@@ -5,7 +5,12 @@ services:
     build:
       context: ../..
       dockerfile: deploy/containers/framework-host.Containerfile
-    image: public-purpose-lab/framework-host:repository-skeleton
+    image: public-purpose-lab/framework-host:m1-baseline
+    environment:
+      PPL_ENVIRONMENT_ID: env-compose-assurance
+      PPL_STATE_DIR: /var/lib/public-purpose-lab
+    volumes:
+      - framework-state:/var/lib/public-purpose-lab
     read_only: true
     cap_drop:
       - ALL
@@ -24,3 +29,6 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
+
+volumes:
+  framework-state:

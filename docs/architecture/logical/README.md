@@ -52,12 +52,12 @@ updated together.
 
 ### Control, identity and interaction
 
-| ID                                                                           | Component                                        | Owned responsibility                                                                                                 | Principal contract families                                           |
-| ---------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `CTL-01`                                                                     | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.           | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
-| `CTL-02`                                                                     | Presentation Gateway and screen registry         | Surface registration, capability discovery, cue routing, expiry and acknowledgements.                                | `P-001` to `P-004`, `I-002`, `I-005`, `O-001`                         |
-| [`IAM-01`](components/iam-01-identity-trust-and-synthetic-session-broker.md) | Identity, trust and synthetic session broker     | External identity context, workload trust, environment synthetic root, bounded grants, roles and sessions.           | `I-001` to `I-005`, `C-002`, `AU-001`                                 |
-| `INT-01`                                                                     | Interaction infrastructure and contract registry | Message carriage, schema and contract publication, compatibility evidence, delivery state and consumer coordination. | `C-001` to `C-006`, plus transport bindings for every public contract |
+| ID                                                                                | Component                                        | Owned responsibility                                                                                                 | Principal contract families                                           |
+| --------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `CTL-01`                                                                          | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.           | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
+| `CTL-02`                                                                          | Presentation Gateway and screen registry         | Surface registration, capability discovery, cue routing, expiry and acknowledgements.                                | `P-001` to `P-004`, `I-002`, `I-005`, `O-001`                         |
+| [`IAM-01`](components/iam-01-identity-trust-and-synthetic-session-broker.md)      | Identity, trust and synthetic session broker     | External identity context, workload trust, environment synthetic root, bounded grants, roles and sessions.           | `I-001` to `I-005`, `C-002`, `AU-001`                                 |
+| [`INT-01`](components/int-01-interaction-infrastructure-and-contract-registry.md) | Interaction infrastructure and contract registry | Message carriage, schema and contract publication, compatibility evidence, delivery state and consumer coordination. | `C-001` to `C-006`, plus transport bindings for every public contract |
 
 ### Engagement, content, knowledge and work
 
@@ -93,14 +93,14 @@ when different authority, delivery or compatibility rules require it.
 
 ### Common interaction contracts
 
-| ID      | Working name                      | Main participants                           | Enduring purpose                                                                                                                                   |
-| ------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `C-001` | Interaction envelope              | All public-contract participants            | Carries identity, type, version, issuer, audience, time, correlation, causation, idempotency, purpose, classification and security metadata.       |
-| `C-002` | Authority and purpose context     | `IAM-01` and every command receiver         | States actor, role, delegated authority, environment, purpose and constraints used to authorise a request.                                         |
-| `C-003` | Command outcome and failure       | Every command receiver and caller           | Reports acceptance, refusal, expiry, duplicate handling, failure and recovery ownership without inventing a business fact.                         |
-| `C-004` | Evidence reference                | Evidence-producing and consuming components | Links a claim, action, rule, source, transformation, model step or release to retained evidence and provenance.                                    |
-| `C-005` | Component capability manifest     | User interfaces, gateways and components    | Publishes stable semantic capabilities, contract versions, readiness dependencies and supported profiles without exposing internal implementation. |
-| `C-006` | Contract compatibility descriptor | `INT-01`, producers and consumers           | Defines schema status, compatibility, deprecation, examples and conformance evidence.                                                              |
+| ID                                                                     | Working name                      | Main participants                           | Enduring purpose                                                                                                                                   |
+| ---------------------------------------------------------------------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`C-001`](contracts/common/c-001-interaction-envelope.md)              | Interaction envelope              | All public-contract participants            | Carries identity, type, version, issuer, audience, time, correlation, causation, idempotency, purpose, classification and security metadata.       |
+| [`C-002`](contracts/common/c-002-authority-and-purpose-context.md)     | Authority and purpose context     | `IAM-01` and every command receiver         | States actor, role, delegated authority, environment, purpose and constraints used to authorise a request.                                         |
+| [`C-003`](contracts/common/c-003-command-outcome-and-failure.md)       | Command outcome and failure       | Every command receiver and caller           | Reports acceptance, refusal, expiry, duplicate handling, failure and recovery ownership without inventing a business fact.                         |
+| [`C-004`](contracts/common/c-004-evidence-reference.md)                | Evidence reference                | Evidence-producing and consuming components | Links a claim, action, rule, source, transformation, model step or release to retained evidence and provenance.                                    |
+| [`C-005`](contracts/common/c-005-component-capability-manifest.md)     | Component capability manifest     | User interfaces, gateways and components    | Publishes stable semantic capabilities, contract versions, readiness dependencies and supported profiles without exposing internal implementation. |
+| [`C-006`](contracts/common/c-006-contract-compatibility-descriptor.md) | Contract compatibility descriptor | `INT-01`, producers and consumers           | Defines schema status, compatibility, deprecation, examples and conformance evidence.                                                              |
 
 ### Demonstration and presentation contracts
 
@@ -124,6 +124,10 @@ when different authority, delivery or compatibility rules require it.
 | [`I-003`](contracts/identity/i-003-synthetic-trust-bootstrap-record.md) | Synthetic trust bootstrap record | `PLT-01`, `IAM-01`, `AUD-01`                                | Records environment identity, root creation, trusted signers, rotation state and recovery boundary without exposing private keys. |
 | [`I-004`](contracts/identity/i-004-demonstration-sign-in-grant.md)      | Demonstration sign-in grant      | `CTL-01`, demonstration signer, `IAM-01`                    | Requests and issues a signed, short-lived, one-time, environment-bound grant for a named synthetic actor and surface.             |
 | [`I-005`](contracts/identity/i-005-synthetic-session-outcome.md)        | Synthetic session outcome        | `IAM-01`, `CTL-02`, target application, `CTL-01`            | Reports session establishment, refusal, expiry, replay, revocation and termination without exposing a usable credential.          |
+
+The linked `C-001` to `C-006` and `INT-01` specifications are working M1
+baselines. Their schemas and reference implementation are in development;
+founder review is required before they become agreed or M1 is marked complete.
 
 The linked `IAM-01` and `I-001` to `I-005` logical specifications are accepted.
 Acceptance fixes their semantics and invariants for implementation; it does not

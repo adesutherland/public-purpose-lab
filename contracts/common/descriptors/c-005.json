@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-005",
+  "describedContractName": "Component capability manifest",
+  "describedVersion": "1.0.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:C-005:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-25T00:00:00Z",
+  "examples": ["contracts/common/examples/c-005-int-01-manifest.json"],
+  "producerExpectations": [
+    "Publish only implemented semantic capabilities and evidence-bounded maturity"
+  ],
+  "consumerExpectations": [
+    "Use the manifest for discovery and never as invocation authority"
+  ],
+  "evidence": []
+}

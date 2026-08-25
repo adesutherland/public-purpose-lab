@@ -1,0 +1,17 @@
+[package]
+name = "ppl-int-01"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+ppl-contracts = { path = "../../crates/contracts" }
+ppl-core = { path = "../../crates/core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+time = { version = "0.3", features = ["formatting", "parsing"] }
+
+[lints]
+workspace = true

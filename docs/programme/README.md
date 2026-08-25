@@ -12,6 +12,9 @@ architecture and delivery material.
   Scenario Director, initial roadmap and future roadmap.
 - [Roadmap PDF](public-purpose-lab-roadmap.pdf) - the shareable distribution
   copy of the agreed roadmap.
+- [Initial implementation plan](implementation-plan.md) - the working,
+  milestone-based delivery sequence, dependencies and evidence gates for the
+  initial roadmap. It is not a dated task backlog.
 - [Vision and mission](../../VISION.md) - the enduring purpose and ambition of
   the Lab.
 - [Demonstrator briefs](../scenarios/README.md) - the scenarios through which
@@ -23,7 +26,8 @@ The programme set may grow to include partnership and participation
 frameworks, periodic evidence reports, outcome reviews and significant
 programme changes. A new document should be added only when it has a distinct
 long-lived purpose; meeting notes, implementation backlogs and speculative
-designs do not belong here.
+designs do not belong here. The implementation plan records durable milestones
+and evidence gates; transient work items remain outside the programme set.
 
 Programme direction is implemented through the
 [architecture](../architecture/README.md) and tested through the

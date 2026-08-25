@@ -1,0 +1,15 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-001",
+  "describedContractName": "Interaction envelope",
+  "describedVersion": "latest",
+  "status": "implemented",
+  "schemaId": "urn:public-purpose-lab:contract:C-001:latest",
+  "compatibilityMode": "backward",
+  "effectiveFrom": "2030-08-25T12:00:00Z",
+  "examples": [],
+  "producerExpectations": ["Invalid fixture"],
+  "consumerExpectations": ["Invalid fixture"],
+  "evidence": []
+}

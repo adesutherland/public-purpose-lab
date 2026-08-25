@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "file": "contracts/common/examples/c-001-m1-conformance-command.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-001:1.0.0",
+      "valid": true
+    },
+    {
+      "file": "contracts/common/examples/c-002-assurance-authority.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-002:1.0.0",
+      "valid": true
+    },
+    {
+      "file": "contracts/common/examples/c-003-accepted-outcome.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-003:1.0.0",
+      "valid": true
+    },
+    {
+      "file": "contracts/common/examples/c-004-journal-evidence.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-004:1.0.0",
+      "valid": true
+    },
+    {
+      "file": "contracts/common/examples/c-005-int-01-manifest.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-005:1.0.0",
+      "valid": true
+    },
+    {
+      "file": "contracts/common/examples/c-006-c-001-compatibility.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-006:1.0.0",
+      "valid": true
+    },
+    {
+      "file": "contracts/common/invalid/c-001-missing-authority.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-001:1.0.0",
+      "valid": false
+    },
+    {
+      "file": "contracts/common/invalid/c-002-workload-used-as-actor.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-002:1.0.0",
+      "valid": false
+    },
+    {
+      "file": "contracts/common/invalid/c-003-duplicate-without-original.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-003:1.0.0",
+      "valid": false
+    },
+    {
+      "file": "contracts/common/invalid/c-004-inline-secret-content.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-004:1.0.0",
+      "valid": false
+    },
+    {
+      "file": "contracts/common/invalid/c-005-production-maturity-claim.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-005:1.0.0",
+      "valid": false
+    },
+    {
+      "file": "contracts/common/invalid/c-006-invalid-version.json",
+      "schemaId": "urn:public-purpose-lab:contract:C-006:1.0.0",
+      "valid": false
+    }
+  ]
+}

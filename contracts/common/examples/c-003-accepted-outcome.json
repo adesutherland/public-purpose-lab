@@ -1,0 +1,27 @@
+{
+  "contractId": "C-003",
+  "contractVersion": "1.0.0",
+  "outcomeId": "outcome-m1-conformance-001",
+  "commandMessageId": "message-m1-conformance-001",
+  "status": "accepted",
+  "code": "conformance_probe_recorded",
+  "summary": "The M1 conformance probe was durably recorded.",
+  "retryable": false,
+  "completedAt": "2030-08-25T12:00:01Z",
+  "evidence": [
+    {
+      "contractId": "C-004",
+      "contractVersion": "1.0.0",
+      "evidenceId": "evidence-m1-outcome-001",
+      "evidenceKind": "audit-record",
+      "ownerComponent": "INT-01",
+      "reference": "urn:public-purpose-lab:evidence:interaction-journal.outcome-001",
+      "createdAt": "2030-08-25T12:00:01Z",
+      "classification": "internal",
+      "mediaType": "application/json",
+      "retentionClass": "m1-assurance-evidence",
+      "accessPolicyRef": "access-policy-support-001",
+      "predecessorEvidenceIds": []
+    }
+  ]
+}

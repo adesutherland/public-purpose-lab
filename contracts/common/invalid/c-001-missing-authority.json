@@ -1,0 +1,24 @@
+{
+  "contractId": "C-001",
+  "contractVersion": "1.0.0",
+  "messageId": "message-invalid-missing-authority",
+  "messageType": "ppl.interaction.conformance-probe.command",
+  "messageKind": "demonstration-control",
+  "sourceComponent": "CTL-01",
+  "targetComponent": "INT-01",
+  "audience": "INT-01",
+  "issuedAt": "2030-08-25T12:00:00Z",
+  "expiresAt": "2030-08-25T12:05:00Z",
+  "correlationId": "correlation-invalid-authority",
+  "idempotencyKey": "idempotency-invalid-authority",
+  "classification": {
+    "level": "synthetic",
+    "categories": ["conformance-evidence"],
+    "handling": []
+  },
+  "security": {
+    "authenticationContextRef": "auth-context-assurance-001"
+  },
+  "trace": { "traceId": "trace-invalid-authority" },
+  "payload": { "probe": "m1-common-interaction" }
+}

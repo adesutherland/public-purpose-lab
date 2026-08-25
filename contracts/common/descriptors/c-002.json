@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-002",
+  "describedContractName": "Authority and purpose context",
+  "describedVersion": "1.0.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:C-002:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-25T00:00:00Z",
+  "examples": ["contracts/common/examples/c-002-assurance-authority.json"],
+  "producerExpectations": [
+    "Keep requester and actor independently attributable and carry no credential material"
+  ],
+  "consumerExpectations": [
+    "Treat the context as input to authorisation rather than proof of authority"
+  ],
+  "evidence": []
+}

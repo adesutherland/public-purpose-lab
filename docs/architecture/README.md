@@ -13,6 +13,13 @@ The [logical architecture overview](logical/README.md) starts the next level of
 design. It identifies every logical component and contract family and defines
 the order in which each will be documented and reviewed.
 
+The [framework security model](security/framework-security-model.md) and
+[current threat model](security/m1-threat-model.md) define the cross-cutting
+baseline against which those components and contracts are implemented. They are
+versioned working baselines, not claims of production security qualification.
+Bounded results and remaining acceptance gates are recorded separately under
+[architecture implementation evidence](evidence/README.md).
+
 ## Initial shape
 
 The first implementation should be a thin, end-to-end walking skeleton with as
