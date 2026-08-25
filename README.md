@@ -65,11 +65,13 @@ portfolio demonstrator has yet been published.
 
 ## Repository guide
 
+- [Public documents](docs/README.md)
 - [Vision](VISION.md)
 - [Founding principles](PRINCIPLES.md)
 - [Terms of reference](TERMS-OF-REFERENCE.md)
 - [Governance](GOVERNANCE.md)
-- [Initial roadmap](ROADMAP.md)
+- [Roadmap](docs/programme/roadmap.md)
+- [Policy and governance index](docs/policy/README.md)
 - [Architecture](docs/architecture/README.md)
 - [Demonstrator briefs](docs/scenarios/README.md)
 - [Brand foundation](docs/brand/README.md)
