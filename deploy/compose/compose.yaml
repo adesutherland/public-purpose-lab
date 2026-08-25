@@ -1,0 +1,26 @@
+name: public-purpose-lab
+
+services:
+  framework-host:
+    build:
+      context: ../..
+      dockerfile: deploy/containers/framework-host.Containerfile
+    image: public-purpose-lab/framework-host:repository-skeleton
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/containers/web.Containerfile
+    image: public-purpose-lab/web:repository-skeleton
+    ports:
+      - "8080:8080"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

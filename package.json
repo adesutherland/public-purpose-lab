@@ -1,0 +1,30 @@
+{
+  "name": "public-purpose-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=11.19.0"
+  },
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "build": "pnpm build:rust && pnpm build:web",
+    "build:rust": "cargo build --workspace",
+    "build:web": "pnpm --recursive --if-present build",
+    "check": "pnpm check:architecture && pnpm check:links && pnpm format:check && pnpm check:web && pnpm check:rust",
+    "check:architecture": "node tools/check-architecture-catalog.mjs",
+    "check:links": "node tools/check-local-links.mjs",
+    "check:rust": "cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace",
+    "check:web": "pnpm --recursive --if-present typecheck && pnpm --recursive --if-present test",
+    "dev:director": "pnpm --filter @public-purpose-lab/director dev",
+    "dev:presentation": "pnpm --filter @public-purpose-lab/presentation dev",
+    "dev:workbench": "pnpm --filter @public-purpose-lab/workbench dev",
+    "format": "prettier --write .github/workflows/ci.yml architecture contracts deploy docs/architecture/decisions docs/architecture/logical frontend tools DEVELOPMENT.md package.json pnpm-workspace.yaml",
+    "format:check": "prettier --check .github/workflows/ci.yml architecture contracts deploy docs/architecture/decisions docs/architecture/logical frontend tools DEVELOPMENT.md package.json pnpm-workspace.yaml",
+    "test": "pnpm check"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}

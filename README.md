@@ -73,6 +73,8 @@ portfolio demonstrator has yet been published.
 - [Roadmap](docs/programme/roadmap.md)
 - [Policy and governance index](docs/policy/README.md)
 - [Architecture](docs/architecture/README.md)
+- [Development and repository skeleton](DEVELOPMENT.md)
+- [Deployment skeleton](deploy/README.md)
 - [Demonstrator briefs](docs/scenarios/README.md)
 - [Brand foundation](docs/brand/README.md)
 - [Contributing](CONTRIBUTING.md)

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: framework-host
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: framework-host
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: framework-host
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: framework-host
+          image: public-purpose-lab/framework-host:repository-skeleton
+          imagePullPolicy: IfNotPresent
+          args:
+            - serve
+          livenessProbe:
+            exec:
+              command:
+                - ppl-framework-host
+                - healthcheck
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - ppl-framework-host
+                - healthcheck
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true

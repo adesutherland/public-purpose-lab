@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: public-purpose-lab
+resources:
+  - namespace.yaml
+  - framework-host-deployment.yaml
+  - web-deployment.yaml
+  - web-service.yaml
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: public-purpose-lab
+      app.kubernetes.io/version: repository-skeleton
