@@ -68,6 +68,26 @@ Only `established` permits application use. `requested`, `validating`,
 `establishing` and `failed-or-uncertain` are not evidence that a user is logged
 in. A terminal refusal does not mutate application business state.
 
+## Scenario multiplicity and invariant scope
+
+A Demonstration Session may intentionally contain several concurrent synthetic
+application sessions. For example, one synthetic external user may use a public
+portal while a different synthetic staff member uses the Workbench or a
+workflow screen. Each is a distinct synthetic human principal with its own
+roles, application, surface, grant and session binding.
+
+The same synthetic human actor may also use more than one application or
+surface where scenario and application policy permits it. Each binding requires
+a separately issued grant and a separate application session. Actor display
+names may repeat across environments, but environment and trust-domain-scoped
+principal identifiers remain distinct.
+
+The at-most-one invariant applies to each grant and session-establishment
+operation. It does not limit an entire scenario, actor or environment to one
+session. An automated backend worker is instead a workload under `I-002`; it
+must not be modelled as a synthetic human session merely because the scenario
+coordinates its work.
+
 ## Preconditions and authority
 
 Establishment requires:
@@ -171,7 +191,9 @@ credential-bearing payloads.
 ## At-most-one establishment and replay
 
 - The grant and establishment operation together can establish at most one
-  application session.
+  application session for their application and surface binding.
+- Independently authorised grants may establish other sessions for other actor,
+  application or surface bindings in the same Demonstration Session.
 - Target application creation is idempotent for the same establishment
   operation and surface binding.
 - `IAM-01` persists the safe processing result before reporting it conclusive.
@@ -324,19 +346,25 @@ Evidence must show that:
    surface, Demonstration Session, principal, role and synthetic realm;
 2. duplicate delivery, concurrent handling, restart and lost acknowledgement do
    not create a second session;
-3. wrong environment, application, surface, scenario, actor, role or realm is
+3. one Demonstration Session can coordinate distinct, concurrently logged-in
+   synthetic actors across different applications and surfaces without sharing
+   grants or session credentials;
+4. one synthetic actor may use separately authorised, application-bound
+   sessions where the scenario requires it, while a backend worker remains a
+   workload identity rather than a synthetic user;
+5. wrong environment, application, surface, scenario, actor, role or realm is
    refused;
-4. expiry, signer/root revocation, actor disablement and scenario stop prevent
+6. expiry, signer/root revocation, actor disablement and scenario stop prevent
    or terminate use;
-5. termination is idempotent and delayed messages cannot restore the session;
-6. an uncertain establishment is reconciled or terminated before another grant
+7. termination is idempotent and delayed messages cannot restore the session;
+8. an uncertain establishment is reconciled or terminated before another grant
    is accepted for the same requested binding;
-7. a browser receives no signed grant and performs no grant validation;
-8. no event, query, log, trace, audit record, analytical record or support bundle
-   contains a usable grant or application-session credential;
-9. the same actor name in another environment cannot use or discover the
-   session; and
-10. local combined and hosted distributed deployments meet the same logical
+9. a browser receives no signed grant and performs no grant validation;
+10. no event, query, log, trace, audit record, analytical record or support bundle
+    contains a usable grant or application-session credential;
+11. the same actor name in another environment cannot use or discover the
+    session; and
+12. local combined and hosted distributed deployments meet the same logical
     contract.
 
 ## Open ADR decisions
@@ -348,6 +376,8 @@ Evidence must show that:
 - surface-loss, scenario-stop, reset and role-change termination policies;
 - status disclosure and safe reason granularity;
 - session reconciliation and orphan detection;
+- scenario actor-to-application binding and permitted concurrent-session
+  policy;
 - application support and emergency revocation interface; and
 - physical placement of broker, application session owner and protected state.
 

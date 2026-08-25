@@ -56,6 +56,8 @@ context.
   URLs;
 - own scenario execution, presentation routing, business records or application
   navigation;
+- own backup, restore, retention or encryption of uploaded assets, business
+  records, reports or their substantive evidence content;
 - expose root or signer private keys in records, APIs, logs, images, scenario
   packs, backups not explicitly protected for that purpose, or routine exports;
   or
@@ -176,7 +178,8 @@ the actor context with its own identity.
 - Identity-context requests are safe to repeat and return the same or a newer
   bounded context according to the applicable configuration version.
 - A valid Demonstration Sign-In Grant can establish at most one application
-  session. Repeated delivery never creates another session.
+  session for its establishment operation. Repeated delivery never creates
+  another session for that operation.
 - Grant consumption and establishment outcome are correlated by a non-secret
   grant identifier or digest. A caller can reconcile an uncertain outcome
   without submitting or receiving the raw grant again.
@@ -210,6 +213,38 @@ A copied environment must not silently retain the source environment's
 synthetic root. Partial bootstrap, lost replay state, inconsistent trust epochs
 or uncertain key custody make the synthetic sign-in path not ready until an
 operator resolves or replaces the trust domain.
+
+### Recovery domains and post-restore security
+
+Recovery keeps three responsibilities distinct:
+
+1. `IAM-01` and the protected key boundary recover environment identity,
+   synthetic trust, actor configuration and identity mappings;
+2. `IAM-01` recovers or safely replaces grant-consumption, replay, revocation
+   and synthetic-session security state; and
+3. the owning service components and `PLT-01` recover uploaded assets, business
+   records, reports, provenance and substantive evidence under their own
+   retention, encryption and authority rules.
+
+The external identity provider retains external-human credentials. A Lab
+recovery source may contain local issuer, immutable-subject and authority
+mapping configuration, but never an external password, provider token or
+recovery factor. Synthetic trust material and business or evidence data must
+not be treated as one undifferentiated backup or one authority domain.
+
+Every deployment profile declares either a protected same-environment recovery
+capability or an explicit rebuild-and-create-new-root posture. A
+same-environment restore is not ready for synthetic sign-in until it has
+verified that it is the authorised continuation, restored current replay and
+revocation continuity, reconciled or terminated former synthetic sessions, and
+rotated or re-authorised operational signers according to the recovery policy.
+If any of that cannot be shown, a new trust domain is created.
+
+Evidence or business data may be migrated or restored separately into that new
+environment under its owners' authority. Doing so does not restore the former
+root, grants or sessions. Any future use of real rather than synthetic evidence
+requires separate data-recovery, key-recovery, privacy and retention decisions;
+`IAM-01` must not absorb that responsibility merely because it controls access.
 
 ## Audit and provenance obligations
 
@@ -321,19 +356,23 @@ Acceptance requires evidence that:
 2. the same synthetic actor name resolves to different principals in those
    environments;
 3. a grant from one environment is refused in every other environment;
-4. a valid grant establishes at most one session and duplicate delivery does
-   not create another;
-5. expired, premature, modified, revoked, wrong-audience, wrong-surface,
+4. a valid grant establishes at most one session for its establishment
+   operation and duplicate delivery does not create another;
+5. one scenario may establish separate application-bound sessions for multiple
+   synthetic human actors without sharing grants or credentials;
+6. expired, premature, modified, revoked, wrong-audience, wrong-surface,
    wrong-session, unknown-actor and excessive-role grants are refused;
-6. a browser cannot validate or redeem a grant and no grant appears in a URL,
+7. a browser cannot validate or redeem a grant and no grant appears in a URL,
    page content, general log or general analytical event;
-7. workload identity cannot impersonate a human or synthetic actor;
-8. external credentials are not exposed to framework components;
-9. lost acknowledgement and restart recover without a second session;
-10. revocation and termination take effect and remain observable;
-11. protected recovery either preserves the same environment safely or creates
-    an entirely new trust domain; and
-12. audit reconstruction explains each outcome without revealing reusable
+8. workload identity cannot impersonate a human or synthetic actor;
+9. external credentials are not exposed to framework components;
+10. lost acknowledgement and restart recover without a second session;
+11. revocation and termination take effect and remain observable;
+12. protected recovery either preserves the same environment safely or creates
+    an entirely new trust domain;
+13. trust and security-state recovery remains separate from evidence and
+    business-data recovery; and
+14. audit reconstruction explains each outcome without revealing reusable
     security material.
 
 Cross-platform evidence is required for every supported deployment profile;
@@ -349,6 +388,9 @@ readiness. Before implementation, ADRs and a reviewed threat model must decide:
 - workload identity mechanism and delegation representation;
 - certificate and trust-domain profile, key hierarchy and signing algorithm;
 - protected key generation, custody, backup and non-exportability by profile;
+- separation and restore ordering for trust, security state, identity mappings
+  and evidence or business data;
+- post-restore signer rotation, session termination and revalidation policy;
 - signer issuance controls, rotation, revocation and trust-epoch rules;
 - signed message representation and controlled transport binding;
 - surface, application and browser-session binding mechanism;

@@ -19,6 +19,17 @@ The grant asks the backend identity boundary to establish an ordinary
 application session. It is not a password, reusable bearer token, browser link,
 presentation cue or business-domain command.
 
+One Demonstration Session may coordinate several such grants. Different
+synthetic human actors may be signed into a public portal, the Workbench, a
+workflow screen or other registered applications at the same time. Where the
+same synthetic actor legitimately uses more than one application or surface,
+each binding still requires a separate grant and application session.
+
+A synthetic staff member using a workflow or other browser screen is a
+synthetic human actor. An automated component acting without a user interface
+uses the separate `I-002` workload identity path and does not receive an `I-004`
+user sign-in grant.
+
 ## Participants and trust boundary
 
 | Role                     | Participant                                 | Responsibility                                                                                           |
@@ -194,7 +205,10 @@ support and audit readers.
 
 The exact point at which replay state becomes durable must be defined alongside
 the application establishment transaction. The invariant is at-most-one
-session, including across crashes and lost acknowledgements.
+session for each grant and establishment operation, including across crashes
+and lost acknowledgements. It is not a scenario-wide, actor-wide or
+environment-wide limit: independently authorised grants may establish other
+application-bound sessions for the same scenario.
 
 ## Ordering and timing
 
@@ -344,15 +358,20 @@ Evidence must show that:
    surface, actor, role, realm or validity window is refused;
 5. a valid grant creates at most one application session despite duplicate
    delivery, restart or lost acknowledgement;
-6. another environment refuses the grant even when it has a synthetic actor
+6. one scenario can establish separate application-bound sessions for
+   different synthetic actors, and can use separately authorised grants when
+   one actor legitimately uses more than one application or surface;
+7. a synthetic staff member using a UI remains a synthetic human actor while an
+   automated component uses workload identity;
+8. another environment refuses the grant even when it has a synthetic actor
    with the same display name;
-7. grant expiry is not extended by delayed transport or restart;
-8. the frontend cannot receive, validate or exchange the grant;
-9. no raw grant appears in a URL, browser storage, page content, general log,
-   trace, audit event, analytical event or support export;
-10. signer revocation, actor disablement, session stop and surface
+9. grant expiry is not extended by delayed transport or restart;
+10. the frontend cannot receive, validate or exchange the grant;
+11. no raw grant appears in a URL, browser storage, page content, general log,
+    trace, audit event, analytical event or support export;
+12. signer revocation, actor disablement, session stop and surface
     deregistration prevent delayed use; and
-11. each validation produces a safe, correlated `I-005` outcome without
+13. each validation produces a safe, correlated `I-005` outcome without
     exposing usable security material.
 
 ## Open ADR decisions
@@ -364,6 +383,7 @@ Evidence must show that:
 - exact actor, role, audience, purpose and realm field representation;
 - lifetime, clock, tolerance and replay-consumption point;
 - safe grant digest and outcome reconciliation;
+- scenario actor-to-application and actor-to-surface binding rules;
 - rate limits and signing-oracle protections; and
 - physical relationship among signer, `IAM-01` and target application.
 

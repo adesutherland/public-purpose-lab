@@ -187,6 +187,54 @@ of root identity, signer status, trust epoch, grant replay state and session
 revocation state. If those cannot be demonstrated, recovery creates a new trust
 domain and invalidates all earlier grants and sessions.
 
+## Backup boundaries and restore security
+
+Each deployment profile declares one of two supported postures:
+
+- `protected-same-environment-recovery` provides an authorised recovery source
+  for the environment identity and synthetic trust material, together with a
+  recoverable continuity point for trust epochs, signer status, grant replay,
+  revocation and synthetic-session state; or
+- `rebuild-with-new-trust-domain` treats the private synthetic root as
+  non-recoverable and creates a new environment identity and root after loss.
+
+A protected recovery source is itself security-sensitive. Copying it must not
+create a second simultaneously valid environment, export private material
+through routine backup interfaces, or allow stale state to reactivate a signer,
+grant, actor or session. The chosen key-custody mechanism may use protected
+wrapping, escrow or another profile-appropriate method, but requires an ADR and
+conformance evidence.
+
+Before a same-environment restore becomes ready, the recovery operation must:
+
+1. establish that this instance is the authorised continuation and contain or
+   refuse any competing clone;
+2. validate the protected key boundary, environment identity and current trust
+   epoch;
+3. restore replay, revocation and signer-state continuity to a mutually
+   consistent point;
+4. reconcile and terminate, or explicitly revalidate, sessions that existed at
+   the recovery point;
+5. rotate or explicitly re-authorise operational signers according to the
+   approved recovery policy; and
+6. record the recovery, security fix-up and resulting readiness without
+   exposing usable trust material.
+
+Synthetic trust and security-state recovery is separate from the recovery of
+uploaded assets, business records, reports, provenance and substantive evidence
+owned by other components. Restoring or migrating that data does not restore
+the former synthetic trust domain. Conversely, an `I-003` recovery record does
+not prove that business or evidence data is complete, current or authorised for
+use. The synthetic root is not a business-data or evidence-encryption root;
+replacing it must not by itself disclose evidence or make retained evidence
+unrecoverable.
+
+External identity-provider credentials are never included. Local mappings from
+external subjects and authority configuration may have their own protected
+configuration recovery, but remain separate from synthetic root material.
+Future environments authorised to hold real evidence require separately
+governed data-encryption-key, privacy, retention, backup and restore decisions.
+
 ## Audit, retention and provenance
 
 Audit retains:
@@ -303,8 +351,12 @@ Evidence must show that:
 8. rotation and revocation advance trust state and older delayed updates cannot
    reverse it;
 9. same-environment recovery preserves replay and revocation continuity;
-10. new-trust-domain recovery invalidates every former grant and session; and
-11. audit reconstructs bootstrap and recovery without exposing usable key
+10. new-trust-domain recovery invalidates every former grant and session;
+11. a same-environment restore performs the required clone, replay, revocation,
+    session and signer security fix-up before readiness;
+12. synthetic trust recovery remains separate from evidence and business-data
+    recovery; and
+13. audit reconstructs bootstrap and recovery without exposing usable key
     material.
 
 Each supported deployment profile requires its own key-protection and recovery
@@ -318,6 +370,9 @@ evidence.
 - key generation, non-exportability and protected use by deployment profile;
 - root use restrictions, rotation, revocation and trust epochs;
 - protected backup, restore, clone detection and no-backup options;
+- separation and restore ordering for synthetic trust, security state, local
+  identity mappings, evidence and business data;
+- post-restore signer rotation, session termination and revalidation policy;
 - bootstrap transaction, reconciliation and destruction of partial material;
 - signer constraint and approval representation; and
 - public trust-record distribution and retention.
