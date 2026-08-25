@@ -3,6 +3,16 @@
 The architecture exists to support demonstrable public-purpose outcomes. It is
 not a catalogue of fashionable infrastructure.
 
+The agreed [conceptual architecture framework](framework-conceptual-overview.md)
+brings the Service Evidence Workbench, Scenario Director, presentation surfaces
+and common capabilities into one logical model. A shareable
+[PDF edition](public-purpose-lab-conceptual-architecture.pdf) is available for
+distribution.
+
+The [logical architecture overview](logical/README.md) starts the next level of
+design. It identifies every logical component and contract family and defines
+the order in which each will be documented and reviewed.
+
 ## Initial shape
 
 The first implementation should be a thin, end-to-end walking skeleton with as

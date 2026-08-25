@@ -3,6 +3,12 @@
 Public Purpose Lab is an early-stage, open-source-intended lab for trustworthy
 service integration and automation in charities and UK public services.
 
+At the start of a new session, read this file, `README.md`, `VISION.md`,
+`PRINCIPLES.md`, `TERMS-OF-REFERENCE.md` and the relevant scenario or
+architecture document. This public repository is authoritative for governance,
+scenarios and architecture direction; the private `site-publicpurposelab-org`
+repository owns website presentation and deployment.
+
 ## Before changing the repository
 
 - Read `VISION.md`, `PRINCIPLES.md`, `TERMS-OF-REFERENCE.md`, and the relevant
@@ -24,9 +30,16 @@ service integration and automation in charities and UK public services.
   idempotency, and versioned contracts.
 - Treat privacy, identity, policy, audit, observability, and failure behaviour as
   architecture, not later additions.
-- Use cREXX assets where they provide a clear fit for rules, transformations,
-  scenario automation, or integration logic. Do not mandate cREXX or introduce
-  it without documenting the value, trust boundary, and operational impact.
+- Treat cREXX as the preferred open implementation surface for inspectable
+  business rules, transformations and scenario scripting where those
+  responsibilities exist. It is not the mandated language for user interfaces,
+  general services, storage or infrastructure. Document the value, trust
+  boundary and operational impact of every integration, and document an
+  exception when a different rules/scripting surface is selected.
+- Map demonstrator components to the logical system blueprint maintained by
+  Architecture Portal, and return implementation evidence and lessons to that
+  blueprint. The private cross-portfolio direction is in
+  `../site-architectureportal-org/docs/portfolio-content-direction.md`.
 
 ## Working rules
 
