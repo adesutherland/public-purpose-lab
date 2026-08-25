@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "source": "docs/architecture/logical/README.md",
+  "components": [
+    {
+      "id": "UX-01",
+      "name": "Common frontend platform",
+      "group": "experience",
+      "maturity": "skeleton",
+      "contracts": ["C-005", "I-001", "I-005", "O-001"],
+      "repositoryPath": "frontend/packages/ui"
+    },
+    {
+      "id": "UX-02",
+      "name": "Service Evidence Workbench",
+      "group": "experience",
+      "maturity": "skeleton",
+      "contracts": [
+        "E-001",
+        "A-001",
+        "K-002",
+        "W-001",
+        "RP-001",
+        "RP-002",
+        "RP-003",
+        "RP-004",
+        "AN-002"
+      ],
+      "repositoryPath": "frontend/apps/workbench"
+    },
+    {
+      "id": "UX-03",
+      "name": "Director Console",
+      "group": "experience",
+      "maturity": "skeleton",
+      "contracts": [
+        "D-001",
+        "D-002",
+        "D-003",
+        "D-004",
+        "P-002",
+        "P-003",
+        "P-004",
+        "I-004",
+        "O-001"
+      ],
+      "repositoryPath": "frontend/apps/director"
+    },
+    {
+      "id": "UX-04",
+      "name": "Presentation Surface",
+      "group": "experience",
+      "maturity": "skeleton",
+      "contracts": ["P-001", "P-002", "P-003", "P-004", "I-005", "O-001"],
+      "repositoryPath": "frontend/apps/presentation"
+    },
+    {
+      "id": "CTL-01",
+      "name": "Scenario Director",
+      "group": "control",
+      "maturity": "planned",
+      "contracts": [
+        "D-001",
+        "D-002",
+        "D-003",
+        "D-004",
+        "P-003",
+        "I-004",
+        "AU-001"
+      ],
+      "repositoryPath": null
+    },
+    {
+      "id": "CTL-02",
+      "name": "Presentation Gateway and screen registry",
+      "group": "control",
+      "maturity": "planned",
+      "contracts": [
+        "P-001",
+        "P-002",
+        "P-003",
+        "P-004",
+        "I-002",
+        "I-005",
+        "O-001"
+      ],
+      "repositoryPath": null
+    },
+    {
+      "id": "IAM-01",
+      "name": "Identity, trust and synthetic session broker",
+      "group": "control",
+      "maturity": "skeleton",
+      "contracts": [
+        "I-001",
+        "I-002",
+        "I-003",
+        "I-004",
+        "I-005",
+        "C-002",
+        "AU-001"
+      ],
+      "repositoryPath": "backend/components/iam-01"
+    },
+    {
+      "id": "INT-01",
+      "name": "Interaction infrastructure and contract registry",
+      "group": "control",
+      "maturity": "skeleton",
+      "contracts": ["C-001", "C-002", "C-003", "C-004", "C-005", "C-006"],
+      "repositoryPath": "contracts"
+    },
+    {
+      "id": "DOM-01",
+      "name": "Engagement and domain records",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["E-001", "C-002", "C-004", "AU-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "CNT-01",
+      "name": "Assets, content and source staging",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["A-001", "A-002", "K-001", "C-004", "AU-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "KNO-01",
+      "name": "Knowledge, retrieval and evidence",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["K-001", "K-002", "C-004", "AU-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "WRK-01",
+      "name": "Work, case and workflow",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["W-001", "I-001", "R-001", "AU-001", "AN-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "RUL-01",
+      "name": "Rules, decisions and transformations",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["R-001", "C-002", "C-004", "AU-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "AIO-01",
+      "name": "Bounded AI and tool orchestration",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["AI-001", "K-002", "W-001", "C-004", "AU-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "RPT-01",
+      "name": "Reports, visualisations and diagrams",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": [
+        "RP-001",
+        "RP-002",
+        "RP-003",
+        "RP-004",
+        "K-002",
+        "AN-002",
+        "C-004"
+      ],
+      "repositoryPath": null
+    },
+    {
+      "id": "ADP-01",
+      "name": "Integration and adapters",
+      "group": "service",
+      "maturity": "planned",
+      "contracts": ["X-001", "C-001", "C-002", "C-003", "C-004", "AU-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "AUD-01",
+      "name": "Audit and provenance",
+      "group": "evidence",
+      "maturity": "planned",
+      "contracts": ["AU-001", "C-004"],
+      "repositoryPath": null
+    },
+    {
+      "id": "ANA-01",
+      "name": "Analytics and projections",
+      "group": "evidence",
+      "maturity": "planned",
+      "contracts": ["AN-001", "AN-002", "C-001"],
+      "repositoryPath": null
+    },
+    {
+      "id": "OPS-01",
+      "name": "Observability, operations and support",
+      "group": "evidence",
+      "maturity": "planned",
+      "contracts": ["O-001", "O-002", "C-003"],
+      "repositoryPath": null
+    },
+    {
+      "id": "PLT-01",
+      "name": "Platform and delivery",
+      "group": "evidence",
+      "maturity": "skeleton",
+      "contracts": ["L-001", "L-002", "I-003", "O-001", "O-002"],
+      "repositoryPath": "deploy"
+    }
+  ]
+}

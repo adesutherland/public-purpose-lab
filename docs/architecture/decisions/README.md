@@ -40,3 +40,4 @@ What evidence will validate or cause reconsideration of the decision?
 
 - [ADR-0001: Grow architecture from end-to-end scenarios](0001-grow-architecture-from-scenarios.md)
 - [ADR-0002: Use cREXX selectively](0002-use-crexx-selectively.md)
+- [ADR-0003: Establish a portable monorepo skeleton](0003-establish-a-portable-monorepo-skeleton.md)

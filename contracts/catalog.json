@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "source": "docs/architecture/logical/README.md",
+  "contracts": [
+    {
+      "id": "C-001",
+      "name": "Interaction envelope",
+      "group": "common",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "C-002",
+      "name": "Authority and purpose context",
+      "group": "common",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "C-003",
+      "name": "Command outcome and failure",
+      "group": "common",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "C-004",
+      "name": "Evidence reference",
+      "group": "common",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "C-005",
+      "name": "Component capability manifest",
+      "group": "common",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "C-006",
+      "name": "Contract compatibility descriptor",
+      "group": "common",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "D-001",
+      "name": "Scenario package",
+      "group": "demonstration",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "D-002",
+      "name": "Scenario lifecycle",
+      "group": "demonstration",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "D-003",
+      "name": "Reset, clock and fault control",
+      "group": "demonstration",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "D-004",
+      "name": "Readiness and checkpoint",
+      "group": "demonstration",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "P-001",
+      "name": "Presentation capability manifest",
+      "group": "presentation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "P-002",
+      "name": "Presentation surface registration",
+      "group": "presentation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "P-003",
+      "name": "Presentation cue",
+      "group": "presentation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "P-004",
+      "name": "Presentation cue outcome",
+      "group": "presentation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "I-001",
+      "name": "External human identity context",
+      "group": "identity",
+      "status": "working-draft",
+      "documentation": "docs/architecture/logical/contracts/identity/i-001-external-human-identity-context.md",
+      "schema": null
+    },
+    {
+      "id": "I-002",
+      "name": "Workload identity context",
+      "group": "identity",
+      "status": "working-draft",
+      "documentation": "docs/architecture/logical/contracts/identity/i-002-workload-identity-context.md",
+      "schema": null
+    },
+    {
+      "id": "I-003",
+      "name": "Synthetic trust bootstrap record",
+      "group": "identity",
+      "status": "working-draft",
+      "documentation": "docs/architecture/logical/contracts/identity/i-003-synthetic-trust-bootstrap-record.md",
+      "schema": null
+    },
+    {
+      "id": "I-004",
+      "name": "Demonstration sign-in grant",
+      "group": "identity",
+      "status": "working-draft",
+      "documentation": "docs/architecture/logical/contracts/identity/i-004-demonstration-sign-in-grant.md",
+      "schema": null
+    },
+    {
+      "id": "I-005",
+      "name": "Synthetic session outcome",
+      "group": "identity",
+      "status": "working-draft",
+      "documentation": "docs/architecture/logical/contracts/identity/i-005-synthetic-session-outcome.md",
+      "schema": null
+    },
+    {
+      "id": "E-001",
+      "name": "Engagement record command and fact",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "A-001",
+      "name": "Asset registration and acquisition",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "A-002",
+      "name": "Staged source release",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "K-001",
+      "name": "Knowledge ingestion",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "K-002",
+      "name": "Bounded evidence query and packet",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "W-001",
+      "name": "Work lifecycle",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "R-001",
+      "name": "Rule invocation and result",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "AI-001",
+      "name": "AI and tool execution",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "RP-001",
+      "name": "Report composition and release",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "RP-002",
+      "name": "Relationship graph definition and result",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "RP-003",
+      "name": "Analytical view request and artifact",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "RP-004",
+      "name": "Declarative diagram render",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "X-001",
+      "name": "Adapter action and delivery outcome",
+      "group": "service",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "AU-001",
+      "name": "Audit and provenance append and read",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "AN-001",
+      "name": "Projection definition and build",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "AN-002",
+      "name": "Analytical query and result",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "O-001",
+      "name": "Health and readiness",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "O-002",
+      "name": "Fault and recovery",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "L-001",
+      "name": "Component delivery manifest",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    },
+    {
+      "id": "L-002",
+      "name": "Environment profile and bootstrap",
+      "group": "operation",
+      "status": "planned",
+      "documentation": null,
+      "schema": null
+    }
+  ]
+}

@@ -43,43 +43,43 @@ updated together.
 
 ### Experience and presentation
 
-| ID | Component | Owned responsibility | Principal contract families |
-|---|---|---|---|
-| `UX-01` | Common frontend platform | Accessible design system, shell, navigation, session integration and shared interaction patterns. | `C-005`, `I-001`, `I-005`, `O-001` |
+| ID      | Component                  | Owned responsibility                                                                                           | Principal contract families                                        |
+| ------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `UX-01` | Common frontend platform   | Accessible design system, shell, navigation, session integration and shared interaction patterns.              | `C-005`, `I-001`, `I-005`, `O-001`                                 |
 | `UX-02` | Service Evidence Workbench | Practitioner and client interaction for engagements, assets, evidence, work, visualisation and report release. | `E-001`, `A-001`, `K-002`, `W-001`, `RP-001` to `RP-004`, `AN-002` |
-| `UX-03` | Director Console | Presenter controls and views for sessions, screens, checkpoints, readiness and failures. | `D-001` to `D-004`, `P-002` to `P-004`, `I-004`, `O-001` |
-| `UX-04` | Presentation Surface | A registered screen that resolves semantic views and applies authorised presentation cues. | `P-001` to `P-004`, `I-005`, `O-001` |
+| `UX-03` | Director Console           | Presenter controls and views for sessions, screens, checkpoints, readiness and failures.                       | `D-001` to `D-004`, `P-002` to `P-004`, `I-004`, `O-001`           |
+| `UX-04` | Presentation Surface       | A registered screen that resolves semantic views and applies authorised presentation cues.                     | `P-001` to `P-004`, `I-005`, `O-001`                               |
 
 ### Control, identity and interaction
 
-| ID | Component | Owned responsibility | Principal contract families |
-|---|---|---|---|
-| `CTL-01` | Scenario Director | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly. | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001` |
-| `CTL-02` | Presentation Gateway and screen registry | Surface registration, capability discovery, cue routing, expiry and acknowledgements. | `P-001` to `P-004`, `I-002`, `I-005`, `O-001` |
-| `IAM-01` | Identity, trust and synthetic session broker | External identity context, workload trust, environment synthetic root, bounded grants, roles and sessions. | `I-001` to `I-005`, `C-002`, `AU-001` |
-| `INT-01` | Interaction infrastructure and contract registry | Message carriage, schema and contract publication, compatibility evidence, delivery state and consumer coordination. | `C-001` to `C-006`, plus transport bindings for every public contract |
+| ID                                                                           | Component                                        | Owned responsibility                                                                                                 | Principal contract families                                           |
+| ---------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `CTL-01`                                                                     | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.           | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
+| `CTL-02`                                                                     | Presentation Gateway and screen registry         | Surface registration, capability discovery, cue routing, expiry and acknowledgements.                                | `P-001` to `P-004`, `I-002`, `I-005`, `O-001`                         |
+| [`IAM-01`](components/iam-01-identity-trust-and-synthetic-session-broker.md) | Identity, trust and synthetic session broker     | External identity context, workload trust, environment synthetic root, bounded grants, roles and sessions.           | `I-001` to `I-005`, `C-002`, `AU-001`                                 |
+| `INT-01`                                                                     | Interaction infrastructure and contract registry | Message carriage, schema and contract publication, compatibility evidence, delivery state and consumer coordination. | `C-001` to `C-006`, plus transport bindings for every public contract |
 
 ### Engagement, content, knowledge and work
 
-| ID | Component | Owned responsibility | Principal contract families |
-|---|---|---|---|
-| `DOM-01` | Engagement and domain records | Engagement purpose, authority, scope and authoritative organisational model. | `E-001`, `C-002`, `C-004`, `AU-001` |
-| `CNT-01` | Assets, content and source staging | Asset register, acquisition, quarantine, immutable versions, provenance, classification, rights and release to staging. | `A-001`, `A-002`, `K-001`, `C-004`, `AU-001` |
-| `KNO-01` | Knowledge, retrieval and evidence | Source passages, claims, relationships, ambiguity, conflicts, gaps and cited retrieval. | `K-001`, `K-002`, `C-004`, `AU-001` |
-| `WRK-01` | Work, case and workflow | Work identity, queues, responsibility, deadlines, escalation, completion and history. | `W-001`, `I-001`, `R-001`, `AU-001`, `AN-001` |
-| `RUL-01` | Rules, decisions and transformations | Bounded, versioned execution of explicit rules and transformations with explanations. | `R-001`, `C-002`, `C-004`, `AU-001` |
-| `AIO-01` | Bounded AI and tool orchestration | One controlled computational run across models, retrieval, tools and human-input steps. | `AI-001`, `K-002`, `W-001`, `C-004`, `AU-001` |
-| `RPT-01` | Reports, visualisations and diagrams | Definitions, previews and artifacts for reports, relationship graphs, analytical views and declarative diagrams. | `RP-001` to `RP-004`, `K-002`, `AN-002`, `C-004` |
-| `ADP-01` | Integration and adapters | Translation and isolation of authorised external or simulated interfaces. | `X-001`, `C-001` to `C-004`, `AU-001` |
+| ID       | Component                            | Owned responsibility                                                                                                    | Principal contract families                      |
+| -------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `DOM-01` | Engagement and domain records        | Engagement purpose, authority, scope and authoritative organisational model.                                            | `E-001`, `C-002`, `C-004`, `AU-001`              |
+| `CNT-01` | Assets, content and source staging   | Asset register, acquisition, quarantine, immutable versions, provenance, classification, rights and release to staging. | `A-001`, `A-002`, `K-001`, `C-004`, `AU-001`     |
+| `KNO-01` | Knowledge, retrieval and evidence    | Source passages, claims, relationships, ambiguity, conflicts, gaps and cited retrieval.                                 | `K-001`, `K-002`, `C-004`, `AU-001`              |
+| `WRK-01` | Work, case and workflow              | Work identity, queues, responsibility, deadlines, escalation, completion and history.                                   | `W-001`, `I-001`, `R-001`, `AU-001`, `AN-001`    |
+| `RUL-01` | Rules, decisions and transformations | Bounded, versioned execution of explicit rules and transformations with explanations.                                   | `R-001`, `C-002`, `C-004`, `AU-001`              |
+| `AIO-01` | Bounded AI and tool orchestration    | One controlled computational run across models, retrieval, tools and human-input steps.                                 | `AI-001`, `K-002`, `W-001`, `C-004`, `AU-001`    |
+| `RPT-01` | Reports, visualisations and diagrams | Definitions, previews and artifacts for reports, relationship graphs, analytical views and declarative diagrams.        | `RP-001` to `RP-004`, `K-002`, `AN-002`, `C-004` |
+| `ADP-01` | Integration and adapters             | Translation and isolation of authorised external or simulated interfaces.                                               | `X-001`, `C-001` to `C-004`, `AU-001`            |
 
 ### Evidence, learning and operation
 
-| ID | Component | Owned responsibility | Principal contract families |
-|---|---|---|---|
-| `AUD-01` | Audit and provenance | Append-oriented attribution, lineage, decision, access and release evidence. | `AU-001`, `C-004` and evidence-bearing outcomes from all components |
-| `ANA-01` | Analytics and projections | Versioned measures, reproducible projections and analytical query results. | `AN-001`, `AN-002`, accepted events through `C-001` |
-| `OPS-01` | Observability, operations and support | Health, logs, metrics, traces, alerts, failed-work visibility and recovery coordination. | `O-001`, `O-002`, `C-003` |
-| `PLT-01` | Platform and delivery | Builds, supply chain, environment bootstrap, configuration, secrets, persistence, backup, restore and deployment. | `L-001`, `L-002`, `I-003`, `O-001`, `O-002` |
+| ID       | Component                             | Owned responsibility                                                                                              | Principal contract families                                         |
+| -------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `AUD-01` | Audit and provenance                  | Append-oriented attribution, lineage, decision, access and release evidence.                                      | `AU-001`, `C-004` and evidence-bearing outcomes from all components |
+| `ANA-01` | Analytics and projections             | Versioned measures, reproducible projections and analytical query results.                                        | `AN-001`, `AN-002`, accepted events through `C-001`                 |
+| `OPS-01` | Observability, operations and support | Health, logs, metrics, traces, alerts, failed-work visibility and recovery coordination.                          | `O-001`, `O-002`, `C-003`                                           |
+| `PLT-01` | Platform and delivery                 | Builds, supply chain, environment bootstrap, configuration, secrets, persistence, backup, restore and deployment. | `L-001`, `L-002`, `I-003`, `O-001`, `O-002`                         |
 
 The current catalogue contains twenty logical components. An early local or
 hosted composition may implement several in one deployable unit, but it must
@@ -93,67 +93,70 @@ when different authority, delivery or compatibility rules require it.
 
 ### Common interaction contracts
 
-| ID | Working name | Main participants | Enduring purpose |
-|---|---|---|---|
-| `C-001` | Interaction envelope | All public-contract participants | Carries identity, type, version, issuer, audience, time, correlation, causation, idempotency, purpose, classification and security metadata. |
-| `C-002` | Authority and purpose context | `IAM-01` and every command receiver | States actor, role, delegated authority, environment, purpose and constraints used to authorise a request. |
-| `C-003` | Command outcome and failure | Every command receiver and caller | Reports acceptance, refusal, expiry, duplicate handling, failure and recovery ownership without inventing a business fact. |
-| `C-004` | Evidence reference | Evidence-producing and consuming components | Links a claim, action, rule, source, transformation, model step or release to retained evidence and provenance. |
-| `C-005` | Component capability manifest | User interfaces, gateways and components | Publishes stable semantic capabilities, contract versions, readiness dependencies and supported profiles without exposing internal implementation. |
-| `C-006` | Contract compatibility descriptor | `INT-01`, producers and consumers | Defines schema status, compatibility, deprecation, examples and conformance evidence. |
+| ID      | Working name                      | Main participants                           | Enduring purpose                                                                                                                                   |
+| ------- | --------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `C-001` | Interaction envelope              | All public-contract participants            | Carries identity, type, version, issuer, audience, time, correlation, causation, idempotency, purpose, classification and security metadata.       |
+| `C-002` | Authority and purpose context     | `IAM-01` and every command receiver         | States actor, role, delegated authority, environment, purpose and constraints used to authorise a request.                                         |
+| `C-003` | Command outcome and failure       | Every command receiver and caller           | Reports acceptance, refusal, expiry, duplicate handling, failure and recovery ownership without inventing a business fact.                         |
+| `C-004` | Evidence reference                | Evidence-producing and consuming components | Links a claim, action, rule, source, transformation, model step or release to retained evidence and provenance.                                    |
+| `C-005` | Component capability manifest     | User interfaces, gateways and components    | Publishes stable semantic capabilities, contract versions, readiness dependencies and supported profiles without exposing internal implementation. |
+| `C-006` | Contract compatibility descriptor | `INT-01`, producers and consumers           | Defines schema status, compatibility, deprecation, examples and conformance evidence.                                                              |
 
 ### Demonstration and presentation contracts
 
-| ID | Working name | Main participants | Enduring purpose |
-|---|---|---|---|
-| `D-001` | Scenario package | `CTL-01`, `PLT-01`, scenario components | Defines synthetic fixtures, actors, stages, commands, cues, checkpoints, reset scope and expected evidence. |
-| `D-002` | Scenario lifecycle | `UX-03`, `CTL-01`, participating components | Starts, pauses, resumes, stops and reports one Demonstration Session. |
-| `D-003` | Reset, clock and fault control | `CTL-01`, authorised test adapters and components | Applies bounded reset, synthetic time and approved failure injection without bypassing component ownership. |
-| `D-004` | Readiness and checkpoint | `CTL-01`, `OPS-01`, participating components | Reports prerequisites, observed progress and verifiable checkpoint outcomes. |
-| `P-001` | Presentation capability manifest | `UX-04`, `CTL-02` | Declares semantic views, accepted context, version and presentation constraints. |
-| `P-002` | Presentation surface registration | `UX-04`, `CTL-02`, `IAM-01` | Binds an authenticated screen and its capabilities to one Demonstration Session and screen role. |
-| `P-003` | Presentation cue | `CTL-01`, `CTL-02`, `UX-04` | Requests a short-lived semantic view without carrying a route or changing business state. |
-| `P-004` | Presentation cue outcome | `UX-04`, `CTL-02`, `CTL-01` | Reports applied, refused, unsupported, expired or failed cue handling. |
+| ID      | Working name                      | Main participants                                 | Enduring purpose                                                                                            |
+| ------- | --------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `D-001` | Scenario package                  | `CTL-01`, `PLT-01`, scenario components           | Defines synthetic fixtures, actors, stages, commands, cues, checkpoints, reset scope and expected evidence. |
+| `D-002` | Scenario lifecycle                | `UX-03`, `CTL-01`, participating components       | Starts, pauses, resumes, stops and reports one Demonstration Session.                                       |
+| `D-003` | Reset, clock and fault control    | `CTL-01`, authorised test adapters and components | Applies bounded reset, synthetic time and approved failure injection without bypassing component ownership. |
+| `D-004` | Readiness and checkpoint          | `CTL-01`, `OPS-01`, participating components      | Reports prerequisites, observed progress and verifiable checkpoint outcomes.                                |
+| `P-001` | Presentation capability manifest  | `UX-04`, `CTL-02`                                 | Declares semantic views, accepted context, version and presentation constraints.                            |
+| `P-002` | Presentation surface registration | `UX-04`, `CTL-02`, `IAM-01`                       | Binds an authenticated screen and its capabilities to one Demonstration Session and screen role.            |
+| `P-003` | Presentation cue                  | `CTL-01`, `CTL-02`, `UX-04`                       | Requests a short-lived semantic view without carrying a route or changing business state.                   |
+| `P-004` | Presentation cue outcome          | `UX-04`, `CTL-02`, `CTL-01`                       | Reports applied, refused, unsupported, expired or failed cue handling.                                      |
 
 ### Identity and trust contracts
 
-| ID | Working name | Main participants | Enduring purpose |
-|---|---|---|---|
-| `I-001` | External human identity context | External identity provider, `IAM-01`, authorised components | Supplies validated human identity, role and authority without exposing external credentials. |
-| `I-002` | Workload identity context | `PLT-01`, `IAM-01`, service components | Authenticates components and carries least-privilege workload authority. |
-| `I-003` | Synthetic trust bootstrap record | `PLT-01`, `IAM-01`, `AUD-01` | Records environment identity, root creation, trusted signers, rotation state and recovery boundary without exposing private keys. |
-| `I-004` | Demonstration sign-in grant | `CTL-01`, demonstration signer, `IAM-01` | Requests and issues a signed, short-lived, one-time, environment-bound grant for a named synthetic actor and surface. |
-| `I-005` | Synthetic session outcome | `IAM-01`, `CTL-02`, target application, `CTL-01` | Reports session establishment, refusal, expiry, replay, revocation and termination without exposing a usable credential. |
+| ID                                                                      | Working name                     | Main participants                                           | Enduring purpose                                                                                                                  |
+| ----------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [`I-001`](contracts/identity/i-001-external-human-identity-context.md)  | External human identity context  | External identity provider, `IAM-01`, authorised components | Supplies validated human identity, role and authority without exposing external credentials.                                      |
+| [`I-002`](contracts/identity/i-002-workload-identity-context.md)        | Workload identity context        | `PLT-01`, `IAM-01`, service components                      | Authenticates components and carries least-privilege workload authority.                                                          |
+| [`I-003`](contracts/identity/i-003-synthetic-trust-bootstrap-record.md) | Synthetic trust bootstrap record | `PLT-01`, `IAM-01`, `AUD-01`                                | Records environment identity, root creation, trusted signers, rotation state and recovery boundary without exposing private keys. |
+| [`I-004`](contracts/identity/i-004-demonstration-sign-in-grant.md)      | Demonstration sign-in grant      | `CTL-01`, demonstration signer, `IAM-01`                    | Requests and issues a signed, short-lived, one-time, environment-bound grant for a named synthetic actor and surface.             |
+| [`I-005`](contracts/identity/i-005-synthetic-session-outcome.md)        | Synthetic session outcome        | `IAM-01`, `CTL-02`, target application, `CTL-01`            | Reports session establishment, refusal, expiry, replay, revocation and termination without exposing a usable credential.          |
+
+The linked `IAM-01` and `I-001` to `I-005` specifications are working drafts;
+they define reviewable semantics but do not claim implementation or approval.
 
 ### Service and evidence contracts
 
-| ID | Working name | Main participants | Enduring purpose |
-|---|---|---|---|
-| `E-001` | Engagement record command and fact | `UX-02`, `DOM-01`, authorised service components | Creates and changes bounded engagement purpose, scope, participation and organisational facts. |
-| `A-001` | Asset registration and acquisition | `UX-02`, `CNT-01`, `ADP-01` | Registers a link or upload and reports acquisition, classification, quarantine, validation or refusal. |
-| `A-002` | Staged source release | `CNT-01`, authorised reviewer, `KNO-01` | Releases one immutable, validated source version for bounded knowledge processing. |
-| `K-001` | Knowledge ingestion | `CNT-01`, `KNO-01` | Requests and reports ingestion of a staged source while preserving provenance, conflict and processing status. |
-| `K-002` | Bounded evidence query and packet | `UX-02` or `AIO-01`, `KNO-01`, `RPT-01` | Returns cited passages, claims, relationships, ambiguity, gaps and limits for one bounded question. |
-| `W-001` | Work lifecycle | `UX-02`, domain components, `WRK-01`, `RUL-01` | Creates, allocates, claims, releases, escalates, completes or refuses durable work and reports accepted state changes. |
-| `R-001` | Rule invocation and result | Authorised components, `RUL-01`, `AUD-01` | Supplies defined facts and rule version and returns a bounded outcome, explanation and execution evidence. |
-| `AI-001` | AI and tool execution | `UX-02` or service component, `AIO-01`, providers and tools | Runs one bounded job and reports models, tools, inputs, outputs, limits, resource use, abstention and failure. |
-| `RP-001` | Report composition and release | `UX-02`, `RPT-01`, authorised releaser | Creates, previews, approves, releases, corrects or retracts a versioned evidence-linked report. |
-| `RP-002` | Relationship graph definition and result | `UX-02`, `RPT-01`, `DOM-01`, `KNO-01` | Defines and returns inspectable nodes, edges, lineage, evidence and view constraints. |
-| `RP-003` | Analytical view request and artifact | `UX-02`, `RPT-01`, `ANA-01` | Requests and renders a governed chart or table from a versioned analytical result. |
-| `RP-004` | Declarative diagram render | `UX-02`, `RPT-01` | Renders versioned diagram source and records renderer, inputs, output, evidence and release state. |
-| `X-001` | Adapter action and delivery outcome | Authorised component, `ADP-01`, simulated or external system | Translates an authorised action and reports external acceptance, refusal, delivery, partial completion or failure. |
+| ID       | Working name                             | Main participants                                            | Enduring purpose                                                                                                       |
+| -------- | ---------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `E-001`  | Engagement record command and fact       | `UX-02`, `DOM-01`, authorised service components             | Creates and changes bounded engagement purpose, scope, participation and organisational facts.                         |
+| `A-001`  | Asset registration and acquisition       | `UX-02`, `CNT-01`, `ADP-01`                                  | Registers a link or upload and reports acquisition, classification, quarantine, validation or refusal.                 |
+| `A-002`  | Staged source release                    | `CNT-01`, authorised reviewer, `KNO-01`                      | Releases one immutable, validated source version for bounded knowledge processing.                                     |
+| `K-001`  | Knowledge ingestion                      | `CNT-01`, `KNO-01`                                           | Requests and reports ingestion of a staged source while preserving provenance, conflict and processing status.         |
+| `K-002`  | Bounded evidence query and packet        | `UX-02` or `AIO-01`, `KNO-01`, `RPT-01`                      | Returns cited passages, claims, relationships, ambiguity, gaps and limits for one bounded question.                    |
+| `W-001`  | Work lifecycle                           | `UX-02`, domain components, `WRK-01`, `RUL-01`               | Creates, allocates, claims, releases, escalates, completes or refuses durable work and reports accepted state changes. |
+| `R-001`  | Rule invocation and result               | Authorised components, `RUL-01`, `AUD-01`                    | Supplies defined facts and rule version and returns a bounded outcome, explanation and execution evidence.             |
+| `AI-001` | AI and tool execution                    | `UX-02` or service component, `AIO-01`, providers and tools  | Runs one bounded job and reports models, tools, inputs, outputs, limits, resource use, abstention and failure.         |
+| `RP-001` | Report composition and release           | `UX-02`, `RPT-01`, authorised releaser                       | Creates, previews, approves, releases, corrects or retracts a versioned evidence-linked report.                        |
+| `RP-002` | Relationship graph definition and result | `UX-02`, `RPT-01`, `DOM-01`, `KNO-01`                        | Defines and returns inspectable nodes, edges, lineage, evidence and view constraints.                                  |
+| `RP-003` | Analytical view request and artifact     | `UX-02`, `RPT-01`, `ANA-01`                                  | Requests and renders a governed chart or table from a versioned analytical result.                                     |
+| `RP-004` | Declarative diagram render               | `UX-02`, `RPT-01`                                            | Renders versioned diagram source and records renderer, inputs, output, evidence and release state.                     |
+| `X-001`  | Adapter action and delivery outcome      | Authorised component, `ADP-01`, simulated or external system | Translates an authorised action and reports external acceptance, refusal, delivery, partial completion or failure.     |
 
 ### Audit, analytics and operating contracts
 
-| ID | Working name | Main participants | Enduring purpose |
-|---|---|---|---|
-| `AU-001` | Audit and provenance append and read | All evidence-producing components, `AUD-01`, authorised reviewers | Retains attributable, append-oriented evidence and supplies governed reconstruction views. |
-| `AN-001` | Projection definition and build | `ANA-01`, event producers, authorised analysts | Versions analytical inputs and calculations and builds reproducible projections from governed facts. |
-| `AN-002` | Analytical query and result | `UX-02`, `RPT-01`, `ANA-01` | Returns a versioned measure set with calculation, time basis, provenance and limitations. |
-| `O-001` | Health and readiness | Components, `OPS-01`, `CTL-01`, `PLT-01` | Reports software health, dependencies and readiness separately from business completion. |
-| `O-002` | Fault and recovery | Components, `OPS-01`, `PLT-01`, authorised operator | Records failure, containment, recovery ownership, action and verified restoration. |
-| `L-001` | Component delivery manifest | `PLT-01`, component owners, `OPS-01` | Identifies package, provenance, interfaces, configuration, dependencies, health checks and deployment evidence. |
-| `L-002` | Environment profile and bootstrap | `PLT-01`, `IAM-01`, operators | Defines local, portable, hosted or assurance profile configuration, synthetic-root creation, persistence and recovery boundaries. |
+| ID       | Working name                         | Main participants                                                 | Enduring purpose                                                                                                                  |
+| -------- | ------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `AU-001` | Audit and provenance append and read | All evidence-producing components, `AUD-01`, authorised reviewers | Retains attributable, append-oriented evidence and supplies governed reconstruction views.                                        |
+| `AN-001` | Projection definition and build      | `ANA-01`, event producers, authorised analysts                    | Versions analytical inputs and calculations and builds reproducible projections from governed facts.                              |
+| `AN-002` | Analytical query and result          | `UX-02`, `RPT-01`, `ANA-01`                                       | Returns a versioned measure set with calculation, time basis, provenance and limitations.                                         |
+| `O-001`  | Health and readiness                 | Components, `OPS-01`, `CTL-01`, `PLT-01`                          | Reports software health, dependencies and readiness separately from business completion.                                          |
+| `O-002`  | Fault and recovery                   | Components, `OPS-01`, `PLT-01`, authorised operator               | Records failure, containment, recovery ownership, action and verified restoration.                                                |
+| `L-001`  | Component delivery manifest          | `PLT-01`, component owners, `OPS-01`                              | Identifies package, provenance, interfaces, configuration, dependencies, health checks and deployment evidence.                   |
+| `L-002`  | Environment profile and bootstrap    | `PLT-01`, `IAM-01`, operators                                     | Defines local, portable, hosted or assurance profile configuration, synthetic-root creation, persistence and recovery boundaries. |
 
 The catalogue currently contains thirty-nine contract families. The first
 detailed pass will confirm whether each remains one family or separates into

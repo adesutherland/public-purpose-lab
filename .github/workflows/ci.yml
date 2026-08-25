@@ -1,0 +1,49 @@
+name: Build and check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Set up pnpm
+        run: npm install --global pnpm@11.19.0
+
+      - name: Set up Rust
+        run: |
+          rustup toolchain install 1.98.0 --profile minimal --component clippy,rustfmt
+          rustup default 1.98.0
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check source and contracts
+        run: pnpm check
+
+      - name: Build workspace
+        run: pnpm build
+
+      - name: Render Kubernetes base
+        run: kubectl kustomize deploy/kubernetes/base > /tmp/public-purpose-lab.yaml
+
+      - name: Build framework-host container
+        run: docker build --file deploy/containers/framework-host.Containerfile --tag ppl-framework-host:test .
+
+      - name: Build web container
+        run: docker build --file deploy/containers/web.Containerfile --tag ppl-web:test .
