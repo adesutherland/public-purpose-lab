@@ -1,0 +1,19 @@
+{
+  "contractId": "C-005",
+  "contractVersion": "1.0.0",
+  "componentId": "INT-01",
+  "componentName": "Interaction infrastructure and contract registry",
+  "releaseVersion": "0.1.0",
+  "maturity": "production-ready",
+  "generatedAt": "2030-08-25T12:00:00Z",
+  "supportedProfiles": ["development-assurance"],
+  "capabilities": [
+    {
+      "capabilityId": "interaction.conformance-probe",
+      "description": "Invalid maturity fixture",
+      "contracts": [{ "contractId": "C-001", "versions": ["1.0.0"] }]
+    }
+  ],
+  "readinessDependencies": [],
+  "evidence": []
+}

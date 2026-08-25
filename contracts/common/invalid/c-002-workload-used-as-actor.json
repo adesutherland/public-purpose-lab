@@ -1,0 +1,22 @@
+{
+  "contractId": "C-002",
+  "contractVersion": "1.0.0",
+  "environmentId": "env-local-001",
+  "requester": {
+    "principalType": "workload",
+    "principalId": "workload-framework-host",
+    "environmentId": "env-local-001",
+    "issuer": "issuer-local-assurance"
+  },
+  "actor": {
+    "principalType": "workload",
+    "principalId": "workload-improper-actor",
+    "environmentId": "env-local-001",
+    "issuer": "issuer-local-assurance"
+  },
+  "roles": ["interaction-assurance"],
+  "delegatedAuthority": ["C-001:submit"],
+  "purpose": { "code": "assurance.conformance" },
+  "constraints": {},
+  "policyVersion": "0.1.0"
+}

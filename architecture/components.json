@@ -106,9 +106,9 @@
       "id": "INT-01",
       "name": "Interaction infrastructure and contract registry",
       "group": "control",
-      "maturity": "skeleton",
+      "maturity": "in-development",
       "contracts": ["C-001", "C-002", "C-003", "C-004", "C-005", "C-006"],
-      "repositoryPath": "contracts"
+      "repositoryPath": "backend/components/int-01"
     },
     {
       "id": "DOM-01",

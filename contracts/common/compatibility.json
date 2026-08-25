@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "descriptors": [
+    "contracts/common/descriptors/c-001.json",
+    "contracts/common/descriptors/c-002.json",
+    "contracts/common/descriptors/c-003.json",
+    "contracts/common/descriptors/c-004.json",
+    "contracts/common/descriptors/c-005.json",
+    "contracts/common/descriptors/c-006.json"
+  ]
+}

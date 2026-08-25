@@ -1,18 +1,21 @@
 # Deployment skeleton
 
-The deployment skeleton proves that the current Rust host and browser surfaces
+The deployment baseline proves that the current Rust host and browser surfaces
 can be packaged in containers and arranged in a Kubernetes-compatible shape.
 It is not a production topology or security qualification.
 
 The initial deployment contains only:
 
-- a lifecycle-only Rust framework host; and
+- an in-development Rust framework host with the local M1 command/outcome
+  reference path and one declared state mount; and
 - one static web container serving the Workbench, Director and Presentation
   builds under separate paths.
 
-It deliberately has no event broker, workflow engine, database, vector store,
-identity provider, ingress, certificate authority, secrets or observability
-stack. Those additions require scenario evidence and architecture decisions.
+It deliberately has no network listener, event broker, workflow engine,
+database, vector store, identity provider, ingress, certificate authority,
+secrets or observability stack. The append journal prevents duplicate
+application for the single-host assurance adapter; it is not an authoritative
+audit store or distributed persistence choice.
 
 Build and run locally with an OCI-compatible Compose implementation:
 
@@ -27,7 +30,10 @@ Kubernetes base with:
 kubectl kustomize deploy/kubernetes/base
 ```
 
-The Kubernetes image names are placeholders for locally built or future
-registry images. Environment overlays, ingress, persistence and secret
-material will follow only when their contracts are approved. In particular,
-no synthetic root certificate is created by this skeleton.
+The Compose named volume persists the reference journal across container
+restart. The Kubernetes `emptyDir` preserves it across process/container
+restart in one Pod but not Pod replacement; that limitation is deliberate and
+visible. The image names are placeholders for locally built or future registry
+images. Environment overlays, ingress, qualified persistence and secret
+material follow only when their contracts are approved. No synthetic root
+certificate is created by this baseline.

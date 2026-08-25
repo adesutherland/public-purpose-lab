@@ -1,3 +1,5 @@
+import type { ComponentMaturity } from "@public-purpose-lab/contracts";
+
 export const surfaceIds = ["UX-02", "UX-03", "UX-04"] as const;
 
 export type SurfaceId = (typeof surfaceIds)[number];
@@ -7,6 +9,7 @@ export interface SurfaceDefinition {
   readonly eyebrow: string;
   readonly title: string;
   readonly purpose: string;
+  readonly maturity: ComponentMaturity;
   readonly actions: readonly string[];
   readonly evidence: readonly string[];
 }
@@ -18,6 +21,7 @@ export const surfaces: Readonly<Record<SurfaceId, SurfaceDefinition>> = {
     title: "Understand assets. Keep authority visible.",
     purpose:
       "A future workspace for linking and staging assets, asking evidence-bounded questions, and preparing reviewable reports, relationships and diagrams.",
+    maturity: "repository-skeleton",
     actions: [
       "Link or upload assets",
       "Review staged evidence",
@@ -35,6 +39,7 @@ export const surfaces: Readonly<Record<SurfaceId, SurfaceDefinition>> = {
     title: "Direct the story through governed events.",
     purpose:
       "A future control surface for preparing synthetic actors, advancing a scenario and observing outcomes without fragile browser-to-browser control.",
+    maturity: "repository-skeleton",
     actions: [
       "Prepare an environment",
       "Select a scenario",
@@ -52,6 +57,7 @@ export const surfaces: Readonly<Record<SurfaceId, SurfaceDefinition>> = {
     title: "Show outcomes without exposing control.",
     purpose:
       "A future audience-facing view that follows demonstration events and presents evidence, decisions and service outcomes clearly.",
+    maturity: "repository-skeleton",
     actions: [
       "Follow the demonstration",
       "Explain an outcome",

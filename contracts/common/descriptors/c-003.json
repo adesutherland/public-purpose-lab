@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-003",
+  "describedContractName": "Command outcome and failure",
+  "describedVersion": "1.0.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:C-003:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-25T00:00:00Z",
+  "examples": ["contracts/common/examples/c-003-accepted-outcome.json"],
+  "producerExpectations": [
+    "Distinguish delivery outcome from business completion and emit safe reason codes"
+  ],
+  "consumerExpectations": [
+    "Reconcile duplicates with the original outcome and obey explicit retryability"
+  ],
+  "evidence": []
+}

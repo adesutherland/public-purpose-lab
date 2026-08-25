@@ -7,12 +7,15 @@ use std::fmt;
 pub enum Maturity {
     /// A compilable boundary with no operational capability claim.
     RepositorySkeleton,
+    /// Executable behaviour with incomplete milestone or profile evidence.
+    InDevelopment,
 }
 
 impl fmt::Display for Maturity {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::RepositorySkeleton => formatter.write_str("repository-skeleton"),
+            Self::InDevelopment => formatter.write_str("in-development"),
         }
     }
 }
@@ -56,5 +59,10 @@ mod tests {
             descriptor.to_string(),
             "TST-01|Test component|repository-skeleton|T-001"
         );
+    }
+
+    #[test]
+    fn in_development_is_not_described_as_demonstrated() {
+        assert_eq!(Maturity::InDevelopment.to_string(), "in-development");
     }
 }

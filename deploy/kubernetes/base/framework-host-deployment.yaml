@@ -14,15 +14,22 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: framework-host
-          image: public-purpose-lab/framework-host:repository-skeleton
+          image: public-purpose-lab/framework-host:m1-baseline
           imagePullPolicy: IfNotPresent
           args:
             - serve
+          env:
+            - name: PPL_ENVIRONMENT_ID
+              value: env-kubernetes-assurance
+            - name: PPL_STATE_DIR
+              value: /var/lib/public-purpose-lab
           livenessProbe:
             exec:
               command:
@@ -50,3 +57,9 @@ spec:
               drop:
                 - ALL
             readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: interaction-state
+              mountPath: /var/lib/public-purpose-lab
+      volumes:
+        - name: interaction-state
+          emptyDir: {}

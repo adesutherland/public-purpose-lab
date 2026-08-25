@@ -218,5 +218,6 @@ than one scenario.
 Material architecture, privacy, security, licensing and scope choices are
 recorded as architecture decision records. The exact initial architecture will
 define component boundaries, interactions, information ownership, trust zones
-and deployment views. The implementation plan will then sequence delivery,
-tests and evidence without changing the business direction established here.
+and deployment views. The working
+[initial implementation plan](implementation-plan.md) sequences delivery, tests
+and evidence without changing the business direction established here.

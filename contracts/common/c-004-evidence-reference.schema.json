@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:C-004:1.0.0",
+  "title": "C-004 Evidence reference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "evidenceId",
+    "evidenceKind",
+    "ownerComponent",
+    "reference",
+    "createdAt",
+    "classification",
+    "retentionClass",
+    "accessPolicyRef"
+  ],
+  "properties": {
+    "contractId": { "const": "C-004" },
+    "contractVersion": { "const": "1.0.0" },
+    "evidenceId": { "$ref": "#/$defs/identifier" },
+    "evidenceKind": {
+      "enum": [
+        "source-version",
+        "processing-record",
+        "audit-record",
+        "decision-record",
+        "rule-execution",
+        "model-execution",
+        "released-artifact",
+        "conformance-result"
+      ]
+    },
+    "ownerComponent": { "$ref": "#/$defs/componentId" },
+    "reference": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 256,
+      "pattern": "^urn:public-purpose-lab:evidence:[A-Za-z0-9._:-]+$"
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "classification": {
+      "enum": ["public", "synthetic", "internal", "restricted-security"]
+    },
+    "mediaType": { "type": "string", "minLength": 3, "maxLength": 128 },
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "const": "sha-256" },
+        "value": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "sourceVersion": { "$ref": "#/$defs/identifier" },
+    "retentionClass": { "$ref": "#/$defs/name" },
+    "accessPolicyRef": { "$ref": "#/$defs/identifier" },
+    "predecessorEvidenceIds": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/identifier" }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "componentId": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,3}-[0-9]{2}$"
+    }
+  }
+}

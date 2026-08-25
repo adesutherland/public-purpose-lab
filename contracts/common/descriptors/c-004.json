@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-004",
+  "describedContractName": "Evidence reference",
+  "describedVersion": "1.0.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:C-004:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-25T00:00:00Z",
+  "examples": ["contracts/common/examples/c-004-journal-evidence.json"],
+  "producerExpectations": [
+    "Publish an opaque governed reference rather than inline evidence or secret material"
+  ],
+  "consumerExpectations": [
+    "Request evidence from its owner and do not infer read authority from the reference"
+  ],
+  "evidence": []
+}

@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "C-006",
+  "describedContractName": "Contract compatibility descriptor",
+  "describedVersion": "1.0.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:C-006:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-25T00:00:00Z",
+  "examples": ["contracts/common/examples/c-006-c-001-compatibility.json"],
+  "producerExpectations": [
+    "Assess schema and semantic compatibility and keep maturity explicit"
+  ],
+  "consumerExpectations": [
+    "Support only declared versions and refuse unknown compatibility states"
+  ],
+  "evidence": []
+}

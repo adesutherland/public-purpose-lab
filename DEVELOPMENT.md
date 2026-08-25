@@ -2,13 +2,17 @@
 
 ## Current status
 
-This repository contains a buildable framework skeleton, not an operational
-platform. It proves common packaging, presentation surfaces, architecture
-catalogues and deployment shapes while keeping unapproved technology choices
-out of the implementation.
+This repository contains a buildable framework with an M1 common-interaction
+reference path in development. It proves common packaging, presentation
+surfaces, architecture catalogues, strict common contracts, safe command
+outcomes and local idempotency/restart behaviour while keeping unapproved
+platform choices out of the implementation.
 
-The skeleton does not yet provide identity, synthetic sessions, events,
-workflow, persistence, retrieval, reporting, analytics or cREXX execution.
+The M1 adapter is a local assurance profile with no network listener. It does
+not authenticate its authority fixture and is not an event broker, API,
+production audit store or distributed delivery mechanism. The repository does
+not yet provide operational identity, synthetic sessions, workflow, business
+persistence, retrieval, reporting, analytics or cREXX execution.
 
 ## Prerequisites
 
@@ -40,15 +44,32 @@ Inspect the backend boundary with:
 ```sh
 cargo run --bin ppl-framework-host -- describe
 cargo run --bin ppl-framework-host -- healthcheck
+cargo run --bin ppl-framework-host -- manifest
 ```
 
-The `serve` command exists to qualify process and container lifecycle only; it
-does not expose a network service.
+Exercise the M1 command/outcome path with a temporary state directory and a
+fixed assurance clock:
+
+```sh
+PPL_M1_STATE="$(mktemp -d)"
+cargo run --bin ppl-framework-host -- process \
+  --state-dir "$PPL_M1_STATE" \
+  --environment-id env-local-001 \
+  --now 2030-08-25T12:01:00Z \
+  contracts/common/examples/c-001-m1-conformance-command.json
+```
+
+Repeat the command to observe a correlated duplicate outcome without a second
+operation. The configured state directory contains a privacy-minimised local
+journal; do not point it at a shared or authoritative data location. The
+`serve` command qualifies process and container lifecycle only and exposes no
+network service.
 
 ## Repository layout
 
 - `architecture/`: machine-readable component catalogue;
-- `contracts/`: machine-readable contract catalogue and future schemas;
+- `contracts/`: canonical schemas, examples, compatibility and conformance
+  fixtures;
 - `backend/`: Rust workspace and implemented component boundaries;
 - `frontend/`: browser surfaces and shared TypeScript UI;
 - `deploy/`: development containers, Compose and Kubernetes examples;
@@ -61,9 +82,11 @@ packages without asserting that every logical component is a service.
 ## Platform boundaries
 
 No infrastructure product is selected yet for events, workflow, identity,
-storage, retrieval, analytics or observability. Deployment examples therefore
-contain only the framework host and static browser surfaces. The same source
-builds on macOS, Linux and Windows; containers provide the common hosted form.
+storage, retrieval, analytics or observability. The M1 append journal is a
+single-host assurance binding, not that product selection. Deployment examples
+therefore contain only the framework host and static browser surfaces. The same
+source is intended to build on macOS, Linux and Windows; evidence from one host
+does not qualify another. Containers provide the common hosted form.
 
 cREXX remains the preferred future surface for appropriate inspectable rules,
 transformations and scenario scripting. It is excluded from this initial build

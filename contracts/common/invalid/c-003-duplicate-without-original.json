@@ -1,0 +1,12 @@
+{
+  "contractId": "C-003",
+  "contractVersion": "1.0.0",
+  "outcomeId": "outcome-invalid-duplicate-001",
+  "commandMessageId": "message-m1-conformance-001",
+  "status": "duplicate",
+  "code": "duplicate_delivery",
+  "summary": "Duplicate without its required original outcome reference.",
+  "retryable": false,
+  "completedAt": "2030-08-25T12:00:01Z",
+  "evidence": []
+}

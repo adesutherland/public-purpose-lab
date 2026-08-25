@@ -45,5 +45,26 @@ jobs:
       - name: Build framework-host container
         run: docker build --file deploy/containers/framework-host.Containerfile --tag ppl-framework-host:test .
 
+      - name: Exercise M1 container restart and idempotency
+        run: |
+          docker volume create ppl-m1-state
+          trap 'docker volume rm ppl-m1-state' EXIT
+          docker run --rm --read-only \
+            --volume ppl-m1-state:/var/lib/public-purpose-lab \
+            --volume "$PWD/contracts/common/examples:/fixtures:ro" \
+            --env PPL_ENVIRONMENT_ID=env-local-001 \
+            ppl-framework-host:test process \
+            --now 2030-08-25T12:01:00Z \
+            /fixtures/c-001-m1-conformance-command.json \
+            | grep '"status":"accepted"'
+          docker run --rm --read-only \
+            --volume ppl-m1-state:/var/lib/public-purpose-lab \
+            --volume "$PWD/contracts/common/examples:/fixtures:ro" \
+            --env PPL_ENVIRONMENT_ID=env-local-001 \
+            ppl-framework-host:test process \
+            --now 2030-08-25T12:01:00Z \
+            /fixtures/c-001-m1-conformance-command.json \
+            | grep '"status":"duplicate"'
+
       - name: Build web container
         run: docker build --file deploy/containers/web.Containerfile --tag ppl-web:test .

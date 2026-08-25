@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:C-006:1.0.0",
+  "title": "C-006 Contract compatibility descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "describedContractId",
+    "describedContractName",
+    "describedVersion",
+    "status",
+    "schemaId",
+    "compatibilityMode",
+    "effectiveFrom",
+    "examples",
+    "producerExpectations",
+    "consumerExpectations",
+    "evidence"
+  ],
+  "properties": {
+    "contractId": { "const": "C-006" },
+    "contractVersion": { "const": "1.0.0" },
+    "describedContractId": {
+      "type": "string",
+      "pattern": "^[A-Z]{1,2}-[0-9]{3}$"
+    },
+    "describedContractName": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "describedVersion": { "$ref": "#/$defs/version" },
+    "status": {
+      "enum": ["working-draft", "agreed", "implemented", "deprecated"]
+    },
+    "schemaId": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 256,
+      "pattern": "^urn:public-purpose-lab:contract:[A-Za-z0-9.:-]+$"
+    },
+    "compatibilityMode": { "enum": ["none", "backward"] },
+    "effectiveFrom": { "type": "string", "format": "date-time" },
+    "supersedes": { "$ref": "#/$defs/version" },
+    "supersededBy": { "$ref": "#/$defs/version" },
+    "examples": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 3, "maxLength": 256 }
+    },
+    "producerExpectations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "type": "string", "minLength": 3, "maxLength": 240 }
+    },
+    "consumerExpectations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "type": "string", "minLength": 3, "maxLength": 240 }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "urn:public-purpose-lab:contract:C-004:1.0.0" }
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    }
+  }
+}

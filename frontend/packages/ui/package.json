@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@public-purpose-lab/contracts": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
