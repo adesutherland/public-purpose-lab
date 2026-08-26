@@ -1,10 +1,10 @@
 # Framework security model
 
-Status: Working baseline — founder review required for M1 acceptance
+Status: Accepted M1 baseline
 
-Version: 0.1.0
+Version: 0.2.0
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 ## Purpose and baseline status
 
@@ -46,15 +46,16 @@ The framework must:
 
 ## Trust zones
 
-| Zone                 | Examples                                                                                      | Trust position                                                      | Required boundary                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| External             | Browsers, external identity providers, linked sources, model providers and simulated adapters | Untrusted until explicitly validated                                | Authenticated gateway or contained adapter; validation, purpose and classification   |
-| Presentation         | Workbench, Director Console and Presentation browser sessions                                 | Authenticated user interaction, never ambient component trust       | Backend authorisation; no direct event-broker, secret or private-store access        |
-| Component            | Rust services, cREXX workers and bounded adapters                                             | One identified workload acting within explicit contract authority   | Workload authentication, contract and audience checks, least privilege               |
-| Interaction          | Command/event carriage, registry and delivery state                                           | Carries claims; does not create trust or business authority         | Version validation, idempotency, correlation, refusal and privacy-minimised evidence |
-| Protected security   | Identity validation, signing, key custody, replay, revocation and session security state      | Highest restriction within one environment                          | Dedicated authority, non-routine access, protected recovery and no general export    |
-| Owned information    | Component records, source content, evidence, work, reports and analytical projections         | Authority and retention remain with the owning component            | No cross-component table access; governed contracts and separate recovery ownership  |
-| Platform and support | Build, configuration, runtime, telemetry, backup and operator facilities                      | Administrative capability, not business or synthetic-user authority | Named operator actions, separation of duties, least privilege and safe diagnostics   |
+| Zone                 | Examples                                                                                      | Trust position                                                                           | Required boundary                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| External             | Browsers, external identity providers, linked sources, model providers and simulated adapters | Untrusted until explicitly validated                                                     | Authenticated gateway or contained adapter; validation, purpose and classification               |
+| Presentation         | Workbench, Director Console and Presentation browser sessions                                 | Authenticated user interaction, never ambient component trust                            | Backend authorisation; no direct event-broker, secret or private-store access                    |
+| Component            | Rust services, cREXX workers and bounded adapters                                             | One identified workload acting within explicit contract authority                        | Workload authentication, contract and audience checks, least privilege                           |
+| Policy decision      | `AUT-01`, policy bundles and bounded authoritative attribute or relationship adapters         | Evaluates claims and policy; does not create identity, relationships or domain authority | Versioned policy, authoritative inputs, minimal disclosure, obligations and fail-closed outcomes |
+| Interaction          | Command/event carriage, registry and delivery state                                           | Carries claims; does not create trust or business authority                              | Version validation, idempotency, correlation, refusal and privacy-minimised evidence             |
+| Protected security   | Identity validation, signing, key custody, replay, revocation and session security state      | Highest restriction within one environment                                               | Dedicated authority, non-routine access, protected recovery and no general export                |
+| Owned information    | Component records, source content, evidence, work, reports and analytical projections         | Authority and retention remain with the owning component                                 | No cross-component table access; governed contracts and separate recovery ownership              |
+| Platform and support | Build, configuration, runtime, telemetry, backup and operator facilities                      | Administrative capability, not business or synthetic-user authority                      | Named operator actions, separation of duties, least privilege and safe diagnostics               |
 
 A private network, local process, Kubernetes namespace, service account, passing
 build or access to an event channel is not proof of identity or authority.
@@ -77,8 +78,9 @@ contexts remain independently attributable.
 
 ## Authority and purpose
 
-Authentication establishes a principal. It does not authorise an action. Every
-protected request carries or resolves:
+Authentication establishes a principal. It does not authorise an action.
+`AUT-01` evaluates shared access-control policy where required; it does not own
+the resulting domain action. Every protected request carries or resolves:
 
 - the requesting principal and, where applicable, the initiating actor;
 - the target component, audience and requested contract action;
@@ -87,27 +89,52 @@ protected request carries or resolves:
 - the policy/configuration version used to decide; and
 - correlation and evidence references.
 
-The receiving component owns the final authorisation decision. Intermediaries
-may narrow authority but cannot expand it. Missing, expired, incompatible,
-wrong-environment, wrong-audience or excessive authority is refused. A
-presentation cue never provides business authority.
+The receiving component is the policy-enforcement point and accountable owner
+of the action. A required `AUT-01` permit is necessary but not sufficient: the
+component may further restrict or refuse it but cannot override deny or
+indeterminate, ignore an applicable obligation or expand the evaluated
+authority. Intermediaries may narrow authority but cannot expand it. Missing,
+expired, incompatible, wrong-environment, wrong-audience, stale or excessive
+authority and required unavailable decision inputs are refused. A presentation
+cue never provides business authority.
 
 M1 validates the form and internal consistency of authority context in a local
 assurance profile. It does not authenticate a principal. M2 must bind those
 semantics to accepted human, workload and synthetic trust mechanisms before
 the same path can be exposed to an external caller.
 
+## Relationship, consent and exceptional access
+
+Relationship, consent, confidentiality restriction, organisation, purpose and
+legal or professional authority are distinct concepts. A required assertion is
+accepted only from an identified authoritative source with bounded subject and
+resource references, permitted purpose, effective and expiry times, version
+and status or revocation evidence. It is not self-asserted by a caller,
+frontend or Scenario Director.
+
+`AUT-01` receives only the minimum attributes or opaque evidence references
+needed for the decision. It does not copy complete personal, clinical, client
+or business records into the policy engine. A legitimate relationship does not
+itself establish consent, legal basis, professional authority or permission for
+every resource and action.
+
+Emergency or exceptional access is a separately named, authorised and
+time-bounded action. It requires an attributable actor, recorded reason, alert,
+enhanced audit and subsequent review. It is not an operator or administrator
+bypass. Initial demonstrations use synthetic relationship and consent data
+unless separate authority and governance are recorded.
+
 ## Information classes
 
 Every contract states an information level and one or more semantic categories.
 
-| Level                             | Current use                                                                    | Minimum handling                                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Public                            | Approved public documents, schemas and released public artifacts               | Rights and release state remain attributable                                                          |
-| Synthetic                         | Synthetic organisation, actor and scenario information                         | Environment scope, purpose, retention and visible synthetic marking                                   |
-| Internal                          | Configuration, unreleased analysis, operating evidence and support information | Authenticated least-privilege access and controlled disclosure                                        |
-| Restricted security               | Keys, credentials, raw grants, session secrets and detailed security state     | Protected boundary only; never a general message, log, fixture, analytical record or evidence payload |
-| Prohibited in the initial roadmap | Real personal, clinical, donor, employee or client-confidential information    | Refuse ingestion or processing unless separate authority and governance are recorded                  |
+| Level                             | Current use                                                                                                     | Minimum handling                                                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Public                            | Approved public documents, schemas and released public artifacts                                                | Rights and release state remain attributable                                                          |
+| Synthetic                         | Synthetic organisation, actor and scenario information                                                          | Environment scope, purpose, retention and visible synthetic marking                                   |
+| Internal                          | Configuration, bounded relationship assertions, unreleased analysis, operating evidence and support information | Authenticated least-privilege access, purpose limitation and controlled disclosure                    |
+| Restricted security               | Keys, credentials, raw grants, session secrets and detailed security state                                      | Protected boundary only; never a general message, log, fixture, analytical record or evidence payload |
+| Prohibited in the initial roadmap | Real personal, clinical, donor, employee or client-confidential information                                     | Refuse ingestion or processing unless separate authority and governance are recorded                  |
 
 Semantic categories distinguish source content, generated analysis, accepted
 findings, substantive evidence, released reports, operational telemetry and
@@ -168,8 +195,9 @@ tamper-evident and long-term evidence storage are not qualified by that binding.
 ## Audit, diagnostics and privacy
 
 Evidence records contain stable message and outcome references, principal type,
-irreversible principal and idempotency digests, contract version, result code,
-correlation and time. They do not retain the command payload, raw authority
+irreversible principal and idempotency digests, contract and policy version,
+safe decision and authoritative-attribute references, result code, correlation
+and time. They do not retain the command payload, raw authority or relationship
 assertion, credential, token, signed grant, cookie or private key.
 
 Logs and health views expose bounded reason codes and counts. They must not make
@@ -205,13 +233,23 @@ remain distinct states.
 7. No recovery silently clones a trust domain or loses replay/revocation
    continuity while remaining ready.
 8. No audit, analytical or presentation path can mutate operational truth.
+9. No caller, frontend, Scenario Director or policy engine can invent an
+   authoritative relationship or convert one into consent, legal basis or
+   professional authority.
+10. No receiver overrides a required authorisation deny or indeterminate
+    result; permit remains subject to current domain constraints and applicable
+    obligations.
 
 ## Acceptance and evolution
 
-M1 acceptance requires founder review of this model and the accompanying threat
-model, plus executable evidence for the M1 invariants. Later milestones extend
-the threat analysis for identity, source content, retrieval, AI, workflow,
-reporting and adapters.
+The founders accepted this model and the accompanying M1 threat model on 26
+August 2026 after adding the externalisable authorisation boundary. Executable
+M1 evidence covers the local interaction invariants; `AUT-01`, authoritative
+relationship sources and authenticated identity remain later implementation
+and conformance work.
+
+Later milestones extend the threat analysis for identity, authorisation,
+source content, retrieval, AI, workflow, reporting and adapters.
 
 A future implementation may replace the schema language, transport, journal or
 deployment binding. It must first demonstrate equivalent contract semantics,

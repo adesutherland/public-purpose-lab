@@ -6,7 +6,7 @@
       "id": "C-001",
       "name": "Interaction envelope",
       "group": "common",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/common/c-001-interaction-envelope.md",
       "schema": "contracts/common/c-001-interaction-envelope.schema.json"
     },
@@ -14,7 +14,7 @@
       "id": "C-002",
       "name": "Authority and purpose context",
       "group": "common",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/common/c-002-authority-and-purpose-context.md",
       "schema": "contracts/common/c-002-authority-and-purpose-context.schema.json"
     },
@@ -22,7 +22,7 @@
       "id": "C-003",
       "name": "Command outcome and failure",
       "group": "common",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/common/c-003-command-outcome-and-failure.md",
       "schema": "contracts/common/c-003-command-outcome-and-failure.schema.json"
     },
@@ -30,7 +30,7 @@
       "id": "C-004",
       "name": "Evidence reference",
       "group": "common",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/common/c-004-evidence-reference.md",
       "schema": "contracts/common/c-004-evidence-reference.schema.json"
     },
@@ -38,7 +38,7 @@
       "id": "C-005",
       "name": "Component capability manifest",
       "group": "common",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/common/c-005-component-capability-manifest.md",
       "schema": "contracts/common/c-005-component-capability-manifest.schema.json"
     },
@@ -46,7 +46,7 @@
       "id": "C-006",
       "name": "Contract compatibility descriptor",
       "group": "common",
-      "status": "working-draft",
+      "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/common/c-006-contract-compatibility-descriptor.md",
       "schema": "contracts/common/c-006-contract-compatibility-descriptor.schema.json"
     },
@@ -152,6 +152,14 @@
       "group": "identity",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-005-synthetic-session-outcome.md",
+      "schema": null
+    },
+    {
+      "id": "AZ-001",
+      "name": "Authorisation decision and obligations",
+      "group": "authorisation",
+      "status": "planned",
+      "documentation": null,
       "schema": null
     },
     {

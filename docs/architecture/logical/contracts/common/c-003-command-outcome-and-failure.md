@@ -1,6 +1,6 @@
 # C-003: Command outcome and failure
 
-Status: Working baseline
+Status: Accepted
 
 Version: 1.0.0
 

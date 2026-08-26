@@ -1,7 +1,8 @@
 # ADR-0006: Use a local journal for the M1 reference binding
 
-Status: Proposed
+Status: Accepted
 Date: 2026-08-25
+Accepted: 2026-08-26
 
 ## Context
 
@@ -36,8 +37,11 @@ separate service or select the future broker, database or audit store.
 
 ## Validation and review
 
-Founder review is required before acceptance. Validate safe first delivery,
+The founders accepted this M1 binding on 26 August 2026. Safe first delivery,
 duplicate delivery, conflicting reuse, concurrency, restart, expiry,
-corruption, disclosure and container lifecycle. Replace or extend this ADR
-before adding an external listener, event broker, multi-replica deployment or
-authoritative audit retention.
+corruption, unavailable state and disclosure passed the native suite. Hosted
+CI also passed the Linux build and two-container restart/idempotency check over
+one shared volume.
+
+Replace or extend this ADR before adding an external listener, event broker,
+multi-replica deployment or authoritative audit retention.

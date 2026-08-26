@@ -1,8 +1,8 @@
 # Security architecture
 
 Security is a framework responsibility rather than an identity-component
-appendix. These documents define the current baseline against which component
-contracts and implementation evidence are assessed.
+appendix. These documents define the accepted M1 baseline against which
+component contracts and implementation evidence are assessed.
 
 - [Framework security model](framework-security-model.md) — trust zones,
   principals, authority, information classes, recovery domains and enduring

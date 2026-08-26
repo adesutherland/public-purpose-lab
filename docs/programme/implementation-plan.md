@@ -2,7 +2,7 @@
 
 Status: Working draft
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 Decision authority: Public Purpose Lab founders
 
@@ -32,13 +32,16 @@ The repository currently provides:
 - the conceptual framework and working logical architecture;
 - a verified Rust and TypeScript repository, container and Kubernetes
   skeleton;
-- machine-readable catalogues for twenty logical components and thirty-nine
+- machine-readable catalogues for twenty-one logical components and forty
   contract families;
 - separate Workbench, Director and Presentation browser shells;
 - accepted `IAM-01` logical responsibilities and `I-001` to `I-005` contract
   semantics;
-- working-baseline `C-001` to `C-006` schemas, shared language types and an
-  in-development `INT-01` local assurance path; and
+- accepted `C-001` to `C-006` schemas and semantics, shared language types and
+  an in-development `INT-01` local assurance path;
+- an accepted `AUT-01` externalisable authorisation boundary with its
+  implementation and `AZ-001` contract deliberately planned for later work;
+  and
 - CI evidence for source checks, tests, builds, Kubernetes rendering and the
   two container images at their stated maturities.
 
@@ -137,12 +140,14 @@ show which component owns each decision and which evidence demonstrates the
 boundary. No passing build, private network, Kubernetes namespace or access to
 an event broker is treated as proof of trust.
 
-Before `M1` becomes an accepted runtime foundation, the founders review the
-framework security model and its principal threat cases. Before `M2` identity
-behaviour is accepted, conformance evidence must show that the selected
-bindings preserve that model. Later milestones extend the threat analysis when
-they introduce content, retrieval, AI, workflow, reporting or external
-adapters; they do not replace the foundation silently.
+The founders completed the `M1` review of the framework security model and its
+principal threat cases on 26 August 2026. Acceptance included an externalisable
+policy-decision boundary while preserving receiving-component enforcement and
+accountability. Before `M2` identity and authorisation behaviour is accepted,
+conformance evidence must show that the selected bindings preserve that model.
+Later milestones extend the threat analysis when they introduce content,
+retrieval, AI, workflow, reporting or external adapters; they do not replace
+the foundation silently.
 
 ## Milestone sequence
 
@@ -172,8 +177,7 @@ Evidence gate:
 
 ### M1 — Security model, common interaction and runtime spine
 
-Status: In development — native baseline implemented; founder review and CI
-container evidence pending
+Status: Complete — accepted development baseline on 26 August 2026
 
 Outcome: Components can exchange one versioned command, outcome and evidence
 reference through an inspectable, testable interaction boundary.
@@ -217,6 +221,21 @@ Exit evidence:
 - restart behaviour is demonstrated; and
 - the same conformance fixtures run against local and container-hosted forms.
 
+Closure evidence:
+
+- the founders accepted the framework security model, M1 threat model, common
+  contract semantics and ADRs `0004` to `0006` on 26 August 2026;
+- the approved externalisable authorisation boundary is recorded as `AUT-01`,
+  without selecting or claiming implementation of a product;
+- native checks and builds passed; and
+- hosted Linux and container CI passed, including accepted-then-duplicate
+  reconciliation across container restart.
+
+M1 closure accepts the architecture and development-assurance baseline. It does
+not change `INT-01` from `in-development` or qualify authentication, an external
+API, distributed delivery, authoritative audit retention, Windows, high
+availability or production security.
+
 ### M2 — Environment identity and synthetic access
 
 Status: Planned
@@ -229,8 +248,11 @@ Contract and architecture deliverables:
 - bind `I-001` to `I-005` to the accepted common contracts;
 - define schemas, examples and conformance fixtures for all five identity
   families;
+- specify `AZ-001` and bind required identity and session actions to the
+  accepted `AUT-01` decision/enforcement model;
 - record ADRs for the first supported environment identity, protected key,
-  signing, workload identity, session and recovery bindings; and
+  signing, workload identity, authorisation engine, authoritative attribute
+  sources, session and recovery bindings; and
 - define which deployment profiles support protected same-environment recovery
   and which explicitly rebuild with a new trust domain.
 
@@ -238,6 +260,8 @@ Implementation deliverables:
 
 - environment-specific synthetic trust bootstrap under `I-003`;
 - workload identity and least-privilege contract authority under `I-002`;
+- a bounded `AUT-01` decision path using synthetic relationship and consent
+  sources for the demonstration profile;
 - synthetic actor registry and role constraints;
 - signed, short-lived, single-use grants under `I-004`;
 - application-bound establishment, refusal, replay, termination and revocation
@@ -256,6 +280,8 @@ Exit evidence:
 - each grant and establishment operation creates at most one session despite
   duplicate delivery, restart or lost acknowledgement;
 - workload and synthetic-human identities cannot substitute for each other;
+- required deny, indeterminate, stale-relationship and unmet-obligation results
+  fail closed and cannot be overridden by the receiving component;
 - recovery performs the accepted security fix-up or establishes a new trust
   domain; and
 - no key, grant, credential or usable session value appears in a URL, event,

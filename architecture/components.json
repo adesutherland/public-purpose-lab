@@ -103,6 +103,14 @@
       "repositoryPath": "backend/components/iam-01"
     },
     {
+      "id": "AUT-01",
+      "name": "Policy decision and authorisation",
+      "group": "control",
+      "maturity": "planned",
+      "contracts": ["AZ-001", "C-002", "C-003", "C-004", "AU-001", "O-001"],
+      "repositoryPath": null
+    },
+    {
       "id": "INT-01",
       "name": "Interaction infrastructure and contract registry",
       "group": "control",

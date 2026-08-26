@@ -1,6 +1,6 @@
 # C-005: Component capability manifest
 
-Status: Working baseline
+Status: Accepted
 
 Version: 1.0.0
 

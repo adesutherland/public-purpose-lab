@@ -1,6 +1,6 @@
 # C-004: Evidence reference
 
-Status: Working baseline
+Status: Accepted
 
 Version: 1.0.0
 
