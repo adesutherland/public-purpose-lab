@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "backend/apps/framework-host",
+  "backend/components/aut-01",
   "backend/components/iam-01",
   "backend/components/int-01",
   "backend/crates/contracts",

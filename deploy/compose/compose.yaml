@@ -1,14 +1,42 @@
 name: public-purpose-lab
 
 services:
+  identity-setup:
+    build:
+      context: ../..
+      dockerfile: deploy/containers/framework-host.Containerfile
+    image: public-purpose-lab/framework-host:m2-baseline
+    command:
+      - iam-configure-demo
+    environment:
+      PPL_ENVIRONMENT_CLASS: local-scratch
+      PPL_INFORMATION_PROFILE: synthetic-only
+      PPL_STATE_DIR: /var/lib/public-purpose-lab
+      PPL_TRUST_PROFILE: local-synthetic
+    volumes:
+      - framework-state:/var/lib/public-purpose-lab
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
   framework-host:
     build:
       context: ../..
       dockerfile: deploy/containers/framework-host.Containerfile
-    image: public-purpose-lab/framework-host:m1-baseline
+    image: public-purpose-lab/framework-host:m2-baseline
+    depends_on:
+      identity-setup:
+        condition: service_completed_successfully
     environment:
       PPL_ENVIRONMENT_ID: env-compose-assurance
+      PPL_ENVIRONMENT_CLASS: local-scratch
+      PPL_INFORMATION_PROFILE: synthetic-only
+      PPL_INTERACTION_STATE_DIR: /var/lib/public-purpose-lab/int-01
+      PPL_REQUIRE_IDENTITY: "true"
       PPL_STATE_DIR: /var/lib/public-purpose-lab
+      PPL_TRUST_PROFILE: local-synthetic
     volumes:
       - framework-state:/var/lib/public-purpose-lab
     read_only: true

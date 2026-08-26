@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   commonContractVersions,
+  isSyntheticSessionOutcome,
   isCommandOutcome,
+  m2ContractVersions,
   type CommandOutcome,
   type ComponentCapabilityManifest,
   type InteractionEnvelope,
@@ -90,5 +92,29 @@ describe("common contract consumption", () => {
     } satisfies Pick<ComponentCapabilityManifest, "maturity">;
 
     expect(manifest.maturity).not.toBe("demonstrated");
+  });
+
+  it("publishes the complete M2 identity and authorisation version set", () => {
+    expect(Object.keys(m2ContractVersions)).toEqual([
+      "I-001",
+      "I-002",
+      "I-003",
+      "I-004",
+      "I-005",
+      "AZ-001",
+    ]);
+  });
+
+  it("narrows synthetic session outcomes without treating an unknown state as established", () => {
+    const outcome = {
+      contractId: "I-005",
+      contractVersion: "1.0.0",
+      outcomeId: "session-outcome-typescript-001",
+      status: "established",
+    };
+    expect(isSyntheticSessionOutcome(outcome)).toBe(true);
+    expect(isSyntheticSessionOutcome({ ...outcome, status: "logged-in" })).toBe(
+      false,
+    );
   });
 });

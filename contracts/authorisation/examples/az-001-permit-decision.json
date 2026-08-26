@@ -1,0 +1,17 @@
+{
+  "contractId": "AZ-001",
+  "contractVersion": "1.0.0",
+  "kind": "decision",
+  "decisionId": "authorisation-decision-001",
+  "requestId": "authorisation-request-001",
+  "status": "permit",
+  "reasonCode": "policy-permit",
+  "obligations": [
+    { "code": "mark-synthetic" },
+    { "code": "restrict-realm", "value": "realm-synthetic-demo" }
+  ],
+  "policyVersion": "1.0.0",
+  "decidedAt": "2030-08-26T10:00:00Z",
+  "validUntil": "2030-08-26T10:02:00Z",
+  "evidenceReferences": ["evidence-decision-001"]
+}

@@ -1,0 +1,21 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "I-004",
+  "describedContractName": "Demonstration sign-in grant",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:I-004:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-26T00:00:00Z",
+  "examples": [
+    "contracts/identity/examples/i-004-demonstration-sign-in-grant.json"
+  ],
+  "producerExpectations": [
+    "Sign every bounded claim and issue a short-lived single-use grant"
+  ],
+  "consumerExpectations": [
+    "Validate signature, environment, audience, binding, expiry and replay state in a protected backend"
+  ],
+  "evidence": []
+}

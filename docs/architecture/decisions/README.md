@@ -44,3 +44,7 @@ What evidence will validate or cause reconsideration of the decision?
 - [ADR-0004: Establish the framework security baseline](0004-establish-the-framework-security-baseline.md)
 - [ADR-0005: Use JSON Schema for the common contract baseline](0005-use-json-schema-for-the-common-contract-baseline.md)
 - [ADR-0006: Use a local journal for the M1 reference binding](0006-use-a-local-journal-for-the-m1-reference-binding.md)
+- [ADR-0007: Separate local-synthetic and managed trust profiles](0007-separate-local-synthetic-and-managed-trust-profiles.md)
+- [ADR-0008: Use Ed25519 and protected local state for the M2 reference trust binding](0008-use-ed25519-and-protected-local-state-for-the-m2-reference-trust-binding.md)
+- [ADR-0009: Use a bounded in-process policy adapter for the M2 reference path](0009-use-a-bounded-in-process-policy-adapter-for-the-m2-reference-path.md)
+- [ADR-0010: Use a locked local security journal and rebuild recovery for the M2 reference path](0010-use-a-locked-local-security-journal-and-rebuild-recovery-for-the-m2-reference-path.md)

@@ -1,19 +1,23 @@
 # I-003: Synthetic trust bootstrap record
 
-Status: Accepted
+Status: Accepted; M2 local-synthetic reference binding implemented
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 Owner: [`IAM-01`](../../components/iam-01-identity-trust-and-synthetic-session-broker.md)
 
 Semantic type: environment command, query and auditable trust-state fact
 
+Canonical schema:
+[`i-003-synthetic-trust-bootstrap-record.schema.json`](../../../../../contracts/identity/i-003-synthetic-trust-bootstrap-record.schema.json)
+
 ## Purpose
 
-`I-003` establishes and records the environment-local trust domain used only
+`I-003` establishes and records the environment-scoped trust domain used only
 for synthetic demonstration identities. Each environment setup creates a
-unique environment identity and a unique synthetic root within that
-environment's protected boundary.
+unique environment identity and either generates a local-synthetic root for an
+isolated scratch environment or obtains an environment-scoped signer under an
+approved managed root of trust.
 
 The contract records safe public and operational facts about creation,
 authorised signers, rotation, revocation and recovery. It never carries private
@@ -24,7 +28,7 @@ root or signer material.
 | Role                   | Participant                                  | Responsibility                                                                                                                |
 | ---------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Bootstrap coordinator  | `PLT-01`                                     | Creates or restores the environment and invokes the protected bootstrap operation exactly once for that environment identity. |
-| Protected key boundary | Environment key facility                     | Generates and uses root or subordinate private material without routine export.                                               |
+| Protected key boundary | Environment or managed key facility          | Generates and uses root or subordinate private material under the declared trust profile without routine export.              |
 | Trust owner            | `IAM-01`                                     | Verifies and records the trust domain, signer constraints, epochs and status.                                                 |
 | Evidence owner         | `AUD-01`                                     | Retains the safe bootstrap, rotation, revocation and recovery evidence.                                                       |
 | Operator               | Specifically authorised environment operator | Approves bootstrap, recovery and exceptional rotation actions without receiving private material.                             |
@@ -35,17 +39,17 @@ No external-human or workload path trusts it for its own purpose.
 
 ## Contract variants
 
-| Variant                          | Kind                | Purpose                                                                                                    |
-| -------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `BootstrapSyntheticTrust`        | Environment command | Creates the environment's first synthetic trust domain inside the protected boundary.                      |
-| `SyntheticTrustBootstrapped`     | Fact                | Records successful creation without private material.                                                      |
-| `GetSyntheticTrustStatus`        | Protected query     | Requests redacted readiness, epoch, signer and recovery status.                                            |
-| `SyntheticTrustStatus`           | Query response      | Supplies current safe trust-domain state.                                                                  |
-| `UpdateSyntheticSignerState`     | Operator command    | Adds, rotates, restricts or revokes an environment-local signer under approved policy.                     |
-| `SyntheticSignerStateChanged`    | Fact                | Records the accepted signer-state change.                                                                  |
-| `RecoverSyntheticTrust`          | Recovery command    | Restores the same protected environment trust or explicitly replaces it with a new trust domain.           |
-| `SyntheticTrustRecovered`        | Fact                | Records the recovery mode, resulting identity, epoch and invalidation boundary.                            |
-| `SyntheticTrustBootstrapRefused` | Command outcome     | Reports duplicate, unsafe, unauthorised or inconsistent bootstrap without creating a second root silently. |
+| Variant                          | Kind                | Purpose                                                                                                           |
+| -------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `BootstrapSyntheticTrust`        | Environment command | Establishes the environment's first synthetic trust domain under its declared local-synthetic or managed profile. |
+| `SyntheticTrustBootstrapped`     | Fact                | Records successful creation without private material.                                                             |
+| `GetSyntheticTrustStatus`        | Protected query     | Requests redacted readiness, epoch, signer and recovery status.                                                   |
+| `SyntheticTrustStatus`           | Query response      | Supplies current safe trust-domain state.                                                                         |
+| `UpdateSyntheticSignerState`     | Operator command    | Adds, rotates, restricts or revokes an environment-local signer under approved policy.                            |
+| `SyntheticSignerStateChanged`    | Fact                | Records the accepted signer-state change.                                                                         |
+| `RecoverSyntheticTrust`          | Recovery command    | Restores the same protected environment trust or explicitly replaces it with a new trust domain.                  |
+| `SyntheticTrustRecovered`        | Fact                | Records the recovery mode, resulting identity, epoch and invalidation boundary.                                   |
+| `SyntheticTrustBootstrapRefused` | Command outcome     | Reports duplicate, unsafe, unauthorised or inconsistent bootstrap without creating a second root silently.        |
 
 The command set is conceptual. Exact administrative APIs or automation require
 an ADR and operator threat model.
@@ -55,9 +59,10 @@ an ADR and operator threat model.
 Bootstrap requires:
 
 - a newly allocated, stable environment identifier;
+- a declared environment class and compatible trust profile;
 - an authenticated, authorised environment setup operation;
 - a protected key boundary appropriate to the deployment profile;
-- no existing active or partially established synthetic root for that
+- no existing active or partially established trust domain for that
   environment, unless using the explicit recovery variant;
 - persistent trust-state and replay-state locations with defined recovery; and
 - an audit path able to retain the safe result.
@@ -114,25 +119,31 @@ A recovery record states one of two modes:
 - `same-environment-restored` — the same environment identity and trust domain
   were restored from an explicitly protected source with replay and revocation
   continuity; or
-- `new-trust-domain-created` — a new environment identity or synthetic root was
-  created, and all former signers, grants and sessions are invalid.
+- `new-trust-domain-created` — a new environment identity and local root or
+  managed environment signer was established, and all former signers, grants
+  and sessions are invalid.
 
 ## Environment isolation invariants
 
 1. Every fresh environment creates a new environment identity and synthetic
-   root during setup.
-2. A root is never preloaded in source, image, installer, fixture or scenario
-   package.
-3. Root and signer private material remains inaccessible outside the
-   environment to the strongest protection reasonably available for that
-   profile.
-4. Another environment never accepts the root as a synthetic trust authority.
+   trust domain during setup. A local scratch profile generates a distinct
+   local-synthetic root; a managed profile obtains a distinct
+   environment-scoped signer under its approved managed anchor.
+2. A root or signer is never preloaded in source, image, installer, fixture or
+   scenario package.
+3. Root and signer private material receives the custody and non-exportability
+   required by the declared profile.
+4. Another environment never accepts the signer as authority for its synthetic
+   identities, including where both signers chain to one managed
+   organisational root.
 5. Copying configuration, data or actor display names does not copy the trust
    domain.
 6. A restored clone must either be the authorised continuation of the original
    environment or generate a new environment identity and root before use; it
    cannot operate concurrently as a second environment with the same trust.
 7. Synthetic trust never establishes external-human or workload trust.
+8. A local-synthetic profile is not ready for hosted, shared, production-like,
+   production or non-synthetic-data use and cannot be promoted by relabelling.
 
 ## Acceptance and refusal
 
@@ -144,6 +155,7 @@ Safe reason classes include:
 - `partial-bootstrap-detected`;
 - `protected-key-boundary-unavailable`;
 - `key-protection-insufficient`;
+- `trust-profile-incompatible`;
 - `persistence-not-ready`;
 - `audit-not-ready`;
 - `signer-constraint-invalid`;
@@ -195,8 +207,9 @@ Each deployment profile declares one of two supported postures:
   for the environment identity and synthetic trust material, together with a
   recoverable continuity point for trust epochs, signer status, grant replay,
   revocation and synthetic-session state; or
-- `rebuild-with-new-trust-domain` treats the private synthetic root as
-  non-recoverable and creates a new environment identity and root after loss.
+- `rebuild-with-new-trust-domain` treats the private local root or managed
+  environment signer as non-recoverable and establishes a new environment
+  identity and trust domain after loss.
 
 A protected recovery source is itself security-sensitive. Copying it must not
 create a second simultaneously valid environment, export private material
@@ -225,13 +238,14 @@ uploaded assets, business records, reports, provenance and substantive evidence
 owned by other components. Restoring or migrating that data does not restore
 the former synthetic trust domain. Conversely, an `I-003` recovery record does
 not prove that business or evidence data is complete, current or authorised for
-use. The synthetic root is not a business-data or evidence-encryption root;
-replacing it must not by itself disclose evidence or make retained evidence
-unrecoverable.
+use. The local root or managed environment signer is not a business-data or
+evidence-encryption root; replacing it must not by itself disclose evidence or
+make retained evidence unrecoverable.
 
 External identity-provider credentials are never included. Local mappings from
 external subjects and authority configuration may have their own protected
-configuration recovery, but remain separate from synthetic root material.
+configuration recovery, but remain separate from local-root or managed-signer
+material.
 Future environments authorised to hold real evidence require separately
 governed data-encryption-key, privacy, retention, backup and restore decisions.
 
@@ -266,6 +280,7 @@ Analytics cannot establish trust or determine current signer acceptance.
 
 Readiness covers:
 
+- environment class, active trust profile and their compatibility;
 - protected key-boundary availability;
 - consistency of environment identity, trust record and trust epoch;
 - signer validity and revocation data;
@@ -274,6 +289,11 @@ Readiness covers:
 - safe backup or declared no-backup recovery posture; and
 - audit path availability.
 
+Appropriate operations, readiness, support and evidence views display the
+active trust profile, safe issuer status, key-custody class, recovery posture,
+trust epoch and signer rotation or revocation readiness. `local-synthetic` is
+prominently identified without exposing key handles or secret locations.
+
 Diagnostics reveal only safe identifiers and state. They must not reveal key
 handles if those handles can assist unauthorised use, recovery-secret metadata,
 or protected backup locations.
@@ -281,15 +301,18 @@ or protected backup locations.
 ## Deployment considerations
 
 The same isolation invariant applies to local macOS, Linux, Windows, portable
-demonstration and hosted profiles. The strongest reasonably available
-environment-local protection may differ, and its limitations must be explicit
-in that profile's conformance evidence.
+demonstration and hosted profiles. Local-synthetic trust is permitted only for
+an isolated scratch environment using synthetic or approved public material.
+Hosted, shared, production-like, production or non-synthetic-data environments
+use a managed root of trust. The strongest protection available under the
+selected profile and its limitations are explicit in conformance evidence.
 
 Container images are immutable software artifacts, not an environment trust
-boundary. Root generation occurs during environment bootstrap after deployment,
-and persisted private material is held outside the image. A hosted replica set
-belongs to one environment trust domain; independent hosted environments do
-not share it.
+boundary. A local root is generated, or a managed environment signer is
+obtained, during bootstrap after deployment; persisted private material is held
+outside the image. A hosted replica set belongs to one environment trust
+domain. Independent hosted environments may share an upstream managed anchor
+but never an environment signer, audience or grant authority.
 
 ## Versioning and compatibility
 
@@ -335,8 +358,8 @@ The threat model must address:
 
 Evidence must show that:
 
-1. two independently bootstrapped environments have different environment
-   identities, roots and trust-domain identifiers;
+1. two independently bootstrapped local-synthetic environments have different
+   environment identities, roots and trust-domain identifiers;
 2. neither image, source, installer, fixture nor scenario package contains
    private or pre-generated root material;
 3. private material cannot be retrieved through documented application,
@@ -357,7 +380,13 @@ Evidence must show that:
 12. synthetic trust recovery remains separate from evidence and business-data
     recovery; and
 13. audit reconstructs bootstrap and recovery without exposing usable key
-    material.
+    material;
+14. local-synthetic trust is visible and fails readiness for any hosted,
+    shared, production-like, production or non-synthetic-data environment;
+15. managed environments refuse cross-environment grants even when their
+    signers chain to one managed organisational root; and
+16. moving to managed trust creates a new trust domain and invalidates former
+    grants and sessions.
 
 Each supported deployment profile requires its own key-protection and recovery
 evidence.
@@ -377,5 +406,7 @@ evidence.
 - signer constraint and approval representation; and
 - public trust-record distribution and retention.
 
-No decision may introduce a shared cross-environment synthetic root or package
-private trust material outside its environment.
+No decision may introduce a shared environment signer, cross-environment grant
+authority or packaged private trust material. Managed environments may share an
+upstream organisational anchor only while their issuing identities, audiences
+and grant acceptance remain environment-scoped.

@@ -36,21 +36,23 @@ The repository currently provides:
   contract families;
 - separate Workbench, Director and Presentation browser shells;
 - accepted `IAM-01` logical responsibilities and `I-001` to `I-005` contract
-  semantics;
+  semantics, with an accepted local-synthetic M2 reference binding;
 - accepted `C-001` to `C-006` schemas and semantics, shared language types and
   an in-development `INT-01` local assurance path;
 - an accepted `AUT-01` externalisable authorisation boundary with its
-  implementation and `AZ-001` contract deliberately planned for later work;
-  and
+  bounded in-process reference adapter and accepted `AZ-001` contract;
+- accepted local-synthetic and managed trust profiles, with managed trust
+  required for hosted, shared, production-like or non-synthetic-data use; and
 - CI evidence for source checks, tests, builds, Kubernetes rendering and the
   two container images at their stated maturities.
 
-The baseline does not provide operational identity, synthetic sessions, an
-event broker or external API, workflow, business persistence, retrieval,
-reporting, analytics or cREXX execution. The M1 local journal is limited
-delivery and audit evidence, not a general persistence capability. A source
-package, working contract or container is not evidence beyond its stated
-maturity and conformance profile.
+The baseline provides bounded local-synthetic identity and session assurance,
+but not external-human identity, managed trust, browser login, an event broker
+or external API, workflow, business persistence, retrieval, reporting,
+analytics or cREXX execution. The M1 and M2 local journals are limited security
+and delivery evidence, not general persistence capabilities. A source package,
+working contract or container is not evidence beyond its stated maturity and
+conformance profile.
 
 ## Delivery principles
 
@@ -125,6 +127,8 @@ The model must define at least:
   generated analysis, accepted findings, evidence and released reports;
 - key generation, secret custody, rotation, revocation, recovery and
   non-exportability expectations by deployment profile;
+- visible trust-profile classification and fail-closed compatibility between
+  the identity root, hosting/sharing model and information classification;
 - separation of identity/trust recovery, security-state recovery and evidence
   or business-data recovery;
 - protected command, event, API, browser and component-to-component boundaries;
@@ -143,11 +147,12 @@ an event broker is treated as proof of trust.
 The founders completed the `M1` review of the framework security model and its
 principal threat cases on 26 August 2026. Acceptance included an externalisable
 policy-decision boundary while preserving receiving-component enforcement and
-accountability. Before `M2` identity and authorisation behaviour is accepted,
-conformance evidence must show that the selected bindings preserve that model.
-Later milestones extend the threat analysis when they introduce content,
-retrieval, AI, workflow, reporting or external adapters; they do not replace
-the foundation silently.
+accountability. The accepted M2 local-synthetic conformance evidence shows that
+its reference identity and authorisation bindings preserve that model within
+their stated single-host boundary. Later milestones extend the threat analysis
+when they introduce event delivery, browser control, content, retrieval, AI,
+workflow, reporting or external adapters; they do not replace the foundation
+silently.
 
 ## Milestone sequence
 
@@ -238,7 +243,7 @@ availability or production security.
 
 ### M2 — Environment identity and synthetic access
 
-Status: Planned
+Status: Complete — accepted local-synthetic development-assurance baseline
 
 Outcome: One environment can establish workload trust and bounded synthetic
 application sessions using the accepted IAM semantics.
@@ -253,12 +258,16 @@ Contract and architecture deliverables:
 - record ADRs for the first supported environment identity, protected key,
   signing, workload identity, authorisation engine, authoritative attribute
   sources, session and recovery bindings; and
+- bind the accepted `local-synthetic` and `managed` profiles to environment
+  classification, readiness, operations and evidence contracts;
 - define which deployment profiles support protected same-environment recovery
   and which explicitly rebuild with a new trust domain.
 
 Implementation deliverables:
 
 - environment-specific synthetic trust bootstrap under `I-003`;
+- a local-synthetic binding for an isolated scratch profile and an explicit
+  fail-closed interface for a future managed-issuer binding;
 - workload identity and least-privilege contract authority under `I-002`;
 - a bounded `AUT-01` decision path using synthetic relationship and consent
   sources for the demonstration profile;
@@ -271,10 +280,13 @@ Implementation deliverables:
 - `I-001` external-human integration only after its provider and mapping ADR is
   approved; it does not block the synthetic demonstration path.
 
-Exit evidence:
+Local-synthetic exit evidence:
 
-- two environments generate unrelated synthetic roots;
+- two local-synthetic environments generate unrelated roots;
 - a grant from one environment is refused by the other;
+- local-synthetic trust is prominent in operational and evidence views and
+  cannot become ready in a hosted, shared, production-like, production or
+  non-synthetic-data environment;
 - different synthetic human actors can use different registered applications
   in one Demonstration Session;
 - each grant and establishment operation creates at most one session despite
@@ -287,41 +299,157 @@ Exit evidence:
 - no key, grant, credential or usable session value appears in a URL, event,
   log, trace, analytical record or evidence pack.
 
+Current implementation result:
+
+- canonical `I-001` to `I-005` and `AZ-001` schemas, positive/negative fixtures
+  and shared Rust/TypeScript types are in place;
+- the Rust host implements local-synthetic environment bootstrap, workload
+  authority, bounded policy decisions, signed grants, at-most-one session
+  establishment, termination, revocation and rebuild recovery;
+- native conformance exercises independent roots, cross-environment refusal,
+  concurrent duplicate delivery, restart reconciliation, stale assertion
+  refusal, obligation enforcement and journal disclosure checks;
+- Compose and Kubernetes examples initialise the local-synthetic profile before
+  readiness and expose its warning and limitations; and
+- a live Minikube run built the images without Docker Desktop, reached healthy
+  identity-required readiness, established a signed synthetic session, proved
+  duplicate reconciliation and generated a new trust domain after Pod
+  replacement.
+
+The founders accepted the M2 local-synthetic evidence and its stated limits on
+26 August 2026. M2 is therefore closed as an in-development reference baseline;
+component maturity is not promoted to demonstrated or production-ready.
+
+Managed trust and external-human identity are a separate future binding, not an
+unfinished local-synthetic mechanism. Before hosted, shared, production-like,
+production or non-synthetic-data use, that work must provide environment-bound
+managed signers, authenticated human and workload identities, protected
+persistence and recovery, cross-environment refusal and its own threat model,
+ADRs and qualification evidence. Until then those declarations remain
+fail-closed. `I-001` remains contract-complete but operationally unbound.
+
 ### M3 — Scenario Director and presentation control
 
-Status: Planned
+Status: Defined — architecture and implementation pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
 
+M3 establishes the demonstration-control plane. It does not implement the
+Workbench's asset, retrieval, workflow or reporting capabilities scheduled for
+later milestones. Its first executable scenario is deliberately small: one
+Director, at least two registered surface roles, named synthetic actors and a
+sequence of semantic cues, checkpoints and safe adverse cases.
+
+Logical responsibilities:
+
+| Responsibility                                                                                  | Owner                                             | M3 boundary                                                                                        |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Scenario package, Demonstration Session, lifecycle, controlled time, reset plan and checkpoints | `CTL-01` Scenario Director                        | Coordinates components but never owns their business data, identity decisions or approvals.        |
+| Surface capability, registration, binding, cue delivery and delivery outcome                    | `CTL-02` Presentation Gateway and screen registry | Knows semantic surface capabilities and safe bindings, not internal browser routes or credentials. |
+| Presenter controls, readiness, progress, refusal and recovery views                             | `UX-03` Director Console                          | A user interface over authorised `CTL-01` actions; it is not the authoritative scenario state.     |
+| Semantic view resolution and audience-facing presentation                                       | `UX-04` Presentation Surface                      | May change the current view; it cannot mutate business state or validate a sign-in grant.          |
+| Message semantics, correlation, compatibility and bounded delivery evidence                     | `INT-01`                                          | Carries versioned contracts; transport selection remains a replaceable binding.                    |
+| Presenter, workload, synthetic actor and application-session authority                          | `IAM-01` and `AUT-01`                             | Preserves the three identity paths and fail-closed receiving-component enforcement accepted in M2. |
+
+The initial physical composition may place `CTL-01` and `CTL-02` in one Rust
+deployable and share existing frontend packages. Their state, contracts and
+authority remain logically separate so evidence can justify a later split.
+
 Contract and architecture deliverables:
 
-- specify `CTL-01` and approve `D-001` to `D-004`;
-- specify `CTL-02` and approve `P-001` to `P-004`;
-- complete the relevant `UX-01`, `UX-03` and `UX-04` responsibilities; and
-- record ADRs for scenario packages, controlled time, reset, surface binding
-  and the first presentation-event binding.
+- specify `CTL-01` ownership, state, lifecycle, failure and recovery and approve
+  `D-001` Scenario Package, `D-002` Scenario Lifecycle, `D-003` Reset, Clock and
+  Fault Control and `D-004` Readiness and Checkpoint;
+- specify `CTL-02` ownership, state, binding, delivery and recovery and approve
+  `P-001` Presentation Capability Manifest, `P-002` Presentation Surface
+  Registration, `P-003` Presentation Cue and `P-004` Presentation Cue Outcome;
+- specify the relevant `UX-01`, `UX-03` and `UX-04` responsibilities,
+  including accessibility, reconnect, session visibility and safe failure;
+- extend the M2 threat model for presenter authority, surface impersonation,
+  cue injection, replay, route disclosure, cross-session delivery and
+  presentation/business-state confusion; and
+- record ADRs for scenario-package integrity, the first event transport and
+  delivery profile, presenter authentication, surface binding, controlled
+  time, reset/fault authority and restart recovery.
+
+Required interaction sequence:
+
+1. `CTL-01` validates a versioned scenario package and its required component,
+   actor, surface and evidence capabilities.
+2. `CTL-02` authenticates each surface workload or session, records its
+   `P-001` capabilities and binds it through `P-002` to one Demonstration
+   Session and screen role.
+3. `CTL-01` requests any required synthetic sign-in through the M2 identity
+   path; applications establish ordinary synthetic sessions without exposing
+   grants to browser content or URLs.
+4. An authorised presenter issues a `D-002` lifecycle action. `CTL-01` records
+   the outcome and emits separately authorised business commands where the
+   scenario requires business change.
+5. `CTL-01` emits a short-lived `P-003` semantic cue. `CTL-02` routes it to the
+   named registered surface, which resolves the semantic view locally and
+   returns `P-004`.
+6. `CTL-01` evaluates `D-004` checkpoints from observed facts. Presentation
+   progress, software readiness and business completion remain separate.
 
 Implementation deliverables:
 
-- versioned scenario packages and synthetic actor fixtures;
-- start, pause, resume, stop, reset and checkpoint handling;
-- authenticated surface registration and capability discovery;
-- short-lived semantic presentation cues and explicit outcomes;
+- one versioned assurance scenario package with synthetic actor, surface,
+  lifecycle, cue, checkpoint and reset fixtures;
+- durable single-instance start, pause, resume, stop, reset and checkpoint
+  handling with idempotent commands and explicit outcomes;
+- one replaceable event-transport binding that uses the accepted common
+  envelopes and can run locally and in Kubernetes without treating Kubernetes
+  Events as the application message bus;
+- authenticated, expiring surface registration and capability discovery with
+  reconnect and stale-binding handling;
+- short-lived semantic presentation cues and applied, refused, unsupported,
+  expired and failed outcomes;
 - Director views for readiness, progress, refusal and failure;
 - Presentation views that resolve cues without receiving business authority;
-  and
-- multi-actor synthetic sign-in across the scenario's registered surfaces.
+- multi-actor synthetic sign-in across the scenario's registered surfaces;
+- bounded operational status and an evidence record for lifecycle, cue and
+  checkpoint outcomes without credentials or usable session values; and
+- local-container and Minikube deployment examples using the common M1/M2
+  components and security posture.
+
+Delivery sequence:
+
+1. **M3.1 — contracts and threats:** approve the `CTL-01`, `D-001` to `D-004`
+   and M3 threat-model baseline.
+2. **M3.2 — presentation binding:** approve `CTL-02`, `P-001` to `P-004` and
+   the event, presenter-authentication and surface-binding ADRs.
+3. **M3.3 — runtime walking skeleton:** implement one Director/runtime,
+   registry and Presentation Surface path with lifecycle, cue and outcome.
+4. **M3.4 — identity and resilience:** integrate M2 synthetic sign-in,
+   reconnect, duplicate, expiry, restart, reset and safe-failure cases.
+5. **M3.5 — demonstration evidence:** run the repeatable local and Minikube
+   scenario, record limitations and present the baseline for founder review.
 
 Exit evidence:
 
 - the scenario can be repeated from a known reset state;
-- Director restart or screen refresh does not corrupt business or session
-  state;
+- only an authenticated and authorised presenter/workload can control a
+  Demonstration Session, and a surface cannot register into another session;
+- Director restart, gateway restart, screen refresh and reconnect do not
+  corrupt business or synthetic-session state;
 - delayed, duplicate, expired and unsupported cues produce safe outcomes;
-- no cue carries a route, credential or hidden business-state mutation; and
+- a cue is resolved by semantic capability and no cue, event, evidence record
+  or browser history carries a route, grant, credential or usable session
+  value;
+- presentation cues cannot produce hidden business-state mutation and business
+  commands remain separately authorised and enforced by their owners;
+- reset, controlled time and fault actions affect only their approved scope and
+  are visible in evidence;
 - checkpoints distinguish presentation progress, software health and business
-  completion.
+  completion; and
+- the same package supports live demonstration and automated adverse-case
+  evidence in local-container and Minikube profiles.
+
+M3 does not deliver Workbench asset handling, RAG, workflow, domain reporting,
+managed identity, real data, multi-tenant operation, high availability or
+production browser-session security. Those capabilities remain in later
+milestones or require separately qualified bindings.
 
 ### M4 — Governed source and evidence workbench
 

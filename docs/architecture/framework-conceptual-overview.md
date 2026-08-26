@@ -45,20 +45,21 @@ decisions.
 
 ## Core concepts
 
-| Concept                               | Meaning                                                                                                                                                                               |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Service Evidence Workbench**        | The productive practitioner and client surface for engagements, assets, analysis, governed work, visualisation and evidence-linked reporting.                                         |
-| **Scenario Director**                 | The control component that prepares, starts, pauses, resets and observes synthetic scenarios, issues authorised commands and verifies checkpoints. It does not make domain decisions. |
-| **Director Console**                  | The presenter-facing user interface to the Scenario Director.                                                                                                                         |
-| **Presentation Surface**              | A registered screen or browser session that can apply semantic presentation cues and display a component view without exposing its routes to the Director.                            |
-| **Demonstration Session**             | A bounded, identified execution that links scenario state, synthetic users, screens, commands, events, evidence and reset behaviour.                                                  |
-| **Presentation Cue**                  | A short-lived, typed request to show a named business view or state. It describes intent, not a URL or browser action.                                                                |
-| **Demonstration Sign-In Grant**       | A signed, short-lived and single-use request for a registered surface to establish a session as an authorised synthetic user. It is not a password or reusable bearer credential.     |
-| **Policy decision and authorisation** | A shared, externalisable capability that evaluates versioned access-control policy while leaving enforcement and the protected business action with the receiving component.          |
-| **Asset**                             | A registered document, policy, guidance item, system description, data extract, note or link with ownership, provenance, classification and lifecycle.                                |
-| **Evidence**                          | Traceable material connecting a source, action, transformation, rule, model-assisted step or human decision to a finding or output.                                                   |
-| **Work item**                         | A durable assignment to a person or role with authority, state, deadlines, outcomes and history.                                                                                      |
-| **Semantic view**                     | A stable presentation capability such as `engagement.asset-register` or `work.queue`, resolved by the receiving component to its current interface.                                   |
+| Concept                               | Meaning                                                                                                                                                                                                    |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Service Evidence Workbench**        | The productive practitioner and client surface for engagements, assets, analysis, governed work, visualisation and evidence-linked reporting.                                                              |
+| **Scenario Director**                 | The control component that prepares, starts, pauses, resets and observes synthetic scenarios, issues authorised commands and verifies checkpoints. It does not make domain decisions.                      |
+| **Director Console**                  | The presenter-facing user interface to the Scenario Director.                                                                                                                                              |
+| **Presentation Surface**              | A registered screen or browser session that can apply semantic presentation cues and display a component view without exposing its routes to the Director.                                                 |
+| **Demonstration Session**             | A bounded, identified execution that links scenario state, synthetic users, screens, commands, events, evidence and reset behaviour.                                                                       |
+| **Presentation Cue**                  | A short-lived, typed request to show a named business view or state. It describes intent, not a URL or browser action.                                                                                     |
+| **Demonstration Sign-In Grant**       | A signed, short-lived and single-use request for a registered surface to establish a session as an authorised synthetic user. It is not a password or reusable bearer credential.                          |
+| **Policy decision and authorisation** | A shared, externalisable capability that evaluates versioned access-control policy while leaving enforcement and the protected business action with the receiving component.                               |
+| **Trust profile**                     | The declared assurance class for an environment's identity root and signer custody: `local-synthetic` for isolated scratch use or `managed` for hosted, shared, production-like or non-synthetic-data use. |
+| **Asset**                             | A registered document, policy, guidance item, system description, data extract, note or link with ownership, provenance, classification and lifecycle.                                                     |
+| **Evidence**                          | Traceable material connecting a source, action, transformation, rule, model-assisted step or human decision to a finding or output.                                                                        |
+| **Work item**                         | A durable assignment to a person or role with authority, state, deadlines, outcomes and history.                                                                                                           |
+| **Semantic view**                     | A stable presentation capability such as `engagement.asset-register` or `work.queue`, resolved by the receiving component to its current interface.                                                        |
 
 ## Architecture principles
 
@@ -81,33 +82,39 @@ decisions.
    the protected action; permit is necessary where required, but not
    sufficient.
 6. **Synthetic identity is visibly and environmentally isolated.** Each
-   environment has its own synthetic trust root, users, roles and data realm.
-   Reusing an actor name in another environment does not create the same
-   security principal or allow trust to cross between them.
-7. **One logical architecture, several deployment profiles.** Local and hosted
+   environment has its own trust domain, environment-scoped signer, synthetic
+   users, roles and data realm. Reusing an actor name in another environment
+   does not create the same security principal or allow trust to cross between
+   them.
+7. **Trust assurance matches the environment.** A local synthetic root is
+   permitted only for an isolated scratch environment. Hosted, shared,
+   production-like, production or non-synthetic-data environments require a
+   managed root of trust. The active profile is visible and an insufficient
+   profile fails readiness.
+8. **One logical architecture, several deployment profiles.** Local and hosted
    forms share concepts, contracts, policy and evidence expectations.
-8. **Logical boundaries precede physical separation.** Early deployments may
+9. **Logical boundaries precede physical separation.** Early deployments may
    combine responsibilities, but ownership, interfaces, trust and failure
    behaviour remain explicit.
-9. **Evidence is designed in.** Provenance, correlation, decisions, failure,
-   recovery, model use and human release are reconstructable across an
-   end-to-end path.
-10. **Operational truth and analytics are distinct.** Components own business
+10. **Evidence is designed in.** Provenance, correlation, decisions, failure,
+    recovery, model use and human release are reconstructable across an
+    end-to-end path.
+11. **Operational truth and analytics are distinct.** Components own business
     state; analytical projections are reproducible interpretations of events and
     records, not a back door for changing them.
-11. **Sources, generated analysis and approved decisions remain distinct.** A
+12. **Sources, generated analysis and approved decisions remain distinct.** A
     retrieved passage or generated finding cannot silently become active policy
     or operational fact.
-12. **Human authority remains visible.** Consequential release, approval,
+13. **Human authority remains visible.** Consequential release, approval,
     refusal, escalation and override are attributable to an authorised person.
-13. **Replaceable implementations.** Identity providers, authorisation engines,
+14. **Replaceable implementations.** Identity providers, authorisation engines,
     event transports,
     stores, model providers, diagram renderers and deployable units may change
     without changing the enduring responsibility model.
-14. **Security, privacy and operability are component behaviour.** Purpose,
+15. **Security, privacy and operability are component behaviour.** Purpose,
     classification, least privilege, retention, health and recovery are part of
     every contract rather than later platform additions.
-15. **Reuse follows evidence.** Public Purpose Lab applies the Architecture
+16. **Reuse follows evidence.** Public Purpose Lab applies the Architecture
     Portal blueprint, tests it through scenarios, and offers reusable contracts
     and lessons back to the portfolio without overstating their maturity.
 
@@ -280,22 +287,23 @@ The framework has three deliberately separate identity paths:
 The event infrastructure must support a signed `Demonstration Sign-In Grant`
 with these enduring properties:
 
-1. Environment setup creates a unique environment identity and a dedicated
-   synthetic root certificate and key pair inside that environment. The root
-   is not imported from or reused by another local, demonstration or hosted
-   environment.
-2. Root and signing private keys remain inaccessible outside the environment
-   to the strongest protection reasonably available on that platform,
-   preferably through non-exportable or environment-managed key storage. They
-   are never included in application images, scenario packs, source control,
-   logs or routine exports.
-3. The root certificate is distributed only where needed as the environment's
-   trust anchor. Although the public certificate is not secret, no other
-   environment accepts it as a synthetic identity authority. Subordinate or
-   leaf signers can be restricted, rotated and revoked independently.
+1. Environment setup creates a unique environment identity and establishes the
+   declared trust profile. An isolated local scratch environment may generate a
+   `local-synthetic` root. A hosted, shared, production-like, production or
+   non-synthetic-data environment obtains an environment-scoped signing
+   identity under an accountable `managed` root of trust.
+2. Root and signing private keys receive the protection required by the active
+   profile. They are never included in application images, scenario packs,
+   source control, logs or routine exports. A local-synthetic root is not
+   promoted into a managed root by configuration or relabelling.
+3. Public trust material is distributed only where needed. Independent local
+   environments do not reuse a root. Managed environments may chain to one
+   organisational root, but environment and audience binding prevents either
+   environment from accepting the other's grants. Subordinate or leaf signers
+   remain independently constrained, rotated and revoked.
 4. The Scenario Director requests the grant through a separately controlled
-   demonstration signing authority. That authority signs it with an identity
-   chained to the environment's synthetic root.
+   demonstration signing authority. That authority signs it with the
+   environment-scoped identity permitted by the active trust profile.
 5. The grant identifies its issuer and environment, target application and
    surface, Demonstration Session, synthetic user and role, issued and valid
    times, unique nonce, purpose and correlation context.
@@ -317,6 +325,13 @@ with these enduring properties:
 10. Acceptance, refusal, expiry, replay, revocation and session termination are
     auditable facts available to the Director and support views without exposing
     credential material.
+
+The active trust profile, environment class, safe issuer status, recovery class
+and signer readiness are visible in appropriate operations, readiness, support
+and evidence views. `local-synthetic` is prominently identified. A profile
+weaker than the declared hosting, sharing or information classification makes
+the identity path not ready. A managed root does not make a synthetic actor an
+external human or allow synthetic access to a non-synthetic data realm.
 
 The detailed certificate profile, signing service, transport, session binding,
 key custody, rotation and revocation mechanisms require a threat model and an
@@ -477,12 +492,12 @@ contracts rather than depend on an Open BPM database or user interface.
 
 The framework supports these deployment profiles:
 
-| Profile                       | Purpose                                                                                   | Expected shape                                                                                                                                |
-| ----------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Local private**             | Practitioner work, privacy-sensitive analysis and development on macOS, Linux or Windows. | A small container composition, local web interface and local persistence; optional authorised local or user-owned model providers.            |
-| **Portable demonstration**    | Repeatable, resettable presentation without fragile external navigation dependencies.     | The same core composition plus Director, Presentation Gateway, synthetic identity trust, scenario packs and prepared synthetic data.          |
-| **Hosted demonstrator**       | Shared demonstrations, collaboration and production-like operating evidence.              | Kubernetes-compatible workloads with managed ingress, identity, workload trust, persistence, secrets, policy, telemetry, backup and recovery. |
-| **Development and assurance** | Contract testing, failure injection, threat testing and component qualification.          | Deterministic fixtures, simulators, conformance suites and observable component boundaries.                                                   |
+| Profile                       | Purpose                                                                                   | Expected shape                                                                                                                                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Local private**             | Practitioner work, privacy-sensitive analysis and development on macOS, Linux or Windows. | A small container composition, local web interface and local persistence; `local-synthetic` is allowed only for isolated scratch use, while any authorised non-synthetic information requires managed trust. |
+| **Portable demonstration**    | Repeatable, resettable presentation without fragile external navigation dependencies.     | The same core composition plus Director, Presentation Gateway, scenario packs and prepared synthetic data; the trust profile reflects whether use is isolated or shared.                                     |
+| **Hosted demonstrator**       | Shared demonstrations, collaboration and production-like operating evidence.              | Kubernetes-compatible workloads with managed ingress, managed identity root, workload trust, persistence, secrets, policy, telemetry, backup and recovery.                                                   |
+| **Development and assurance** | Contract testing, failure injection, threat testing and component qualification.          | Deterministic fixtures, simulators, conformance suites and observable component boundaries.                                                                                                                  |
 
 Rust is the intended implementation language for backend services. cREXX
 components run inside explicitly bounded runtime or worker responsibilities for
@@ -491,11 +506,13 @@ TypeScript frontend supplies the browser experience. Packaging must account for
 the container runtime used on each supported desktop platform without requiring
 the backend services to be native to every host operating system.
 
-Every deployment profile performs synthetic-trust bootstrap within the target
+Every deployment profile establishes its trust domain within the target
 environment after installation. Application packages, container images and
-scenario data therefore remain portable without carrying a shared synthetic
-root. A governed recovery may securely restore the same environment identity;
-otherwise a rebuilt environment creates a new root and cannot accept grants or
+scenario data therefore remain portable without carrying a root or signer. A
+local scratch profile generates its root there; a managed profile obtains an
+environment-scoped identity from its approved managed issuer. A governed
+recovery may securely restore the same environment identity; otherwise a
+rebuilt environment creates a new trust domain and cannot accept grants or
 sessions issued by the previous environment.
 
 The public website remains separate from the demonstrator runtime. A local or
@@ -533,8 +550,9 @@ proposal or implementation rather than a portfolio standard.
 The detailed blueprint and architecture decisions will select or define:
 
 - event broker, API and schema technologies;
-- certificate hierarchy, algorithms, environment key storage, rotation,
-  revocation and governed recovery;
+- certificate hierarchy, algorithms, local-synthetic generation, managed
+  issuer binding, environment key storage, rotation, revocation and governed
+  recovery;
 - external identity providers and session mechanisms;
 - access-policy engine, policy language, authoritative attribute and
   relationship sources, and deployment binding;

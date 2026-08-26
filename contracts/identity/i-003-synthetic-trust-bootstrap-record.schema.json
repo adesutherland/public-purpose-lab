@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:I-003:1.0.0",
+  "title": "I-003 Synthetic trust bootstrap record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "recordId",
+    "environmentId",
+    "environmentClass",
+    "informationProfile",
+    "trustProfile",
+    "trustDomain",
+    "trustEpoch",
+    "signerId",
+    "publicKeyFingerprint",
+    "keyCustodyClass",
+    "recoveryProfile",
+    "status",
+    "compatible",
+    "createdAt"
+  ],
+  "properties": {
+    "contractId": { "const": "I-003" },
+    "contractVersion": { "const": "1.0.0" },
+    "recordId": { "$ref": "#/$defs/id" },
+    "environmentId": { "$ref": "#/$defs/id" },
+    "environmentClass": {
+      "enum": [
+        "local-scratch",
+        "portable-isolated",
+        "hosted-shared",
+        "production-like",
+        "production"
+      ]
+    },
+    "informationProfile": {
+      "enum": ["synthetic-only", "non-synthetic-authorised"]
+    },
+    "trustProfile": { "enum": ["local-synthetic", "managed"] },
+    "trustDomain": { "$ref": "#/$defs/id" },
+    "trustEpoch": { "type": "integer", "minimum": 1 },
+    "signerId": { "$ref": "#/$defs/id" },
+    "publicKeyFingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "keyCustodyClass": {
+      "enum": ["local-file", "managed-service", "hardware-backed"]
+    },
+    "recoveryProfile": {
+      "enum": ["rebuild-new-trust-domain", "protected-same-environment"]
+    },
+    "status": { "enum": ["ready", "not-ready", "revoked"] },
+    "compatible": { "type": "boolean" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "reasonCode": { "type": "string", "pattern": "^[a-z][a-z0-9-]{2,95}$" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "environmentClass": {
+                "enum": ["hosted-shared", "production-like", "production"]
+              }
+            },
+            "required": ["environmentClass"]
+          },
+          {
+            "properties": {
+              "informationProfile": { "const": "non-synthetic-authorised" }
+            },
+            "required": ["informationProfile"]
+          }
+        ]
+      },
+      "then": { "properties": { "trustProfile": { "const": "managed" } } }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "ready" } },
+        "required": ["status"]
+      },
+      "then": { "properties": { "compatible": { "const": true } } }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    }
+  }
+}

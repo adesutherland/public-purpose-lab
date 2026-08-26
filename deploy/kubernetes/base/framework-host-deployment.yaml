@@ -19,22 +19,56 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: identity-setup
+          image: public-purpose-lab/framework-host:m2-baseline
+          imagePullPolicy: IfNotPresent
+          args:
+            - iam-configure-demo
+          env:
+            - name: PPL_ENVIRONMENT_CLASS
+              value: local-scratch
+            - name: PPL_INFORMATION_PROFILE
+              value: synthetic-only
+            - name: PPL_STATE_DIR
+              value: /var/lib/public-purpose-lab
+            - name: PPL_TRUST_PROFILE
+              value: local-synthetic
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: interaction-state
+              mountPath: /var/lib/public-purpose-lab
       containers:
         - name: framework-host
-          image: public-purpose-lab/framework-host:m1-baseline
+          image: public-purpose-lab/framework-host:m2-baseline
           imagePullPolicy: IfNotPresent
           args:
             - serve
           env:
             - name: PPL_ENVIRONMENT_ID
               value: env-kubernetes-assurance
+            - name: PPL_ENVIRONMENT_CLASS
+              value: local-scratch
+            - name: PPL_INFORMATION_PROFILE
+              value: synthetic-only
+            - name: PPL_INTERACTION_STATE_DIR
+              value: /var/lib/public-purpose-lab/int-01
+            - name: PPL_REQUIRE_IDENTITY
+              value: "true"
             - name: PPL_STATE_DIR
               value: /var/lib/public-purpose-lab
+            - name: PPL_TRUST_PROFILE
+              value: local-synthetic
           livenessProbe:
             exec:
               command:
                 - ppl-framework-host
-                - healthcheck
+                - describe
             initialDelaySeconds: 5
             periodSeconds: 30
           readinessProbe:

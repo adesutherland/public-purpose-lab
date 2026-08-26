@@ -7,6 +7,7 @@ publish.workspace = true
 
 [dependencies]
 ppl-contracts = { path = "../../crates/contracts" }
+ppl-aut-01 = { path = "../../components/aut-01" }
 ppl-iam-01 = { path = "../../components/iam-01" }
 ppl-int-01 = { path = "../../components/int-01" }
 serde = "1"

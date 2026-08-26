@@ -1,0 +1,14 @@
+{
+  "fixtures": [
+    {
+      "schemaId": "urn:public-purpose-lab:contract:AZ-001:1.0.0",
+      "file": "contracts/authorisation/examples/az-001-permit-decision.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:AZ-001:1.0.0",
+      "file": "contracts/authorisation/invalid/az-001-permit-without-obligation.json",
+      "valid": false
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "I-005",
+  "describedContractName": "Synthetic session outcome",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:I-005:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-26T00:00:00Z",
+  "examples": ["contracts/identity/examples/i-005-session-established.json"],
+  "producerExpectations": [
+    "Report safe at-most-one session state without a credential"
+  ],
+  "consumerExpectations": [
+    "Never interpret an unknown or non-established state as logged in"
+  ],
+  "evidence": []
+}

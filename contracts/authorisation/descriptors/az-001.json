@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "AZ-001",
+  "describedContractName": "Authorisation decision and obligations",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:AZ-001:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-26T00:00:00Z",
+  "examples": ["contracts/authorisation/examples/az-001-permit-decision.json"],
+  "producerExpectations": [
+    "Fail closed on unavailable, stale or unverifiable required inputs and return all obligations"
+  ],
+  "consumerExpectations": [
+    "Never override deny or indeterminate and enforce every applicable obligation"
+  ],
+  "evidence": []
+}

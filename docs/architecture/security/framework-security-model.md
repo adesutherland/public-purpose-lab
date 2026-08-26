@@ -1,8 +1,8 @@
 # Framework security model
 
-Status: Accepted M1 baseline
+Status: Accepted framework baseline
 
-Version: 0.2.0
+Version: 0.3.0
 
 Last reviewed: 26 August 2026
 
@@ -42,7 +42,10 @@ The framework must:
 7. limit a failure or compromise to the smallest practical trust, information
    and recovery domain; and
 8. apply equivalent logical controls in local and hosted profiles while
-   recording enforcement differences.
+   recording enforcement differences; and
+9. declare the active trust profile visibly and refuse identity readiness when
+   its assurance is weaker than the environment's hosting, sharing or
+   information classification requires.
 
 ## Trust zones
 
@@ -64,13 +67,13 @@ information boundaries.
 
 ## Principal types
 
-| Principal       | Established by                                                        | May represent                                                    | Must never imply                                                             |
-| --------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| External human  | Configured external issuer plus environment mapping                   | One authenticated person under bounded roles                     | Professional, legal or release authority absent an owning-component decision |
-| Synthetic human | Environment-specific synthetic root, actor registry and bounded grant | One named demonstration actor in one environment and application | External-human, production or cross-environment identity                     |
-| Workload        | Environment workload trust                                            | One component or worker invoking named contracts and audiences   | A human actor or delegated authority not independently supplied              |
-| Operator        | Platform/support authentication and policy                            | Named bootstrap, configuration, recovery or diagnostic actions   | Business approval, report release or synthetic-user impersonation            |
-| Service owner   | Governance configuration and accountable ownership                    | Approval of component policy, access and release configuration   | Routine operator access or an unrestricted super-user session                |
+| Principal       | Established by                                                                               | May represent                                                    | Must never imply                                                             |
+| --------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| External human  | Configured external issuer plus environment mapping                                          | One authenticated person under bounded roles                     | Professional, legal or release authority absent an owning-component decision |
+| Synthetic human | Environment-scoped signer under the declared trust profile, actor registry and bounded grant | One named demonstration actor in one environment and application | External-human, production or cross-environment identity                     |
+| Workload        | Environment workload trust                                                                   | One component or worker invoking named contracts and audiences   | A human actor or delegated authority not independently supplied              |
+| Operator        | Platform/support authentication and policy                                                   | Named bootstrap, configuration, recovery or diagnostic actions   | Business approval, report release or synthetic-user impersonation            |
+| Service owner   | Governance configuration and accountable ownership                                           | Approval of component policy, access and release configuration   | Routine operator access or an unrestricted super-user session                |
 
 Display names are not principal identifiers. Principal references include the
 environment and issuer or trust domain. When a workload acts for a person, both
@@ -147,9 +150,17 @@ action rather than a presentation or storage side effect.
   opaque identifiers; they are not contract payloads.
 - Images, source, examples, scenario packs, URLs, logs, traces, analytics and
   routine backups contain no usable credential or private key.
-- Each environment creates its own synthetic root during environment setup.
-  The root and signing keys receive the strongest practical non-exportability
-  for that profile.
+- Each environment establishes a distinct environment-scoped trust domain
+  during setup. An isolated local scratch environment using only synthetic or
+  approved public material may generate a `local-synthetic` root.
+- Any hosted-for-others, shared, production-like, production or
+  non-synthetic-data environment uses a `managed` root of trust with
+  accountable custody, rotation, revocation, recovery and audit. A shared
+  organisational anchor does not remove environment and audience binding.
+- The root and signing keys receive the protection required by the declared
+  profile. A local-synthetic root cannot be relabelled or promoted into a
+  managed root; transition creates a new trust domain and invalidates former
+  grants and sessions.
 - Rotation, revocation, expiry, clock tolerance and recovery are explicit and
   observable without disclosing secret material.
 - The M1 reference runtime creates no key, credential or authenticated session.
@@ -200,10 +211,14 @@ safe decision and authoritative-attribute references, result code, correlation
 and time. They do not retain the command payload, raw authority or relationship
 assertion, credential, token, signed grant, cookie or private key.
 
-Logs and health views expose bounded reason codes and counts. They must not make
-principal enumeration, key reconnaissance, source disclosure or session
-takeover easier. Software health, interaction readiness and business completion
-remain distinct states.
+Logs and health views expose bounded reason codes and counts. Appropriate
+operations, readiness, support and evidence views also expose the environment
+class, active trust profile, safe issuer status, key-custody and recovery class,
+trust epoch and rotation or revocation readiness. `local-synthetic` is
+prominently identified without disclosing key handles or secret locations.
+These views must not make principal enumeration, key reconnaissance, source
+disclosure or session takeover easier. Software health, interaction readiness
+and business completion remain distinct states.
 
 ## Supply chain and deployment
 
@@ -217,6 +232,10 @@ remain distinct states.
 - Local, portable and hosted profiles run the same contract fixtures. A profile
   records its different key, filesystem, workload-identity, persistence and
   recovery enforcement.
+- Local-synthetic trust is permitted only for an isolated scratch environment.
+  Hosted, shared, production-like, production and non-synthetic-data profiles
+  require managed trust and fail identity readiness when that binding is
+  absent.
 - Evidence from one operating system or deployment profile does not qualify
   another automatically.
 
@@ -239,14 +258,18 @@ remain distinct states.
 10. No receiver overrides a required authorisation deny or indeterminate
     result; permit remains subject to current domain constraints and applicable
     obligations.
+11. No local-synthetic root is treated as sufficient for a hosted, shared,
+    production-like, production or non-synthetic-data environment, and the
+    active trust profile is never hidden from appropriate operational evidence.
 
 ## Acceptance and evolution
 
 The founders accepted this model and the accompanying M1 threat model on 26
-August 2026 after adding the externalisable authorisation boundary. Executable
-M1 evidence covers the local interaction invariants; `AUT-01`, authoritative
-relationship sources and authenticated identity remain later implementation
-and conformance work.
+August 2026 after adding the externalisable authorisation boundary. They later
+accepted the local-synthetic and managed trust-profile distinction on the same
+date. Executable M1 evidence covers the local interaction invariants; `AUT-01`,
+authoritative relationship sources and authenticated identity remain later
+implementation and conformance work.
 
 Later milestones extend the threat analysis for identity, authorisation,
 source content, retrieval, AI, workflow, reporting and adapters.

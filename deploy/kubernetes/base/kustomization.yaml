@@ -9,4 +9,4 @@ resources:
 labels:
   - pairs:
       app.kubernetes.io/part-of: public-purpose-lab
-      app.kubernetes.io/version: repository-skeleton
+      app.kubernetes.io/version: m2-baseline

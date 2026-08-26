@@ -1,0 +1,18 @@
+{
+  "contractId": "I-003",
+  "contractVersion": "1.0.0",
+  "recordId": "trust-bootstrap-001",
+  "environmentId": "env-hosted-example",
+  "environmentClass": "hosted-shared",
+  "informationProfile": "synthetic-only",
+  "trustProfile": "local-synthetic",
+  "trustDomain": "trust-env-hosted-example",
+  "trustEpoch": 1,
+  "signerId": "signer-env-hosted-example",
+  "publicKeyFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "keyCustodyClass": "local-file",
+  "recoveryProfile": "rebuild-new-trust-domain",
+  "status": "ready",
+  "compatible": true,
+  "createdAt": "2030-08-26T10:00:00Z"
+}

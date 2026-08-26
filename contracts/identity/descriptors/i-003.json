@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "I-003",
+  "describedContractName": "Synthetic trust bootstrap record",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:I-003:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-26T00:00:00Z",
+  "examples": ["contracts/identity/examples/i-003-local-synthetic-ready.json"],
+  "producerExpectations": [
+    "Expose the active trust profile and safe readiness without secret material"
+  ],
+  "consumerExpectations": [
+    "Refuse incompatible environment, information and trust profiles"
+  ],
+  "evidence": []
+}

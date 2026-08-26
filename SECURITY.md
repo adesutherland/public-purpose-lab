@@ -31,6 +31,9 @@ while investigating.
 - Use synthetic data by default and minimise all retained information.
 - Authenticate people and workloads; authorise each action at its boundary.
 - Keep secrets out of code, logs, events, examples, and test fixtures.
+- Permit a local synthetic root only in an isolated scratch environment; require
+  managed trust for hosted, shared, production-like or non-synthetic-data use,
+  and make the active profile operationally visible.
 - Preserve provenance, policy decisions, human approvals, and audit evidence.
 - Design explicit refusal, abstention, failure, and escalation outcomes.
 - Prefer contained, replaceable adapters at external-system boundaries.
@@ -43,5 +46,9 @@ defines the current trust zones, principals, authority, information handling
 and recovery invariants. The
 [M1 threat model](docs/architecture/security/m1-threat-model.md) states the
 narrower controls and limitations of the local common-interaction reference
-path. Both are accepted M1 baselines; neither is a production security or
-compliance qualification.
+path. The
+[M2 threat model](docs/architecture/security/m2-threat-model.md) covers the
+local-synthetic identity and session reference path. The framework model is the
+accepted framework baseline and the milestone threat models are bounded
+implementation baselines; none is a production security or compliance
+qualification.

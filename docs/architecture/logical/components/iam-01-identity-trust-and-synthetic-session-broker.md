@@ -1,8 +1,8 @@
 # IAM-01: Identity, trust and synthetic session broker
 
-Status: Accepted
+Status: Accepted logical boundary; M2 local-synthetic reference implementation in development
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 ## Purpose
 
@@ -16,8 +16,11 @@ The component preserves three separate trust paths. Authentication establishes
 an identity context; it does not give the component or actor authority to make a
 domain, professional, legal or release decision.
 
-This is a logical component specification. It does not claim an implementation
-or require a separate service, container or database.
+This is a logical component specification and does not require a separate
+service, container or database. The M2 reference binding implements workload
+contexts, local-synthetic environment trust, policy-checked grants and safe
+session outcomes in the shared Rust host. It does not implement `I-001`, a
+managed issuer, a browser login endpoint or production identity operation.
 
 ## Accountable ownership
 
@@ -31,13 +34,15 @@ context.
 
 - validated principal and authority contexts supplied to framework components;
 - separation of external-human, synthetic and workload trust paths;
-- environment identity and synthetic trust-state references;
+- environment identity, declared trust profile and synthetic trust-state
+  references;
 - trusted synthetic signer constraints and revocation state;
 - the environment's synthetic actor registry and permitted synthetic roles;
 - one-time grant consumption and replay state;
 - synthetic session binding, status, revocation and termination coordination;
 - safe identity and session evidence that contains no usable credential; and
-- identity-related readiness and failure information.
+- identity-related readiness and failure information, including refusal when
+  the trust profile is insufficient for the declared environment.
 
 ## Non-responsibilities
 
@@ -66,11 +71,11 @@ context.
 
 ## Trust paths and principal identity
 
-| Trust path              | Principal identity                                                    | Source of trust                                                      | Permitted purpose                                                               | Prohibited crossing                                                                      |
-| ----------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| External human          | Environment + configured external issuer + immutable external subject | Validated external authentication result and local authority mapping | Human interaction under environment roles and constraints                       | Cannot become synthetic or workload identity; credentials are not relayed to components  |
-| Synthetic demonstration | Environment + synthetic trust domain + synthetic actor identifier     | Grant signer chained to the environment-generated synthetic root     | Bounded synthetic session for a registered demonstration surface and data realm | Invalid in another environment and cannot acquire external-human or production authority |
-| Workload                | Environment + configured workload issuer + workload identifier        | Environment workload trust and least-privilege policy                | Component-to-component contract calls                                           | Cannot impersonate a human or use synthetic sign-in as a service credential              |
+| Trust path              | Principal identity                                                    | Source of trust                                                                                    | Permitted purpose                                                               | Prohibited crossing                                                                      |
+| ----------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| External human          | Environment + configured external issuer + immutable external subject | Validated external authentication result and local authority mapping                               | Human interaction under environment roles and constraints                       | Cannot become synthetic or workload identity; credentials are not relayed to components  |
+| Synthetic demonstration | Environment + synthetic trust domain + synthetic actor identifier     | Environment-scoped grant signer permitted by the declared local-synthetic or managed trust profile | Bounded synthetic session for a registered demonstration surface and data realm | Invalid in another environment and cannot acquire external-human or production authority |
+| Workload                | Environment + configured workload issuer + workload identifier        | Environment workload trust and least-privilege policy                                              | Component-to-component contract calls                                           | Cannot impersonate a human or use synthetic sign-in as a service credential              |
 
 A display name is never a principal identifier. The same actor names may be
 configured in several environments to keep demonstrations consistent, but the
@@ -130,6 +135,7 @@ application-session exchange occurs only across a protected backend boundary.
 `IAM-01` may own or retain:
 
 - environment identity and synthetic trust-domain identifiers;
+- environment class, trust-profile identifier and compatibility status;
 - public trust anchors, public signer identity and signer constraints;
 - public-key fingerprints, trust epochs, status and revocation references;
 - synthetic actor identifiers, display names, permitted roles and data-realm
@@ -157,9 +163,13 @@ longer but contains only redacted identifiers, fingerprints and outcomes.
 - An external identity provider authenticates a human; environment policy maps
   that immutable subject to bounded roles. A receiving component still decides
   whether that human may perform the requested action.
-- Environment setup creates the synthetic trust domain. A separately
-  constrained demonstration signing authority may issue grants for configured
-  synthetic actors and roles only.
+- Environment setup creates or obtains the synthetic trust domain under the
+  declared profile. A separately constrained demonstration signing authority
+  may issue grants for configured synthetic actors and roles only.
+- A local-synthetic profile is valid only for an isolated scratch environment
+  using synthetic or approved public material. Hosted, shared,
+  production-like, production or non-synthetic-data environments require a
+  managed trust binding before identity readiness can become true.
 - The Scenario Director may request a grant but cannot mint, approve or validate
   one and cannot expand the synthetic actor's configured authority.
 - `IAM-01` validates a grant and may coordinate a session. It cannot grant a
@@ -206,13 +216,14 @@ Environment recovery has two permitted conceptual paths:
 1. restore the same environment identity and synthetic trust material from an
    explicitly protected, authorised recovery source while preserving or safely
    reconstructing replay and revocation state; or
-2. create a new environment identity and new synthetic root, after which all
-   former grants, signers and sessions are invalid.
+2. create a new environment identity and trust domain, generating a new local
+   root or obtaining a new managed environment signer, after which all former
+   grants, signers and sessions are invalid.
 
-A copied environment must not silently retain the source environment's
-synthetic root. Partial bootstrap, lost replay state, inconsistent trust epochs
-or uncertain key custody make the synthetic sign-in path not ready until an
-operator resolves or replaces the trust domain.
+A copied environment must not silently retain the source environment's local
+root or managed environment signer. Partial bootstrap, lost replay state,
+inconsistent trust epochs or uncertain key custody make the synthetic sign-in
+path not ready until an operator resolves or replaces the trust domain.
 
 ### Recovery domains and post-restore security
 
@@ -279,6 +290,7 @@ session and is not a source of access-control truth.
 Readiness is false when the required trust path cannot safely validate or
 revoke access. Operational signals cover:
 
+- environment class, active trust profile and compatibility status;
 - configured issuer and trust-epoch readiness;
 - protected key-boundary availability without exposing key details;
 - clock and expiry-evaluation health;
@@ -287,6 +299,11 @@ revoke access. Operational signals cover:
 - configuration, rotation and revocation propagation status; and
 - refused or failed work available for authorised support.
 
+Appropriate operations, readiness, support and evidence views prominently mark
+`local-synthetic` and show the safe issuer status, custody class, recovery
+posture and rotation or revocation readiness. They do not expose key handles,
+secret locations or credential material.
+
 Logs and traces use redacted identifiers and correlation references. They must
 never include raw assertions, signed grants, browser cookies, bearer values,
 private keys or external credentials.
@@ -294,9 +311,16 @@ private keys or external credentials.
 ## Deployment considerations
 
 The semantics are identical in local, portable and hosted profiles. Every newly
-created environment generates its own environment identity and synthetic root
-inside its protection boundary. Images, installers, source, fixtures and
+created environment establishes its own environment identity and trust domain
+inside its protection boundary. An isolated scratch environment may generate a
+local-synthetic root. A hosted, shared, production-like, production or
+non-synthetic-data environment obtains an environment-scoped signer from an
+approved managed trust service. Images, installers, source, fixtures and
 scenario packages contain neither a pre-generated root nor a private signer.
+
+Moving from local-synthetic to managed trust creates a new trust domain and
+invalidates former grants and sessions. It is not a configuration-only
+promotion. Synthetic actors remain synthetic under a managed issuer.
 
 An initial deployment may combine `IAM-01` with other responsibilities in one
 deployable, but it must preserve separate trust-path configuration, protected
@@ -351,8 +375,8 @@ other two.
 
 Acceptance requires evidence that:
 
-1. two fresh environments produce distinct environment identities and
-   synthetic roots;
+1. two fresh local-synthetic environments produce distinct environment
+   identities and roots;
 2. the same synthetic actor name resolves to different principals in those
    environments;
 3. a grant from one environment is refused in every other environment;
@@ -371,9 +395,13 @@ Acceptance requires evidence that:
 12. protected recovery either preserves the same environment safely or creates
     an entirely new trust domain;
 13. trust and security-state recovery remains separate from evidence and
-    business-data recovery; and
+    business-data recovery;
 14. audit reconstruction explains each outcome without revealing reusable
-    security material.
+    security material;
+15. local-synthetic trust is visible and cannot become ready in a hosted,
+    shared, production-like, production or non-synthetic-data profile; and
+16. managed environments retain environment-specific signer and audience
+    isolation even where they share an organisational trust anchor.
 
 Cross-platform evidence is required for every supported deployment profile;
 evidence from one operating system or a hosted environment does not qualify the
@@ -387,6 +415,8 @@ readiness. Before implementation, ADRs and a reviewed threat model must decide:
 - external identity integration and subject/role mapping approach;
 - workload identity mechanism and delegation representation;
 - certificate and trust-domain profile, key hierarchy and signing algorithm;
+- managed issuer and key-custody binding for hosted, shared and
+  non-synthetic-data profiles;
 - protected key generation, custody, backup and non-exportability by profile;
 - separation and restore ordering for trust, security state, identity mappings
   and evidence or business data;

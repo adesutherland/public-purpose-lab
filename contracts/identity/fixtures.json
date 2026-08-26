@@ -1,0 +1,54 @@
+{
+  "fixtures": [
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-001:1.0.0",
+      "file": "contracts/identity/examples/i-001-external-human-context.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-002:1.0.0",
+      "file": "contracts/identity/examples/i-002-workload-context.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-003:1.0.0",
+      "file": "contracts/identity/examples/i-003-local-synthetic-ready.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-004:1.0.0",
+      "file": "contracts/identity/examples/i-004-demonstration-sign-in-grant.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-005:1.0.0",
+      "file": "contracts/identity/examples/i-005-session-established.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-001:1.0.0",
+      "file": "contracts/identity/invalid/i-001-missing-issuer.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-002:1.0.0",
+      "file": "contracts/identity/invalid/i-002-wildcard-authority.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-003:1.0.0",
+      "file": "contracts/identity/invalid/i-003-hosted-local-root.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-004:1.0.0",
+      "file": "contracts/identity/invalid/i-004-unsigned-grant.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:I-005:1.0.0",
+      "file": "contracts/identity/invalid/i-005-established-without-session-reference.json",
+      "valid": false
+    }
+  ]
+}

@@ -6,3 +6,4 @@ result, limitations and remaining acceptance gates. It does not promote a
 working baseline into production or compliance assurance.
 
 - [M1 common interaction baseline](m1-common-interaction-baseline.md)
+- [M2 local-synthetic identity baseline](m2-local-synthetic-identity-baseline.md)
