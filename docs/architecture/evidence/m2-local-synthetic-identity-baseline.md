@@ -54,8 +54,9 @@ deleted at the end of the run.
 The full repository gate is `pnpm check`; `pnpm build` verifies the Rust
 workspace and browser packages. CI is configured to build the OCI image and
 repeat identity setup, grant issuance and duplicate session establishment in
-separate containers sharing one bounded state volume; that hosted result is not
-yet part of this local evidence record.
+separate containers sharing one bounded state volume. The protected publication
+and hosted-check record is [pull request #5](https://github.com/adesutherland/public-purpose-lab/pull/5);
+the live-cluster observations below remain explicitly local evidence.
 
 ## Live Kubernetes evidence
 
