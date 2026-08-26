@@ -1,0 +1,30 @@
+{
+  "contractId": "I-004",
+  "contractVersion": "1.0.0",
+  "claims": {
+    "grantId": "grant-example-001",
+    "establishmentOperationId": "establish-example-001",
+    "environmentId": "env-local-example",
+    "trustDomain": "trust-env-local-example",
+    "trustEpoch": 1,
+    "actorId": "synthetic-reviewer",
+    "applicationId": "workbench-app",
+    "audience": "workbench-backend",
+    "surfaceId": "surface-workbench-001",
+    "demonstrationSessionId": "demonstration-session-001",
+    "roles": ["reviewer"],
+    "purpose": "demonstrate-discovery",
+    "syntheticRealm": "realm-synthetic-demo",
+    "decisionReference": "authorisation-decision-001",
+    "issuedAt": "2030-08-26T10:00:00Z",
+    "notBefore": "2030-08-26T10:00:00Z",
+    "expiresAt": "2030-08-26T10:02:00Z"
+  },
+  "signature": {
+    "profile": "ppl-i004-ed25519-v1",
+    "algorithm": "Ed25519",
+    "signerId": "signer-env-local-example",
+    "publicKeyFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+}

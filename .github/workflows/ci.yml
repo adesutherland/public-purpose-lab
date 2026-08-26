@@ -66,5 +66,40 @@ jobs:
             /fixtures/c-001-m1-conformance-command.json \
             | grep '"status":"duplicate"'
 
+      - name: Exercise M2 container trust and session reconciliation
+        run: |
+          docker volume create ppl-m2-state
+          trap 'docker volume rm ppl-m2-state' EXIT
+          docker run --rm --read-only \
+            --volume ppl-m2-state:/var/lib/public-purpose-lab \
+            --env PPL_ENVIRONMENT_CLASS=local-scratch \
+            --env PPL_INFORMATION_PROFILE=synthetic-only \
+            --env PPL_TRUST_PROFILE=local-synthetic \
+            ppl-framework-host:test iam-configure-demo \
+            --now 2030-08-26T10:00:00Z
+          docker run --rm --read-only \
+            --volume ppl-m2-state:/var/lib/public-purpose-lab \
+            ppl-framework-host:test iam-health \
+            | grep '"activeTrustProfile":"local-synthetic"'
+          docker run --rm --read-only \
+            --volume ppl-m2-state:/var/lib/public-purpose-lab \
+            --volume "$PWD/contracts/identity/examples:/fixtures:ro" \
+            ppl-framework-host:test iam-issue-grant \
+            --now 2030-08-26T10:00:10Z \
+            --output /var/lib/public-purpose-lab/grant.json \
+            /fixtures/iam-01-grant-request.json
+          docker run --rm --read-only \
+            --volume ppl-m2-state:/var/lib/public-purpose-lab \
+            ppl-framework-host:test iam-establish \
+            --now 2030-08-26T10:00:20Z \
+            /var/lib/public-purpose-lab/grant.json \
+            | grep '"status":"established"'
+          docker run --rm --read-only \
+            --volume ppl-m2-state:/var/lib/public-purpose-lab \
+            ppl-framework-host:test iam-establish \
+            --now 2030-08-26T10:00:20Z \
+            /var/lib/public-purpose-lab/grant.json \
+            | grep '"status":"established"'
+
       - name: Build web container
         run: docker build --file deploy/containers/web.Containerfile --tag ppl-web:test .

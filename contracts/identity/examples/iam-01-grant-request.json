@@ -1,0 +1,11 @@
+{
+  "workloadId": "workload-director",
+  "actorId": "synthetic-reviewer",
+  "applicationId": "workbench-app",
+  "audience": "workbench-app-backend",
+  "surfaceId": "surface-workbench-001",
+  "demonstrationSessionId": "demonstration-session-001",
+  "roles": ["reviewer"],
+  "purpose": "demonstrate-discovery",
+  "syntheticRealm": "realm-synthetic-demo"
+}

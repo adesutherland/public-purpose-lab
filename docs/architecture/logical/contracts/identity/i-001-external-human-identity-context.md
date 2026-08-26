@@ -1,12 +1,15 @@
 # I-001: External human identity context
 
-Status: Accepted
+Status: Accepted schema; external provider binding deferred
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 Owner: [`IAM-01`](../../components/iam-01-identity-trust-and-synthetic-session-broker.md)
 
 Semantic type: protected query/response and bounded lifecycle notice
+
+Canonical schema:
+[`i-001-external-human-identity-context.schema.json`](../../../../../contracts/identity/i-001-external-human-identity-context.schema.json)
 
 ## Purpose
 

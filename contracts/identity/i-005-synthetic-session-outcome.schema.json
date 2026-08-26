@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:I-005:1.0.0",
+  "title": "I-005 Synthetic session outcome",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "outcomeId",
+    "grantId",
+    "establishmentOperationId",
+    "environmentId",
+    "applicationId",
+    "surfaceId",
+    "demonstrationSessionId",
+    "actorId",
+    "roles",
+    "syntheticRealm",
+    "status",
+    "occurredAt",
+    "decisionReference"
+  ],
+  "properties": {
+    "contractId": { "const": "I-005" },
+    "contractVersion": { "const": "1.0.0" },
+    "outcomeId": { "$ref": "#/$defs/id" },
+    "grantId": { "$ref": "#/$defs/id" },
+    "establishmentOperationId": { "$ref": "#/$defs/id" },
+    "environmentId": { "$ref": "#/$defs/id" },
+    "applicationId": { "$ref": "#/$defs/id" },
+    "surfaceId": { "$ref": "#/$defs/id" },
+    "demonstrationSessionId": { "$ref": "#/$defs/id" },
+    "actorId": { "$ref": "#/$defs/id" },
+    "roles": { "$ref": "#/$defs/names" },
+    "syntheticRealm": { "$ref": "#/$defs/id" },
+    "status": {
+      "enum": [
+        "established",
+        "refused",
+        "expired",
+        "replay-detected",
+        "failed",
+        "terminated",
+        "revoked"
+      ]
+    },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "maximumValidUntil": { "type": "string", "format": "date-time" },
+    "sessionReference": { "$ref": "#/$defs/id" },
+    "reasonCode": { "type": "string", "pattern": "^[a-z][a-z0-9-]{2,95}$" },
+    "decisionReference": { "$ref": "#/$defs/id" },
+    "originalOutcomeId": { "$ref": "#/$defs/id" },
+    "evidenceReferences": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "const": "established" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "sessionReference": true,
+          "maximumValidUntil": true
+        },
+        "required": ["sessionReference", "maximumValidUntil"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "refused",
+              "expired",
+              "replay-detected",
+              "failed",
+              "terminated",
+              "revoked"
+            ]
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": { "reasonCode": true },
+        "required": ["reasonCode"]
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "names": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/name" }
+    }
+  }
+}

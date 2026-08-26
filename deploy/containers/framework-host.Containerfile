@@ -13,6 +13,7 @@ RUN groupadd --system --gid 65532 ppl \
     && chown 65532:65532 /var/lib/public-purpose-lab
 COPY --from=build /workspace/target/release/ppl-framework-host /usr/local/bin/ppl-framework-host
 ENV PPL_STATE_DIR=/var/lib/public-purpose-lab \
+    PPL_INTERACTION_STATE_DIR=/var/lib/public-purpose-lab/int-01 \
     PPL_ENVIRONMENT_ID=env-container-assurance
 USER 65532:65532
 

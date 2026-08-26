@@ -1,6 +1,6 @@
 # AUT-01: Policy decision and authorisation
 
-Status: Accepted logical boundary; implementation planned
+Status: Accepted logical boundary; bounded M2 reference implementation in development
 
 Last reviewed: 26 August 2026
 
@@ -96,14 +96,16 @@ administrator bypass and does not create professional or legal authority.
 
 ## Contract and evidence boundary
 
-The planned `AZ-001` family will define the decision request, decision outcome,
-obligations, policy version, authoritative-attribute references, expiry,
-refusal and evidence semantics. `C-002` continues to carry bounded authority,
-purpose, `policyVersion` and `decisionReference`; it does not become proof that
-the referenced policy decision is valid.
+The accepted
+[`AZ-001`](../contracts/authorisation/az-001-authorisation-decision-and-obligations.md)
+family defines the decision request, decision outcome, obligations, policy
+version, authoritative-attribute references, expiry, refusal and evidence
+semantics. `C-002` continues to carry bounded authority, purpose,
+`policyVersion` and `decisionReference`; it does not become proof that the
+referenced policy decision is valid.
 
-Before implementation is accepted, the conformance suite must cover permit,
+The M2 conformance suite must cover permit,
 deny, not-applicable, indeterminate, stale and revoked relationships, missing
 consent or purpose, obligation enforcement, policy change, dependency failure,
-minimal disclosure and exceptional-access audit. A separate ADR selects the
-first engine and physical binding.
+minimal disclosure and exceptional-access audit. ADR-0009 selects the bounded
+in-process reference adapter without selecting a future external engine.

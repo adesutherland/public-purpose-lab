@@ -55,13 +55,13 @@ updated together.
 
 ### Control, identity and interaction
 
-| ID                                                                                | Component                                        | Owned responsibility                                                                                                           | Principal contract families                                           |
-| --------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| `CTL-01`                                                                          | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.                     | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
-| `CTL-02`                                                                          | Presentation Gateway and screen registry         | Surface registration, capability discovery, cue routing, expiry and acknowledgements.                                          | `P-001` to `P-004`, `I-002`, `I-005`, `O-001`                         |
-| [`IAM-01`](components/iam-01-identity-trust-and-synthetic-session-broker.md)      | Identity, trust and synthetic session broker     | External identity context, workload trust, environment synthetic root, bounded grants, roles and sessions.                     | `I-001` to `I-005`, `C-002`, `AU-001`                                 |
-| [`AUT-01`](components/aut-01-policy-decision-and-authorisation.md)                | Policy decision and authorisation                | Versioned shared access-control decisions over bounded identity, purpose, resource, relationship and environmental attributes. | `AZ-001`, `C-002` to `C-004`, `AU-001`, `O-001`                       |
-| [`INT-01`](components/int-01-interaction-infrastructure-and-contract-registry.md) | Interaction infrastructure and contract registry | Message carriage, schema and contract publication, compatibility evidence, delivery state and consumer coordination.           | `C-001` to `C-006`, plus transport bindings for every public contract |
+| ID                                                                                | Component                                        | Owned responsibility                                                                                                             | Principal contract families                                           |
+| --------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `CTL-01`                                                                          | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.                       | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
+| `CTL-02`                                                                          | Presentation Gateway and screen registry         | Surface registration, capability discovery, cue routing, expiry and acknowledgements.                                            | `P-001` to `P-004`, `I-002`, `I-005`, `O-001`                         |
+| [`IAM-01`](components/iam-01-identity-trust-and-synthetic-session-broker.md)      | Identity, trust and synthetic session broker     | External identity context, workload trust, visible local-synthetic or managed trust profile, bounded grants, roles and sessions. | `I-001` to `I-005`, `C-002`, `AU-001`                                 |
+| [`AUT-01`](components/aut-01-policy-decision-and-authorisation.md)                | Policy decision and authorisation                | Versioned shared access-control decisions over bounded identity, purpose, resource, relationship and environmental attributes.   | `AZ-001`, `C-002` to `C-004`, `AU-001`, `O-001`                       |
+| [`INT-01`](components/int-01-interaction-infrastructure-and-contract-registry.md) | Interaction infrastructure and contract registry | Message carriage, schema and contract publication, compatibility evidence, delivery state and consumer coordination.             | `C-001` to `C-006`, plus transport bindings for every public contract |
 
 ### Engagement, content, knowledge and work
 
@@ -78,12 +78,12 @@ updated together.
 
 ### Evidence, learning and operation
 
-| ID       | Component                             | Owned responsibility                                                                                              | Principal contract families                                         |
-| -------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `AUD-01` | Audit and provenance                  | Append-oriented attribution, lineage, decision, access and release evidence.                                      | `AU-001`, `C-004` and evidence-bearing outcomes from all components |
-| `ANA-01` | Analytics and projections             | Versioned measures, reproducible projections and analytical query results.                                        | `AN-001`, `AN-002`, accepted events through `C-001`                 |
-| `OPS-01` | Observability, operations and support | Health, logs, metrics, traces, alerts, failed-work visibility and recovery coordination.                          | `O-001`, `O-002`, `C-003`                                           |
-| `PLT-01` | Platform and delivery                 | Builds, supply chain, environment bootstrap, configuration, secrets, persistence, backup, restore and deployment. | `L-001`, `L-002`, `I-003`, `O-001`, `O-002`                         |
+| ID       | Component                             | Owned responsibility                                                                                                | Principal contract families                                         |
+| -------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `AUD-01` | Audit and provenance                  | Append-oriented attribution, lineage, decision, access and release evidence.                                        | `AU-001`, `C-004` and evidence-bearing outcomes from all components |
+| `ANA-01` | Analytics and projections             | Versioned measures, reproducible projections and analytical query results.                                          | `AN-001`, `AN-002`, accepted events through `C-001`                 |
+| `OPS-01` | Observability, operations and support | Health, logs, metrics, traces, alerts, failed-work visibility, safe trust-profile status and recovery coordination. | `O-001`, `O-002`, `C-003`                                           |
+| `PLT-01` | Platform and delivery                 | Builds, supply chain, environment bootstrap, configuration, secrets, persistence, backup, restore and deployment.   | `L-001`, `L-002`, `I-003`, `O-001`, `O-002`                         |
 
 The current catalogue contains twenty-one logical components. An early local or
 hosted composition may implement several in one deployable unit, but it must
@@ -135,18 +135,20 @@ accepted M1 development-assurance baseline; `INT-01` remains in development and
 is not production-qualified.
 
 The linked `IAM-01` and `I-001` to `I-005` logical specifications are accepted.
-Acceptance fixes their semantics and invariants for implementation; it does not
-claim that the component is implemented or production-ready.
+Their local-synthetic reference implementation provides the accepted M2
+development-assurance baseline; `IAM-01` remains in development and is not a
+managed, external-human or production identity capability.
 
 ### Authorisation contract
 
-| ID       | Working name                           | Main participants                                               | Enduring purpose                                                                                                                                      |
-| -------- | -------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AZ-001` | Authorisation decision and obligations | `AUT-01`, `IAM-01`, authoritative sources, receiving components | Evaluates versioned access-control policy and returns permit, deny, not-applicable or indeterminate with obligations and bounded evidence references. |
+| ID                                                                                   | Working name                           | Main participants                                               | Enduring purpose                                                                                                                                      |
+| ------------------------------------------------------------------------------------ | -------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`AZ-001`](contracts/authorisation/az-001-authorisation-decision-and-obligations.md) | Authorisation decision and obligations | `AUT-01`, `IAM-01`, authoritative sources, receiving components | Evaluates versioned access-control policy and returns permit, deny, not-applicable or indeterminate with obligations and bounded evidence references. |
 
-`AUT-01` is an accepted logical boundary and `AZ-001` is planned. A later ADR
-must select the first engine, policy language, authoritative attribute sources
-and physical binding before implementation is accepted.
+`AUT-01` and `AZ-001` are accepted logical boundaries. ADR-0009 selects a
+bounded in-process M2 reference adapter while leaving the future policy engine,
+policy language, deployment topology and authoritative relationship source
+replaceable.
 
 ### Service and evidence contracts
 
@@ -173,7 +175,7 @@ and physical binding before implementation is accepted.
 | `AU-001` | Audit and provenance append and read | All evidence-producing components, `AUD-01`, authorised reviewers | Retains attributable, append-oriented evidence and supplies governed reconstruction views.                                        |
 | `AN-001` | Projection definition and build      | `ANA-01`, event producers, authorised analysts                    | Versions analytical inputs and calculations and builds reproducible projections from governed facts.                              |
 | `AN-002` | Analytical query and result          | `UX-02`, `RPT-01`, `ANA-01`                                       | Returns a versioned measure set with calculation, time basis, provenance and limitations.                                         |
-| `O-001`  | Health and readiness                 | Components, `OPS-01`, `CTL-01`, `PLT-01`                          | Reports software health, dependencies and readiness separately from business completion.                                          |
+| `O-001`  | Health and readiness                 | Components, `OPS-01`, `CTL-01`, `PLT-01`                          | Reports software health, dependencies, active trust profile and readiness separately from business completion.                    |
 | `O-002`  | Fault and recovery                   | Components, `OPS-01`, `PLT-01`, authorised operator               | Records failure, containment, recovery ownership, action and verified restoration.                                                |
 | `L-001`  | Component delivery manifest          | `PLT-01`, component owners, `OPS-01`                              | Identifies package, provenance, interfaces, configuration, dependencies, health checks and deployment evidence.                   |
 | `L-002`  | Environment profile and bootstrap    | `PLT-01`, `IAM-01`, operators                                     | Defines local, portable, hosted or assurance profile configuration, synthetic-root creation, persistence and recovery boundaries. |

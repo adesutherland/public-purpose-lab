@@ -120,7 +120,7 @@
       "group": "identity",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-001-external-human-identity-context.md",
-      "schema": null
+      "schema": "contracts/identity/i-001-external-human-identity-context.schema.json"
     },
     {
       "id": "I-002",
@@ -128,7 +128,7 @@
       "group": "identity",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-002-workload-identity-context.md",
-      "schema": null
+      "schema": "contracts/identity/i-002-workload-identity-context.schema.json"
     },
     {
       "id": "I-003",
@@ -136,7 +136,7 @@
       "group": "identity",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-003-synthetic-trust-bootstrap-record.md",
-      "schema": null
+      "schema": "contracts/identity/i-003-synthetic-trust-bootstrap-record.schema.json"
     },
     {
       "id": "I-004",
@@ -144,7 +144,7 @@
       "group": "identity",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-004-demonstration-sign-in-grant.md",
-      "schema": null
+      "schema": "contracts/identity/i-004-demonstration-sign-in-grant.schema.json"
     },
     {
       "id": "I-005",
@@ -152,15 +152,15 @@
       "group": "identity",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/identity/i-005-synthetic-session-outcome.md",
-      "schema": null
+      "schema": "contracts/identity/i-005-synthetic-session-outcome.schema.json"
     },
     {
       "id": "AZ-001",
       "name": "Authorisation decision and obligations",
       "group": "authorisation",
-      "status": "planned",
-      "documentation": null,
-      "schema": null
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/authorisation/az-001-authorisation-decision-and-obligations.md",
+      "schema": "contracts/authorisation/az-001-authorisation-decision-and-obligations.schema.json"
     },
     {
       "id": "E-001",

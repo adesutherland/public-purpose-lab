@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:I-001:1.0.0",
+  "title": "I-001 External human identity context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "contextId",
+    "environmentId",
+    "issuer",
+    "subjectId",
+    "principalId",
+    "roles",
+    "audience",
+    "authenticationStrength",
+    "mappingVersion",
+    "issuedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "contractId": { "const": "I-001" },
+    "contractVersion": { "const": "1.0.0" },
+    "contextId": { "$ref": "#/$defs/id" },
+    "environmentId": { "$ref": "#/$defs/id" },
+    "issuer": { "$ref": "#/$defs/id" },
+    "subjectId": { "$ref": "#/$defs/id" },
+    "principalId": { "$ref": "#/$defs/id" },
+    "roles": { "$ref": "#/$defs/names" },
+    "audience": { "$ref": "#/$defs/id" },
+    "authenticationStrength": {
+      "enum": ["single-factor", "multi-factor", "phishing-resistant"]
+    },
+    "mappingVersion": { "$ref": "#/$defs/version" },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "decisionReference": { "$ref": "#/$defs/id" }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "names": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,95}$"
+      }
+    }
+  }
+}

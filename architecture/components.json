@@ -90,7 +90,7 @@
       "id": "IAM-01",
       "name": "Identity, trust and synthetic session broker",
       "group": "control",
-      "maturity": "skeleton",
+      "maturity": "in-development",
       "contracts": [
         "I-001",
         "I-002",
@@ -106,9 +106,9 @@
       "id": "AUT-01",
       "name": "Policy decision and authorisation",
       "group": "control",
-      "maturity": "planned",
+      "maturity": "in-development",
       "contracts": ["AZ-001", "C-002", "C-003", "C-004", "AU-001", "O-001"],
-      "repositoryPath": null
+      "repositoryPath": "backend/components/aut-01"
     },
     {
       "id": "INT-01",

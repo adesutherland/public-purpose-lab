@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "I-001",
+  "describedContractName": "External human identity context",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:I-001:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-26T00:00:00Z",
+  "examples": ["contracts/identity/examples/i-001-external-human-context.json"],
+  "producerExpectations": [
+    "Issue only after approved external authentication and subject mapping"
+  ],
+  "consumerExpectations": [
+    "Treat identity context as authorisation input, never as legal or professional authority"
+  ],
+  "evidence": []
+}

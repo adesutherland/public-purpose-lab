@@ -13,10 +13,12 @@ The [logical architecture overview](logical/README.md) starts the next level of
 design. It identifies every logical component and contract family and defines
 the order in which each will be documented and reviewed.
 
-The [framework security model](security/framework-security-model.md) and
-[current threat model](security/m1-threat-model.md) define the cross-cutting
-baseline against which those components and contracts are implemented. They are
-accepted, versioned M1 baselines, not claims of production security
+The [framework security model](security/framework-security-model.md),
+[M1 threat model](security/m1-threat-model.md) and
+[M2 threat model](security/m2-threat-model.md) define the cross-cutting baseline
+against which those components and contracts are implemented. The framework
+model is the accepted framework baseline and the threat models are bounded,
+versioned development baselines; none is a claim of production security
 qualification.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
@@ -40,7 +42,8 @@ The intended foundation includes:
 - **independent data ownership** rather than an integration-wide shared
   database;
 - **identity and zero-trust boundaries** for people, workloads, and
-  organisations;
+  organisations, with a visible local-synthetic or managed trust profile and
+  fail-closed readiness when the profile is insufficient;
 - **externalisable access-control policy decisions**, with receiving-component
   enforcement, authoritative relationship inputs, decision outcomes,
   obligations, policy versions and privacy-minimised evidence;

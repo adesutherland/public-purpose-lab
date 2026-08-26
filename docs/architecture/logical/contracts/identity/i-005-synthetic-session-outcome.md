@@ -1,12 +1,15 @@
 # I-005: Synthetic session outcome
 
-Status: Accepted
+Status: Accepted; M2 local-synthetic reference binding implemented
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 Owner: [`IAM-01`](../../components/iam-01-identity-trust-and-synthetic-session-broker.md)
 
 Semantic type: protected session command/query and redacted outcome fact
+
+Canonical schema:
+[`i-005-synthetic-session-outcome.schema.json`](../../../../../contracts/identity/i-005-synthetic-session-outcome.schema.json)
 
 ## Purpose
 

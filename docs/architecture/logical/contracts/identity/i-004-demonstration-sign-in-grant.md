@@ -1,13 +1,16 @@
 # I-004: Demonstration Sign-In Grant
 
-Status: Accepted
+Status: Accepted; M2 local-synthetic reference binding implemented
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 Owner: [`IAM-01`](../../components/iam-01-identity-trust-and-synthetic-session-broker.md)
 
 Semantic type: signed, short-lived, single-use trust command with issuance
 request and command outcome
+
+Canonical schema:
+[`i-004-demonstration-sign-in-grant.schema.json`](../../../../../contracts/identity/i-004-demonstration-sign-in-grant.schema.json)
 
 ## Purpose
 
@@ -70,8 +73,9 @@ Issuance requires:
 - an enabled synthetic actor in the environment synthetic registry;
 - requested roles within the actor, scenario and signer's permitted synthetic
   roles;
-- a current signer chained to the environment's synthetic root and explicitly
-  authorised for demonstration sign-in; and
+- a current environment-scoped signer accepted under the declared
+  local-synthetic or managed trust profile and explicitly authorised for
+  demonstration sign-in; and
 - clocks, trust, revocation, replay and target-session dependencies sufficiently
   ready for the bounded operation.
 
@@ -295,8 +299,8 @@ dead-letter consoles and metrics labels.
 
 The contract is identical across local macOS, Linux, Windows, portable and
 hosted environments. Every grant is valid only inside the environment whose
-setup generated the synthetic root. Names may repeat across environments; actor
-principals and grants cannot.
+setup established the trust domain and environment-scoped signer. Names may
+repeat across environments; actor principals and grants cannot.
 
 The signer, validator, target application and interaction infrastructure may be
 co-deployed initially. Logical separation, independent constraints and protected

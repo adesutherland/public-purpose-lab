@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "I-002",
+  "describedContractName": "Workload identity context",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:I-002:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-26T00:00:00Z",
+  "examples": ["contracts/identity/examples/i-002-workload-context.json"],
+  "producerExpectations": [
+    "Bind a workload to explicit audiences and contract actions"
+  ],
+  "consumerExpectations": [
+    "Never treat workload identity as human or synthetic-user identity"
+  ],
+  "evidence": []
+}

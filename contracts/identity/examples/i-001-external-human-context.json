@@ -1,0 +1,15 @@
+{
+  "contractId": "I-001",
+  "contractVersion": "1.0.0",
+  "contextId": "external-context-001",
+  "environmentId": "env-local-example",
+  "issuer": "https:identity.example",
+  "subjectId": "subject-external-001",
+  "principalId": "person-external-001",
+  "roles": ["reviewer"],
+  "audience": "workbench-app",
+  "authenticationStrength": "multi-factor",
+  "mappingVersion": "1.0.0",
+  "issuedAt": "2030-08-26T10:00:00Z",
+  "expiresAt": "2030-08-26T10:10:00Z"
+}

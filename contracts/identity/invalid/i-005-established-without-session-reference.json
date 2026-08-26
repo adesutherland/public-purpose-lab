@@ -1,0 +1,17 @@
+{
+  "contractId": "I-005",
+  "contractVersion": "1.0.0",
+  "outcomeId": "session-outcome-001",
+  "grantId": "grant-example-001",
+  "establishmentOperationId": "establish-example-001",
+  "environmentId": "env-local-example",
+  "applicationId": "workbench-app",
+  "surfaceId": "surface-workbench-001",
+  "demonstrationSessionId": "demonstration-session-001",
+  "actorId": "synthetic-reviewer",
+  "roles": ["reviewer"],
+  "syntheticRealm": "realm-synthetic-demo",
+  "status": "established",
+  "occurredAt": "2030-08-26T10:00:01Z",
+  "decisionReference": "authorisation-decision-001"
+}

@@ -7,6 +7,15 @@ export const commonContractVersions = {
   "C-006": "1.0.0",
 } as const;
 
+export const m2ContractVersions = {
+  "I-001": "1.0.0",
+  "I-002": "1.0.0",
+  "I-003": "1.0.0",
+  "I-004": "1.0.0",
+  "I-005": "1.0.0",
+  "AZ-001": "1.0.0",
+} as const;
+
 export type PrincipalType =
   | "external-human"
   | "synthetic-human"
@@ -135,6 +144,158 @@ export interface CommandOutcome {
   readonly originalOutcomeId?: string;
   readonly recoveryOwner?: string;
   readonly evidence: readonly EvidenceReference[];
+}
+
+export type TrustProfile = "local-synthetic" | "managed";
+export type EnvironmentClass =
+  | "local-scratch"
+  | "portable-isolated"
+  | "hosted-shared"
+  | "production-like"
+  | "production";
+
+export interface WorkloadIdentityContext {
+  readonly contractId: "I-002";
+  readonly contractVersion: "1.0.0";
+  readonly contextId: string;
+  readonly environmentId: string;
+  readonly issuer: string;
+  readonly workloadId: string;
+  readonly audiences: readonly string[];
+  readonly contractActions: readonly string[];
+  readonly attestationReference: string;
+  readonly policyVersion: string;
+  readonly issuedAt: string;
+  readonly expiresAt: string;
+}
+
+export interface SyntheticTrustBootstrapRecord {
+  readonly contractId: "I-003";
+  readonly contractVersion: "1.0.0";
+  readonly recordId: string;
+  readonly environmentId: string;
+  readonly environmentClass: EnvironmentClass;
+  readonly informationProfile: "synthetic-only" | "non-synthetic-authorised";
+  readonly trustProfile: TrustProfile;
+  readonly trustDomain: string;
+  readonly trustEpoch: number;
+  readonly signerId: string;
+  readonly publicKeyFingerprint: string;
+  readonly keyCustodyClass:
+    "local-file" | "managed-service" | "hardware-backed";
+  readonly recoveryProfile:
+    "rebuild-new-trust-domain" | "protected-same-environment";
+  readonly status: "ready" | "not-ready" | "revoked";
+  readonly compatible: boolean;
+  readonly createdAt: string;
+  readonly reasonCode?: string;
+}
+
+export interface DemonstrationSignInGrant {
+  readonly contractId: "I-004";
+  readonly contractVersion: "1.0.0";
+  readonly claims: {
+    readonly grantId: string;
+    readonly establishmentOperationId: string;
+    readonly environmentId: string;
+    readonly trustDomain: string;
+    readonly trustEpoch: number;
+    readonly actorId: string;
+    readonly applicationId: string;
+    readonly audience: string;
+    readonly surfaceId: string;
+    readonly demonstrationSessionId: string;
+    readonly roles: readonly string[];
+    readonly purpose: string;
+    readonly syntheticRealm: string;
+    readonly decisionReference: string;
+    readonly issuedAt: string;
+    readonly notBefore: string;
+    readonly expiresAt: string;
+  };
+  readonly signature: {
+    readonly profile: "ppl-i004-ed25519-v1";
+    readonly algorithm: "Ed25519";
+    readonly signerId: string;
+    readonly publicKeyFingerprint: string;
+    readonly value: string;
+  };
+}
+
+export type SyntheticSessionStatus =
+  | "established"
+  | "refused"
+  | "expired"
+  | "replay-detected"
+  | "failed"
+  | "terminated"
+  | "revoked";
+
+export interface SyntheticSessionOutcome {
+  readonly contractId: "I-005";
+  readonly contractVersion: "1.0.0";
+  readonly outcomeId: string;
+  readonly grantId: string;
+  readonly establishmentOperationId: string;
+  readonly environmentId: string;
+  readonly applicationId: string;
+  readonly surfaceId: string;
+  readonly demonstrationSessionId: string;
+  readonly actorId: string;
+  readonly roles: readonly string[];
+  readonly syntheticRealm: string;
+  readonly status: SyntheticSessionStatus;
+  readonly occurredAt: string;
+  readonly maximumValidUntil?: string;
+  readonly sessionReference?: string;
+  readonly reasonCode?: string;
+  readonly decisionReference: string;
+  readonly originalOutcomeId?: string;
+  readonly evidenceReferences: readonly string[];
+}
+
+export type AuthorisationDecisionStatus =
+  "permit" | "deny" | "not-applicable" | "indeterminate";
+
+export interface AuthorisationDecision {
+  readonly contractId: "AZ-001";
+  readonly contractVersion: "1.0.0";
+  readonly kind: "decision";
+  readonly decisionId: string;
+  readonly requestId: string;
+  readonly status: AuthorisationDecisionStatus;
+  readonly reasonCode: string;
+  readonly obligations: readonly {
+    readonly code: string;
+    readonly value?: string;
+  }[];
+  readonly policyVersion: string;
+  readonly decidedAt: string;
+  readonly validUntil?: string;
+  readonly evidenceReferences: readonly string[];
+}
+
+export function isSyntheticSessionOutcome(
+  value: unknown,
+): value is SyntheticSessionOutcome {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const candidate = value as Partial<SyntheticSessionOutcome>;
+  return (
+    candidate.contractId === "I-005" &&
+    candidate.contractVersion === "1.0.0" &&
+    typeof candidate.outcomeId === "string" &&
+    [
+      "established",
+      "refused",
+      "expired",
+      "replay-detected",
+      "failed",
+      "terminated",
+      "revoked",
+    ].includes(candidate.status ?? "")
+  );
 }
 
 export type ComponentMaturity =

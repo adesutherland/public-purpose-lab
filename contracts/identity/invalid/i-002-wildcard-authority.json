@@ -1,0 +1,14 @@
+{
+  "contractId": "I-002",
+  "contractVersion": "1.0.0",
+  "contextId": "workload-context-001",
+  "environmentId": "env-local-example",
+  "issuer": "iam-env-local-example",
+  "workloadId": "workload-director",
+  "audiences": ["iam-01-service"],
+  "contractActions": ["*"],
+  "attestationReference": "attestation-local-process-001",
+  "policyVersion": "1.0.0",
+  "issuedAt": "2030-08-26T10:00:00Z",
+  "expiresAt": "2030-08-26T10:05:00Z"
+}
