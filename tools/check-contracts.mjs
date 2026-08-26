@@ -39,8 +39,8 @@ assert(
 
 for (const contract of commonContracts) {
   assert(
-    contract.status === "working-draft",
-    `${contract.id} must remain a working-draft until founder review`,
+    contract.status === "agreed",
+    `${contract.id} must remain agreed after M1 founder acceptance`,
   );
   assert(
     contract.documentation !== null,

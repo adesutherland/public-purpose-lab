@@ -43,5 +43,5 @@ defines the current trust zones, principals, authority, information handling
 and recovery invariants. The
 [M1 threat model](docs/architecture/security/m1-threat-model.md) states the
 narrower controls and limitations of the local common-interaction reference
-path. Both are working baselines pending founder review; neither is a production
-security or compliance qualification.
+path. Both are accepted M1 baselines; neither is a production security or
+compliance qualification.

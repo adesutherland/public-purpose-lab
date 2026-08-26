@@ -1,10 +1,10 @@
 # M1 threat model: common interaction and runtime spine
 
-Status: Working baseline — founder review required for M1 acceptance
+Status: Accepted M1 baseline
 
 Version: 0.1.0
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 ## Scope
 
@@ -83,6 +83,8 @@ runtime does not discard or rewrite history automatically.
 
 - authenticated workload and external-human bindings;
 - synthetic root, certificate, signer, grant and session mechanisms;
+- the `AUT-01` policy-decision binding, authoritative relationship and consent
+  sources, obligation enforcement and exceptional-access controls;
 - network API, event broker and browser delivery transports;
 - distributed idempotency and ordering;
 - encrypted, tamper-evident, replicated and backed-up evidence stores;
@@ -93,10 +95,10 @@ runtime does not discard or rewrite history automatically.
 Each later binding extends this threat model before it is accepted. It cannot
 inherit an M1 assurance result merely because it uses the same JSON shape.
 
-## Review gate
+## Review outcome
 
-The threat model is ready for founder review when its controls have executable
-positive and negative evidence on the supported native development profile and
-inside the reference container. Founder review may accept it as the M1 baseline
-or require a versioned revision. It is reviewed again before any external
-transport or authenticated identity binding is enabled.
+The founders accepted this threat model as the M1 baseline on 26 August 2026.
+Its controls have executable positive and negative evidence on the supported
+native development profile and in hosted Linux/container CI. It is reviewed
+again before any external transport, authenticated identity or authorisation
+engine binding is enabled.

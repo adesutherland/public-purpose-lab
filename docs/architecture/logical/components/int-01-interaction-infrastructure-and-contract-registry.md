@@ -1,8 +1,8 @@
 # INT-01: Interaction infrastructure and contract registry
 
-Status: Working baseline; M1 implementation in development
+Status: Accepted M1 semantics; reference implementation in development
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 ## Purpose
 
@@ -19,8 +19,9 @@ broker, database or audit platform.
 ## Accountable ownership
 
 Public Purpose Lab owns the applied contract suite and M1 evidence. Producers
-own correct construction of their messages. Receivers own validation,
-authorisation and action decisions. `INT-01` owns:
+own correct construction of their messages. `AUT-01` owns shared policy
+evaluation where required. Receivers own validation, enforcement and action
+decisions. `INT-01` owns:
 
 - publication of `C-001` to `C-006` schemas, examples and compatibility state;
 - carriage-neutral rules for correlation, causation, expiry and idempotency;
@@ -35,6 +36,8 @@ authorisation and action decisions. `INT-01` owns:
 `INT-01` does not:
 
 - authenticate an actor or workload or make metadata trustworthy;
+- make a shared access-control policy decision or enforce one for a receiving
+  component;
 - decide domain, professional, legal, regulatory or report authority;
 - turn an accepted command outcome into a business event;
 - expose a browser directly to an event broker or component-private endpoint;
@@ -164,8 +167,9 @@ M1 evidence must demonstrate:
 
 ## Limitations and next review
 
-M1 remains `in-development` until the framework security model, threat model,
-ADRs and exit evidence receive founder review. This specification does not
-qualify external transport, authentication, distributed delivery, hosted
-persistence or production operation. Review it before M2 identity exposure and
-again when a broker, API or durable operational store is proposed.
+M1 was accepted as a development-assurance baseline on 26 August 2026 after the
+framework security model, threat model, ADRs and exit evidence received founder
+review. `INT-01` remains `in-development`. This specification does not qualify
+external transport, authentication, distributed delivery, hosted persistence
+or production operation. Review it before M2 identity and authorisation
+exposure and again when a broker, API or durable operational store is proposed.

@@ -29,12 +29,12 @@ function assertUnique(items, label) {
 }
 
 assert(
-  components.length === 20,
-  `Expected 20 logical components, found ${components.length}`,
+  components.length === 21,
+  `Expected 21 logical components, found ${components.length}`,
 );
 assert(
-  contracts.length === 39,
-  `Expected 39 contract families, found ${contracts.length}`,
+  contracts.length === 40,
+  `Expected 40 contract families, found ${contracts.length}`,
 );
 assertUnique(components, "Components");
 assertUnique(contracts, "Contracts");

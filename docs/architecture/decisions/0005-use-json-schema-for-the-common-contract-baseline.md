@@ -1,7 +1,8 @@
 # ADR-0005: Use JSON Schema for the common contract baseline
 
-Status: Proposed
+Status: Accepted
 Date: 2026-08-25
+Accepted: 2026-08-26
 
 ## Context
 
@@ -17,6 +18,12 @@ Every schema has a stable identifier and explicit semantic version. A major
 version may break existing valid messages; a minor version is additive and
 backwards compatible for existing messages; a patch changes clarification or
 validation evidence without changing the accepted instance set.
+
+Minor-version compatibility is directional: a consumer supporting a newer
+minor version must accept messages valid under the compatible older version.
+An older strict consumer is not assumed to accept a message produced for a
+newer minor version. Producers and consumers use `C-006` compatibility
+descriptors rather than inferring negotiation from the version number alone.
 
 Validate schemas and fixtures with an independent TypeScript build-time tool.
 Provide shared Rust and TypeScript types for implemented contracts, with tests
@@ -39,8 +46,10 @@ cross-implementation canonicalisation contract.
 
 ## Validation and review
 
-Founder review is required before acceptance. Validate the choice through all
-six common schemas, positive and negative fixtures, Rust deserialisation,
-TypeScript consumption and compatibility checks. Reconsider if a later
-transport, streaming need, signature profile or non-JavaScript consumer cannot
-preserve the semantics safely.
+The founders accepted this decision on 26 August 2026 after clarifying the
+direction of minor-version compatibility. All six common schemas, their
+positive and negative fixtures, Rust deserialisation, TypeScript consumption
+and compatibility checks passed the M1 source and hosted CI gates.
+
+Reconsider if a later transport, streaming need, signature profile or
+non-JavaScript consumer cannot preserve the semantics safely.

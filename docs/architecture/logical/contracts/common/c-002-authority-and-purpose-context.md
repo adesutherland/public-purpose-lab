@@ -1,11 +1,12 @@
 # C-002: Authority and purpose context
 
-Status: Working baseline
+Status: Accepted
 
 Version: 1.0.0
 
-Owner: `IAM-01` for validated context; every receiving component for its action
-decision
+Owner: `IAM-01` for validated identity and authority context; `AUT-01` for
+shared policy decisions; every receiving component for enforcement and its
+protected action
 
 ## Purpose
 
@@ -39,8 +40,11 @@ target or time.
 ## Authority rules
 
 - Authentication and role mapping do not themselves authorise a domain action.
-- The receiver evaluates the requested action against its current policy and
-  records the decision version.
+- Where shared policy requires it, `AUT-01` evaluates the requested action and
+  bounded authoritative attributes against a versioned policy.
+- The receiver enforces the decision against current domain state. It may
+  further restrict a permit but cannot override deny or indeterminate or ignore
+  an applicable obligation.
 - An intermediary may reduce authority or constraints but cannot add a role,
   purpose, target or information class.
 - A workload acting for a person carries both principals. A workload cannot
@@ -51,6 +55,14 @@ target or time.
   authority.
 - Missing, excessive, expired, conflicting or wrong-environment authority is
   refused through `C-003`.
+- Relationship, consent, restriction, organisation and purpose assertions are
+  distinct and attributable to identified sources; none is self-asserted by
+  the caller or inferred from another.
+
+`policyVersion` and `decisionReference` allow the interaction to identify a
+bounded decision. They are not proof that it is authentic, current or
+applicable; the receiver validates the referenced decision through a future
+accepted `AZ-001` binding when that contract is implemented.
 
 ## Privacy, retention and evidence
 

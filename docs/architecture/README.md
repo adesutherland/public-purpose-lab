@@ -16,7 +16,8 @@ the order in which each will be documented and reviewed.
 The [framework security model](security/framework-security-model.md) and
 [current threat model](security/m1-threat-model.md) define the cross-cutting
 baseline against which those components and contracts are implemented. They are
-versioned working baselines, not claims of production security qualification.
+accepted, versioned M1 baselines, not claims of production security
+qualification.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
 
@@ -40,8 +41,9 @@ The intended foundation includes:
   database;
 - **identity and zero-trust boundaries** for people, workloads, and
   organisations;
-- **externalised policy where valuable**, with decision inputs, outcomes, rule
-  versions, and explanations retained;
+- **externalisable access-control policy decisions**, with receiving-component
+  enforcement, authoritative relationship inputs, decision outcomes,
+  obligations, policy versions and privacy-minimised evidence;
 - **replaceable adapters** around external charity, NHS, and social-care
   interfaces;
 - **end-to-end observability and evidence** across each business transaction;

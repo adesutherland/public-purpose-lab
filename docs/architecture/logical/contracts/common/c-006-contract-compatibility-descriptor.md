@@ -1,6 +1,6 @@
 # C-006: Contract compatibility descriptor
 
-Status: Working baseline
+Status: Accepted
 
 Version: 1.0.0
 
@@ -29,6 +29,12 @@ M1 uses these version rules:
   valid instances; and
 - a receiver supports only versions it explicitly declares and safely refuses
   all others.
+
+Minor compatibility is directional. A consumer declaring a newer compatible
+minor version accepts instances valid under the older version. An older strict
+consumer is not assumed to accept instances produced for the newer minor
+version; producers and consumers use this descriptor rather than inferring
+negotiation from semantic version numbers alone.
 
 An `agreed` schema is a reviewed semantic baseline. `implemented` additionally
 requires an executable producer or consumer and named conformance evidence.

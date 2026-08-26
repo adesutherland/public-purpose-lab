@@ -2,7 +2,7 @@
 
 Status: Agreed conceptual framework
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 ## Purpose
 
@@ -45,19 +45,20 @@ decisions.
 
 ## Core concepts
 
-| Concept | Meaning |
-|---|---|
-| **Service Evidence Workbench** | The productive practitioner and client surface for engagements, assets, analysis, governed work, visualisation and evidence-linked reporting. |
-| **Scenario Director** | The control component that prepares, starts, pauses, resets and observes synthetic scenarios, issues authorised commands and verifies checkpoints. It does not make domain decisions. |
-| **Director Console** | The presenter-facing user interface to the Scenario Director. |
-| **Presentation Surface** | A registered screen or browser session that can apply semantic presentation cues and display a component view without exposing its routes to the Director. |
-| **Demonstration Session** | A bounded, identified execution that links scenario state, synthetic users, screens, commands, events, evidence and reset behaviour. |
-| **Presentation Cue** | A short-lived, typed request to show a named business view or state. It describes intent, not a URL or browser action. |
-| **Demonstration Sign-In Grant** | A signed, short-lived and single-use request for a registered surface to establish a session as an authorised synthetic user. It is not a password or reusable bearer credential. |
-| **Asset** | A registered document, policy, guidance item, system description, data extract, note or link with ownership, provenance, classification and lifecycle. |
-| **Evidence** | Traceable material connecting a source, action, transformation, rule, model-assisted step or human decision to a finding or output. |
-| **Work item** | A durable assignment to a person or role with authority, state, deadlines, outcomes and history. |
-| **Semantic view** | A stable presentation capability such as `engagement.asset-register` or `work.queue`, resolved by the receiving component to its current interface. |
+| Concept                               | Meaning                                                                                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Service Evidence Workbench**        | The productive practitioner and client surface for engagements, assets, analysis, governed work, visualisation and evidence-linked reporting.                                         |
+| **Scenario Director**                 | The control component that prepares, starts, pauses, resets and observes synthetic scenarios, issues authorised commands and verifies checkpoints. It does not make domain decisions. |
+| **Director Console**                  | The presenter-facing user interface to the Scenario Director.                                                                                                                         |
+| **Presentation Surface**              | A registered screen or browser session that can apply semantic presentation cues and display a component view without exposing its routes to the Director.                            |
+| **Demonstration Session**             | A bounded, identified execution that links scenario state, synthetic users, screens, commands, events, evidence and reset behaviour.                                                  |
+| **Presentation Cue**                  | A short-lived, typed request to show a named business view or state. It describes intent, not a URL or browser action.                                                                |
+| **Demonstration Sign-In Grant**       | A signed, short-lived and single-use request for a registered surface to establish a session as an authorised synthetic user. It is not a password or reusable bearer credential.     |
+| **Policy decision and authorisation** | A shared, externalisable capability that evaluates versioned access-control policy while leaving enforcement and the protected business action with the receiving component.          |
+| **Asset**                             | A registered document, policy, guidance item, system description, data extract, note or link with ownership, provenance, classification and lifecycle.                                |
+| **Evidence**                          | Traceable material connecting a source, action, transformation, rule, model-assisted step or human decision to a finding or output.                                                   |
+| **Work item**                         | A durable assignment to a person or role with authority, state, deadlines, outcomes and history.                                                                                      |
+| **Semantic view**                     | A stable presentation capability such as `engagement.asset-register` or `work.queue`, resolved by the receiving component to its current interface.                                   |
 
 ## Architecture principles
 
@@ -69,38 +70,44 @@ decisions.
    refused or fail. An event describes an accepted fact. Presentation cues and
    operational telemetry do not masquerade as business events.
 3. **Components retain authority.** The Director may request and observe, but
-   each domain component validates authority, owns its state and reports its
-   own decisions.
+   each domain component enforces access decisions, validates current domain
+   conditions, owns its state and reports its own decisions.
 4. **Signed authority replaces ambient trust.** Human, synthetic and workload
    identities have explicit, bounded trust paths. Possession of a link or
    access to an event channel does not confer authority.
-5. **Synthetic identity is visibly and environmentally isolated.** Each
+5. **Policy decision and enforcement remain distinct.** Shared access policy
+   may be evaluated through an externalisable decision capability. The
+   receiving component remains the enforcement point and accountable owner of
+   the protected action; permit is necessary where required, but not
+   sufficient.
+6. **Synthetic identity is visibly and environmentally isolated.** Each
    environment has its own synthetic trust root, users, roles and data realm.
    Reusing an actor name in another environment does not create the same
    security principal or allow trust to cross between them.
-6. **One logical architecture, several deployment profiles.** Local and hosted
+7. **One logical architecture, several deployment profiles.** Local and hosted
    forms share concepts, contracts, policy and evidence expectations.
-7. **Logical boundaries precede physical separation.** Early deployments may
+8. **Logical boundaries precede physical separation.** Early deployments may
    combine responsibilities, but ownership, interfaces, trust and failure
    behaviour remain explicit.
-8. **Evidence is designed in.** Provenance, correlation, decisions, failure,
+9. **Evidence is designed in.** Provenance, correlation, decisions, failure,
    recovery, model use and human release are reconstructable across an
    end-to-end path.
-9. **Operational truth and analytics are distinct.** Components own business
-   state; analytical projections are reproducible interpretations of events and
-   records, not a back door for changing them.
-10. **Sources, generated analysis and approved decisions remain distinct.** A
+10. **Operational truth and analytics are distinct.** Components own business
+    state; analytical projections are reproducible interpretations of events and
+    records, not a back door for changing them.
+11. **Sources, generated analysis and approved decisions remain distinct.** A
     retrieved passage or generated finding cannot silently become active policy
     or operational fact.
-11. **Human authority remains visible.** Consequential release, approval,
+12. **Human authority remains visible.** Consequential release, approval,
     refusal, escalation and override are attributable to an authorised person.
-12. **Replaceable implementations.** Identity providers, event transports,
+13. **Replaceable implementations.** Identity providers, authorisation engines,
+    event transports,
     stores, model providers, diagram renderers and deployable units may change
     without changing the enduring responsibility model.
-13. **Security, privacy and operability are component behaviour.** Purpose,
+14. **Security, privacy and operability are component behaviour.** Purpose,
     classification, least privilege, retention, health and recovery are part of
     every contract rather than later platform additions.
-14. **Reuse follows evidence.** Public Purpose Lab applies the Architecture
+15. **Reuse follows evidence.** Public Purpose Lab applies the Architecture
     Portal blueprint, tests it through scenarios, and offers reusable contracts
     and lessons back to the portfolio without overstating their maturity.
 
@@ -122,6 +129,7 @@ flowchart TB
         SD[Scenario Director]
         PG[Presentation Gateway and screen registry]
         ID[Identity, trust and synthetic session broker]
+        AZ[Policy decision and authorisation]
         CE[Commands, APIs, events and contract registry]
     end
 
@@ -149,6 +157,8 @@ flowchart TB
     PG <--> PS
     ID --> PG
     ID --> WB
+    ID --> AZ
+    AZ --> CE
     UX --- DC
     UX --- PS
     UX --- WB
@@ -305,13 +315,38 @@ with these enduring properties:
    includes the environment identity and issuer, so a grant, credential or
    session from one environment is invalid in every other environment.
 10. Acceptance, refusal, expiry, replay, revocation and session termination are
-   auditable facts available to the Director and support views without exposing
-   credential material.
+    auditable facts available to the Director and support views without exposing
+    credential material.
 
 The detailed certificate profile, signing service, transport, session binding,
 key custody, rotation and revocation mechanisms require a threat model and an
 accepted architecture decision before implementation. The properties above are
 the stable contract that those choices must preserve.
+
+## Policy decision and authorisation
+
+Identity, shared access-policy evaluation and enforcement are separate
+responsibilities. `IAM-01` establishes the authenticated principal and bounded
+authority context. Authoritative sources provide only the relationship,
+consent, restriction or organisational assertions required for a decision.
+`AUT-01` evaluates the applicable versioned access-control policy. The
+receiving component enforces the result against its current domain state and
+remains accountable for the protected action.
+
+Where policy requires an `AUT-01` decision, permit is necessary but not
+sufficient. The receiver may further restrict or refuse the action, but it
+must not override deny or indeterminate, ignore obligations or proceed when a
+required decision input is unavailable, stale or unverifiable. Relationship,
+consent, legal basis, professional authority and exceptional access remain
+distinct concepts and one is not inferred from another.
+
+Decision requests disclose the minimum bounded attributes or evidence
+references required by policy. They do not copy source records into the policy
+engine. Exceptional access, where a scenario genuinely requires it, is a
+separately named, time-bounded, attributable and reviewed action—not an
+administrator bypass. Initial demonstrations use synthetic relationship and
+consent data; real personal or service relationships require separately
+recorded authority, governance and conformance evidence.
 
 ## Common interaction model
 
@@ -320,15 +355,15 @@ presentation control, analytics and telemetry distinct.
 
 ### Message profiles
 
-| Profile | Purpose | Durability expectation |
-|---|---|---|
-| **Business command** | Requests an authorised change from the component that owns it. | Durable until accepted, refused or safely expired. |
-| **Business event** | Reports an accepted domain or work fact. | Durable, replayable and governed by retention. |
-| **Demonstration control** | Controls scenario state, synthetic setup, checkpoints or faults. | Durable and auditable within the demonstration evidence. |
-| **Trust command** | Requests a bounded synthetic session or other trust action under signed authority. | Retained sufficiently to prevent replay and prove the outcome, without retaining usable credential material. |
-| **Presentation cue** | Requests a semantic view on a registered surface. | Short-lived, acknowledged and traceable; not business truth. |
-| **Operational signal** | Reports component health, readiness or diagnostic state. | Retained according to operational need, not business-record rules. |
-| **Analytical projection** | Reproducibly interprets accepted facts for measures and views. | Rebuildable from governed sources and versioned definitions. |
+| Profile                   | Purpose                                                                            | Durability expectation                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Business command**      | Requests an authorised change from the component that owns it.                     | Durable until accepted, refused or safely expired.                                                           |
+| **Business event**        | Reports an accepted domain or work fact.                                           | Durable, replayable and governed by retention.                                                               |
+| **Demonstration control** | Controls scenario state, synthetic setup, checkpoints or faults.                   | Durable and auditable within the demonstration evidence.                                                     |
+| **Trust command**         | Requests a bounded synthetic session or other trust action under signed authority. | Retained sufficiently to prevent replay and prove the outcome, without retaining usable credential material. |
+| **Presentation cue**      | Requests a semantic view on a registered surface.                                  | Short-lived, acknowledged and traceable; not business truth.                                                 |
+| **Operational signal**    | Reports component health, readiness or diagnostic state.                           | Retained according to operational need, not business-record rules.                                           |
+| **Analytical projection** | Reproducibly interprets accepted facts for measures and views.                     | Rebuildable from governed sources and versioned definitions.                                                 |
 
 Every public command or event envelope provides, where applicable:
 
@@ -355,37 +390,38 @@ choices.
 
 ### Experience, control and trust
 
-| Component | Owns | Principal inputs and outputs | Essential boundary |
-|---|---|---|---|
-| **Service Evidence Workbench** | Working views and user interaction for engagements, assets, analysis, work and reports. | Issues authorised commands; renders owned records, evidence, projections and work views. | Does not become the authoritative store merely because it presents combined information. |
-| **Director Console** | Presenter interaction and demonstration status. | Sends presenter requests to the Director; receives scenario, screen and checkpoint views. | Does not call portal routes or components directly. |
-| **Scenario Director** | Scenario definitions, execution state, checkpoints and reset coordination. | Accepts presenter commands; emits demonstration controls, authorised business commands and evidence. | Never owns domain decisions or grants itself unrestricted identity authority. |
-| **Presentation Gateway and screen registry** | Registered surfaces, capability manifests, cue routing and acknowledgements. | Accepts authenticated registrations and semantic cues; reports applied, refused, expired or failed outcomes. | Cues affect presentation only and expose no internal route contract. |
-| **Identity, trust and synthetic session broker** | Identity validation, roles, delegated authority, trust anchors and session establishment. | Accepts external authentication, workload assertions and signed synthetic grants; supplies bounded identity context. | Human, synthetic and workload trust paths remain separate. |
-| **Common frontend shell and design system** | Accessible navigation, shared interaction patterns and visual language. | Supplies versioned UI components and integration conventions. | Common presentation does not imply shared business ownership or permissions. |
-| **Commands, APIs, events and contract registry** | Public interaction definitions, versions and compatibility evidence. | Carries requests and facts; provides schemas, examples and conformance expectations. | Transport and schema tooling do not own the business meaning. |
+| Component                                        | Owns                                                                                            | Principal inputs and outputs                                                                                                                            | Essential boundary                                                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Service Evidence Workbench**                   | Working views and user interaction for engagements, assets, analysis, work and reports.         | Issues authorised commands; renders owned records, evidence, projections and work views.                                                                | Does not become the authoritative store merely because it presents combined information.                                    |
+| **Director Console**                             | Presenter interaction and demonstration status.                                                 | Sends presenter requests to the Director; receives scenario, screen and checkpoint views.                                                               | Does not call portal routes or components directly.                                                                         |
+| **Scenario Director**                            | Scenario definitions, execution state, checkpoints and reset coordination.                      | Accepts presenter commands; emits demonstration controls, authorised business commands and evidence.                                                    | Never owns domain decisions or grants itself unrestricted identity authority.                                               |
+| **Presentation Gateway and screen registry**     | Registered surfaces, capability manifests, cue routing and acknowledgements.                    | Accepts authenticated registrations and semantic cues; reports applied, refused, expired or failed outcomes.                                            | Cues affect presentation only and expose no internal route contract.                                                        |
+| **Identity, trust and synthetic session broker** | Identity validation, roles, delegated authority, trust anchors and session establishment.       | Accepts external authentication, workload assertions and signed synthetic grants; supplies bounded identity context.                                    | Human, synthetic and workload trust paths remain separate.                                                                  |
+| **Policy decision and authorisation**            | Versioned shared access-policy evaluation, obligations and privacy-minimised decision evidence. | Accepts authenticated principal, action, resource, purpose and bounded authoritative assertions; returns permit, deny, not-applicable or indeterminate. | It does not authenticate, invent relationships or consent, enforce the action, or make professional and business decisions. |
+| **Common frontend shell and design system**      | Accessible navigation, shared interaction patterns and visual language.                         | Supplies versioned UI components and integration conventions.                                                                                           | Common presentation does not imply shared business ownership or permissions.                                                |
+| **Commands, APIs, events and contract registry** | Public interaction definitions, versions and compatibility evidence.                            | Carries requests and facts; provides schemas, examples and conformance expectations.                                                                    | Transport and schema tooling do not own the business meaning.                                                               |
 
 ### Service, knowledge and work
 
-| Component | Owns | Principal inputs and outputs | Essential boundary |
-|---|---|---|---|
-| **Engagement and domain records** | Engagement purpose, scope and authoritative organisational model. | Accepts validated changes; reports versioned engagement, system, responsibility and dependency facts. | Does not absorb content, work or analytical state merely for convenience. |
-| **Assets, content and source staging** | Asset register, immutable source versions, classifications, rights, provenance and lifecycle. | Acquires links or uploads; produces validated staged sources and lifecycle events. | Untrusted material remains quarantined until it passes the relevant checks. |
-| **Knowledge, retrieval and evidence** | Passages, claims, relationships, retrieval results, ambiguity, conflicts and gaps. | Accepts staged sources and bounded queries; returns cited evidence packets. | It is not a system of record, policy approver or compliance certifier. `crexx-rag` is the preferred first component to qualify, but remains in development. |
-| **Work, case and workflow** | Work items, responsibility, queues, deadlines, escalation, completion and history. | Accepts authorised work commands; reports accepted work-state facts. | Identity, domain records and policy remain separately owned. Open BPM is the proposed reference component, not a delivered integration. |
-| **Rules, decisions and transformations** | Versioned rule execution and explainable results. | Accepts defined facts and rule version; returns outcome, explanation and execution evidence. | A rule does not silently acquire source or action authority. cREXX is preferred where its fit is demonstrated. |
-| **Bounded AI and tool orchestration** | One controlled computational execution across models, retrieval, tools and human-input steps. | Accepts a bounded job; reports provider, model, tools, outputs, limits, abstention and failure. | It does not own durable human work or turn generated output into accepted fact. |
-| **Reports, visualisations and diagrams** | Versioned definitions and generated artifacts for reports, relationship views, analytics and diagrams. | Accepts authorised evidence and projection inputs; produces preview, evidence manifest and released artifact. | Generation is distinct from accountable human release. |
-| **Integration and adapters** | Translation and isolation of external interfaces. | Accepts internal contracts; reports external acceptance, refusal, delivery and failure. | No live integration is implied until authority, support and evidence exist. |
+| Component                                | Owns                                                                                                   | Principal inputs and outputs                                                                                  | Essential boundary                                                                                                                                          |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Engagement and domain records**        | Engagement purpose, scope and authoritative organisational model.                                      | Accepts validated changes; reports versioned engagement, system, responsibility and dependency facts.         | Does not absorb content, work or analytical state merely for convenience.                                                                                   |
+| **Assets, content and source staging**   | Asset register, immutable source versions, classifications, rights, provenance and lifecycle.          | Acquires links or uploads; produces validated staged sources and lifecycle events.                            | Untrusted material remains quarantined until it passes the relevant checks.                                                                                 |
+| **Knowledge, retrieval and evidence**    | Passages, claims, relationships, retrieval results, ambiguity, conflicts and gaps.                     | Accepts staged sources and bounded queries; returns cited evidence packets.                                   | It is not a system of record, policy approver or compliance certifier. `crexx-rag` is the preferred first component to qualify, but remains in development. |
+| **Work, case and workflow**              | Work items, responsibility, queues, deadlines, escalation, completion and history.                     | Accepts authorised work commands; reports accepted work-state facts.                                          | Identity, domain records and policy remain separately owned. Open BPM is the proposed reference component, not a delivered integration.                     |
+| **Rules, decisions and transformations** | Versioned rule execution and explainable results.                                                      | Accepts defined facts and rule version; returns outcome, explanation and execution evidence.                  | A rule does not silently acquire source or action authority. cREXX is preferred where its fit is demonstrated.                                              |
+| **Bounded AI and tool orchestration**    | One controlled computational execution across models, retrieval, tools and human-input steps.          | Accepts a bounded job; reports provider, model, tools, outputs, limits, abstention and failure.               | It does not own durable human work or turn generated output into accepted fact.                                                                             |
+| **Reports, visualisations and diagrams** | Versioned definitions and generated artifacts for reports, relationship views, analytics and diagrams. | Accepts authorised evidence and projection inputs; produces preview, evidence manifest and released artifact. | Generation is distinct from accountable human release.                                                                                                      |
+| **Integration and adapters**             | Translation and isolation of external interfaces.                                                      | Accepts internal contracts; reports external acceptance, refusal, delivery and failure.                       | No live integration is implied until authority, support and evidence exist.                                                                                 |
 
 ### Evidence, analytics and operation
 
-| Component | Owns | Principal inputs and outputs | Essential boundary |
-|---|---|---|---|
-| **Audit and provenance** | Append-oriented attribution, lineage, decision and release evidence. | Receives relevant commands, facts, source lineage and human actions; supplies reconstructable evidence views. | Audit records do not replace authoritative business state and cannot be silently rewritten. |
-| **Analytics and projections** | Versioned measures, projection logic and derived analytical datasets. | Consumes governed events and records; produces reproducible charts, trends and operating measures. | A projection is not a command path or source of operational truth. |
-| **Observability, operations and support** | Health, logs, metrics, traces, alerts, failed-work views and recovery procedures. | Receives runtime signals and correlation context; provides diagnosis and recovery evidence. | Software health remains distinguishable from business completion. |
-| **Platform and delivery** | Builds, software supply chain, runtime, configuration, secrets, persistence, backup, restore and deployment. | Produces signed packages and controlled environments; reports readiness and deployment evidence. | Platform access does not confer business or synthetic-user authority. |
+| Component                                 | Owns                                                                                                         | Principal inputs and outputs                                                                                  | Essential boundary                                                                          |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Audit and provenance**                  | Append-oriented attribution, lineage, decision and release evidence.                                         | Receives relevant commands, facts, source lineage and human actions; supplies reconstructable evidence views. | Audit records do not replace authoritative business state and cannot be silently rewritten. |
+| **Analytics and projections**             | Versioned measures, projection logic and derived analytical datasets.                                        | Consumes governed events and records; produces reproducible charts, trends and operating measures.            | A projection is not a command path or source of operational truth.                          |
+| **Observability, operations and support** | Health, logs, metrics, traces, alerts, failed-work views and recovery procedures.                            | Receives runtime signals and correlation context; provides diagnosis and recovery evidence.                   | Software health remains distinguishable from business completion.                           |
+| **Platform and delivery**                 | Builds, software supply chain, runtime, configuration, secrets, persistence, backup, restore and deployment. | Produces signed packages and controlled environments; reports readiness and deployment evidence.              | Platform access does not confer business or synthetic-user authority.                       |
 
 ## Information and storage model
 
@@ -441,12 +477,12 @@ contracts rather than depend on an Open BPM database or user interface.
 
 The framework supports these deployment profiles:
 
-| Profile | Purpose | Expected shape |
-|---|---|---|
-| **Local private** | Practitioner work, privacy-sensitive analysis and development on macOS, Linux or Windows. | A small container composition, local web interface and local persistence; optional authorised local or user-owned model providers. |
-| **Portable demonstration** | Repeatable, resettable presentation without fragile external navigation dependencies. | The same core composition plus Director, Presentation Gateway, synthetic identity trust, scenario packs and prepared synthetic data. |
-| **Hosted demonstrator** | Shared demonstrations, collaboration and production-like operating evidence. | Kubernetes-compatible workloads with managed ingress, identity, workload trust, persistence, secrets, policy, telemetry, backup and recovery. |
-| **Development and assurance** | Contract testing, failure injection, threat testing and component qualification. | Deterministic fixtures, simulators, conformance suites and observable component boundaries. |
+| Profile                       | Purpose                                                                                   | Expected shape                                                                                                                                |
+| ----------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local private**             | Practitioner work, privacy-sensitive analysis and development on macOS, Linux or Windows. | A small container composition, local web interface and local persistence; optional authorised local or user-owned model providers.            |
+| **Portable demonstration**    | Repeatable, resettable presentation without fragile external navigation dependencies.     | The same core composition plus Director, Presentation Gateway, synthetic identity trust, scenario packs and prepared synthetic data.          |
+| **Hosted demonstrator**       | Shared demonstrations, collaboration and production-like operating evidence.              | Kubernetes-compatible workloads with managed ingress, identity, workload trust, persistence, secrets, policy, telemetry, backup and recovery. |
+| **Development and assurance** | Contract testing, failure injection, threat testing and component qualification.          | Deterministic fixtures, simulators, conformance suites and observable component boundaries.                                                   |
 
 Rust is the intended implementation language for backend services. cREXX
 components run inside explicitly bounded runtime or worker responsibilities for
@@ -500,6 +536,8 @@ The detailed blueprint and architecture decisions will select or define:
 - certificate hierarchy, algorithms, environment key storage, rotation,
   revocation and governed recovery;
 - external identity providers and session mechanisms;
+- access-policy engine, policy language, authoritative attribute and
+  relationship sources, and deployment binding;
 - browser cue delivery and screen-registration transports;
 - database, object, index, event-journal and analytics products;
 - local installer, container composition and any desktop shell;
@@ -509,8 +547,9 @@ The detailed blueprint and architecture decisions will select or define:
 
 Those choices must preserve this framework, be justified by the first
 end-to-end scenario, and be recorded when material. Product selection must not
-weaken the identity separation, semantic presentation control, information
-ownership or evidence requirements defined here.
+weaken identity separation, the policy-decision and enforcement boundary,
+semantic presentation control, information ownership or evidence requirements
+defined here.
 
 ## Framework authority and next architecture work
 

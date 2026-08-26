@@ -1,6 +1,6 @@
 # C-001: Interaction envelope
 
-Status: Working baseline
+Status: Accepted
 
 Version: 1.0.0
 
