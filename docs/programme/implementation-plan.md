@@ -2,7 +2,7 @@
 
 Status: Working draft
 
-Last reviewed: 26 August 2026
+Last reviewed: 27 August 2026
 
 Decision authority: Public Purpose Lab founders
 
@@ -41,6 +41,8 @@ The repository currently provides:
   an in-development `INT-01` local assurance path;
 - an accepted `AUT-01` externalisable authorisation boundary with its
   bounded in-process reference adapter and accepted `AZ-001` contract;
+- the accepted M3.1 `CTL-01`, `D-001` to `D-004` and Scenario Director threat
+  baseline, with implementation and presentation bindings still pending;
 - accepted local-synthetic and managed trust profiles, with managed trust
   required for hosted, shared, production-like or non-synthetic-data use; and
 - CI evidence for source checks, tests, builds, Kubernetes rendering and the
@@ -330,7 +332,7 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 
 ### M3 — Scenario Director and presentation control
 
-Status: Defined — architecture and implementation pending
+Status: In progress — M3.1 logical baseline accepted; M3.2 bindings pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -411,20 +413,59 @@ Implementation deliverables:
 - bounded operational status and an evidence record for lifecycle, cue and
   checkpoint outcomes without credentials or usable session values; and
 - local-container and Minikube deployment examples using the common M1/M2
-  components and security posture.
+  components and security posture; and
+- the ADR-0012 Google Cloud preview lifecycle: one disposable infrastructure
+  create/destroy spike, followed only after the local walking skeleton by a
+  private, time-bounded hosted smoke with explicit trust and cost evidence.
 
 Delivery sequence:
 
-1. **M3.1 — contracts and threats:** approve the `CTL-01`, `D-001` to `D-004`
-   and M3 threat-model baseline.
-2. **M3.2 — presentation binding:** approve `CTL-02`, `P-001` to `P-004` and
-   the event, presenter-authentication and surface-binding ADRs.
+1. **M3.1 — contracts and threats — accepted 27 August 2026:** `CTL-01`,
+   `D-001` to `D-004`, ADR-0011 and the M3 logical threat-model baseline are
+   accepted. This closes the logical design slice only; schemas, implementation
+   and physical bindings remain pending.
+2. **M3.2 — presentation and hosted-lifecycle binding:** approve `CTL-02`,
+   `P-001` to `P-004`, the event, presenter-authentication and surface-binding
+   ADRs, and the Google Cloud `off`/`on`, operator, managed-trust, cost and
+   automatic-expiry design. Perform one disposable infrastructure
+   create/destroy spike without claiming a hosted application.
 3. **M3.3 — runtime walking skeleton:** implement one Director/runtime,
-   registry and Presentation Surface path with lifecycle, cue and outcome.
+   registry and Presentation Surface path with lifecycle, cue and outcome
+   locally first, then run a private Google Cloud health and contract smoke
+   using the same versioned artifacts.
 4. **M3.4 — identity and resilience:** integrate M2 synthetic sign-in,
-   reconnect, duplicate, expiry, restart, reset and safe-failure cases.
+   reconnect, duplicate, expiry, restart, reset and safe-failure cases. Before
+   any shared hosted demonstration, add the narrow managed-root, presenter,
+   workload, protected-state and authorised-activation binding required by
+   ADR-0007 and ADR-0012.
 5. **M3.5 — demonstration evidence:** run the repeatable local and Minikube
-   scenario, record limitations and present the baseline for founder review.
+   scenario and one scheduled, automatically expiring hosted preview; record
+   limitations, gross usage, credits, net cost and teardown evidence for
+   founder review.
+
+M3.1 is closed as an accepted logical baseline. Work proceeds to M3.2 without
+assuming a package format, database, event broker, presenter-authentication
+provider, browser protocol, clock implementation, reset adapter or fault
+mechanism.
+
+### Hosted-preview scheduling and cost boundary
+
+ADR-0012 brings cloud lifecycle evidence forward without moving formal hosted
+qualification out of M6. The local environment remains the normal development
+path. The hosted preview defaults to `off`; `on` is restricted to named
+operators, records an automatic expiry and must return a conclusive teardown
+outcome. An optional continuing `warm-off` state requires measured justification.
+
+The provisional operating target is an average net cost of approximately 30
+units in the billing account's currency per month. Evidence reports gross usage,
+credits and net cost separately so a temporary credit does not hide the
+underlying design cost. Exact billing configuration and balances remain in
+protected infrastructure records.
+
+The public static website is not the demonstrator control plane and does not
+keep the hosted environment active. Exact Google Cloud service, persistence,
+network, issuer, pipeline and infrastructure-as-code bindings remain M3.2
+decisions.
 
 Exit evidence:
 
@@ -444,12 +485,18 @@ Exit evidence:
 - checkpoints distinguish presentation progress, software health and business
   completion; and
 - the same package supports live demonstration and automated adverse-case
-  evidence in local-container and Minikube profiles.
+  evidence in local-container and Minikube profiles; and
+- the private Google Cloud preview can be created, activated by an authorised
+  operator, automatically expired and deactivated without accepting a
+  local-synthetic root or leaving an unintended runtime endpoint, workload or
+  unexplained material cost.
 
 M3 does not deliver Workbench asset handling, RAG, workflow, domain reporting,
-managed identity, real data, multi-tenant operation, high availability or
-production browser-session security. Those capabilities remain in later
-milestones or require separately qualified bindings.
+general managed external-human identity, real data, multi-tenant operation,
+high availability or production browser-session security. The hosted preview's
+narrow managed root and operator/presenter binding do not qualify those broader
+capabilities. They remain in later milestones or require separately qualified
+bindings.
 
 ### M4 — Governed source and evidence workbench
 
