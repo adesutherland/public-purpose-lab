@@ -86,32 +86,32 @@
       "id": "P-001",
       "name": "Presentation capability manifest",
       "group": "presentation",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/presentation/p-001-presentation-capability-manifest.md",
       "schema": null
     },
     {
       "id": "P-002",
       "name": "Presentation surface registration",
       "group": "presentation",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/presentation/p-002-presentation-surface-registration.md",
       "schema": null
     },
     {
       "id": "P-003",
       "name": "Presentation cue",
       "group": "presentation",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/presentation/p-003-presentation-cue.md",
       "schema": null
     },
     {
       "id": "P-004",
       "name": "Presentation cue outcome",
       "group": "presentation",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/presentation/p-004-presentation-cue-outcome.md",
       "schema": null
     },
     {
