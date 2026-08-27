@@ -99,6 +99,15 @@ chmod 600 "$environment_directory"/*.key "$environment_directory"/*.seed \
   "$environment_directory/nats-server.conf"
 chmod 644 "$environment_directory"/*.crt
 chmod 644 "$environment_directory"/*.nkey
+if [ "$layout" = portable ]; then
+  # Compose file-backed secrets preserve host ownership and may ignore declared
+  # uid/gid/mode. The parent directory remains owner-only, and only these
+  # workload-mounted files become readable inside their intended containers.
+  chmod 644 "$environment_directory/nats-server.key" \
+    "$environment_directory/director.seed" \
+    "$environment_directory/presentation.seed" \
+    "$environment_directory/nats-server.conf"
+fi
 
 printf '%s\n' \
   "Environment generated at $environment_directory" \

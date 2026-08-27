@@ -96,6 +96,13 @@ docker compose -f deploy/compose/m3-compose.yaml up --build --detach
 tools/smoke-m3-native.sh
 ```
 
+The portable setup keeps the environment directory at owner-only mode. Because
+common Compose implementations expose file-backed secrets without applying
+declared container ownership, only the NATS server key, workload seeds and
+server configuration are made container-readable inside that protected
+directory. The synthetic root private key remains owner-only and is never
+mounted. Each workload receives only its own seed.
+
 Substitute the equivalent command for another compatible Compose tool. Stop
 the workloads while retaining the named volumes:
 

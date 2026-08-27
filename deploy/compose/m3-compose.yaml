@@ -13,7 +13,6 @@ services:
     secrets:
       - source: nats-server-key
         target: /etc/nats/nats-server.key
-        mode: 0400
     read_only: true
     tmpfs:
       - /tmp
@@ -45,9 +44,6 @@ services:
     secrets:
       - source: director-nkey
         target: /run/secrets/director-nkey
-        uid: "65532"
-        gid: "65532"
-        mode: 0400
     read_only: true
     tmpfs:
       - /tmp
@@ -77,9 +73,6 @@ services:
     secrets:
       - source: presentation-nkey
         target: /run/secrets/presentation-nkey
-        uid: "65532"
-        gid: "65532"
-        mode: 0400
     read_only: true
     tmpfs:
       - /tmp

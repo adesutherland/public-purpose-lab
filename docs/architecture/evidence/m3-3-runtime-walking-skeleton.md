@@ -85,7 +85,11 @@ The evidence cycles found and corrected issues before closure:
   checker; and
 - Minikube could retain an old mutable-tag image after a failed or unchanged
   deployment, so startup now detects build errors, forces a rollout and checks
-  each running Pod's image ID.
+  each running Pod's image ID; and
+- Docker Compose ignored requested ownership for bind-backed secrets, so the
+  portable environment now combines an owner-only parent directory with
+  container-readable mounted files while retaining the unmounted root private
+  key at owner-only mode.
 
 These corrections illustrate why the current mechanisms remain a revisable
 baseline even when their accepted invariants are stable.
