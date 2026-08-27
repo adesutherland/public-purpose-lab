@@ -19,6 +19,10 @@ shared, production-like, production or non-synthetic-data environments.
 - [M3 Scenario Director threat model](m3-threat-model.md) — accepted logical
   threats, required controls and implementation gates for `CTL-01` and
   `D-001` to `D-004`; no physical binding is accepted by implication.
+- [M3.2 presentation and hosted-binding threat extension](m3-2-presentation-threat-extension.md)
+  — accepted binding threats and evidence gates for `CTL-02`, browser
+  delivery, presenter identity, event transport and the first Google Cloud
+  binding.
 
 These documents are expected to evolve as demonstrators expose better
 evidence. A revision is controlled and attributable; it does not silently

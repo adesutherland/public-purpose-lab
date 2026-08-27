@@ -1,6 +1,6 @@
 # M3 threat model: Scenario Director control contracts
 
-Status: Accepted M3.1 logical threat baseline; implementation bindings pending
+Status: Accepted M3.1 logical threat baseline; M3.2 extension accepted
 
 Version: 0.1.0
 
@@ -25,9 +25,10 @@ It uses synthetic data and approved public material only.
 M3.1 selects no runtime, database, event broker, API, browser protocol,
 presenter identity provider, surface-binding mechanism or package-signing
 profile. `CTL-02` and `P-001` to `P-004` are specified in M3.2 and will extend
-this analysis for surface impersonation and cue delivery. This draft therefore
-defines required security properties, not an implemented or production-
-qualified control.
+this analysis for surface impersonation and cue delivery. The current
+[M3.2 binding extension](m3-2-presentation-threat-extension.md) is accepted as a
+separate baseline. This document therefore defines required security
+properties, not an implemented or production-qualified control.
 
 It is not evidence of legal, regulatory, clinical, professional or production
 compliance.
@@ -56,7 +57,7 @@ compliance.
 | Package and fixtures         | Untrusted content until admitted                                 | Immutable identity/digest, provenance, synthetic classification, bounded resources and no routes, secrets or executable content. |
 | Component command boundary   | Owned by each receiving component                                | Current identity, authority, purpose, contract and domain-state validation; Director cannot bypass refusal.                      |
 | `IAM-01` / `AUT-01`          | Accepted M2 logical identity and policy boundaries               | Principal separation, environment binding, fail-closed decisions and obligations.                                                |
-| `CTL-02` / presentation      | Deferred M3.2 binding                                            | Authenticated surface registration and semantic cues with no business authority or routes.                                       |
+| `CTL-02` / presentation      | Accepted M3.2 logical binding                                    | Authenticated surface registration and semantic cues with no business authority or routes.                                       |
 | Reset/time/fault adapter     | Elevated test capability inside one owner boundary               | Explicit allow-list, closed parameters, containment, expiry, evidence and independent authority.                                 |
 | Observation/evidence source  | Authoritative only for its owned claim                           | Version, freshness, scope, classification and access checks; no inference from appearance.                                       |
 | Platform/operator            | Administrative capability, not presenter or business authority   | Named support actions, least privilege and no ambient impersonation.                                                             |
@@ -168,7 +169,9 @@ The first executable evidence package should include:
 ## Implementation-binding gates after M3.1
 
 Before implementation, the following decisions require founder review and
-ADRs where indicated:
+ADRs where indicated. Items 2 to 4 and the first hosted binding in item 11 were
+accepted at design maturity in M3.2; their implementation evidence remains
+open:
 
 1. package representation, schema, canonical digest, signature and
    distribution integrity;
@@ -202,11 +205,11 @@ controls require explicit negative and recovery evidence.
 
 ## Residual risk and review outcome
 
-At M3.1 the largest residual risks are deliberately unresolved physical
-bindings: presenter and surface authentication, package integrity, persistence
-atomicity, event delivery, test-adapter privilege and browser/session
-containment. No implementation should begin by choosing those products before
-the logical boundaries and successor-session reset rule are reviewed.
+After M3.2 the largest residual risks are implementation and remaining physical
+bindings: package integrity, persistence atomicity, executable presenter and
+surface authentication, event delivery, test-adapter privilege and browser/
+session containment. Accepted product choices do not close those risks without
+the specified conformance evidence.
 
 The founders accepted this document as the M3.1 logical threat baseline on 27
 August 2026. Acceptance does not promote `CTL-01` to implemented, demonstrated

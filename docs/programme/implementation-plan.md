@@ -332,7 +332,8 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 
 ### M3 — Scenario Director and presentation control
 
-Status: In progress — M3.1 logical baseline accepted; M3.2 bindings pending
+Status: In progress — M3.1 and M3.2 design baselines accepted; M3.2
+infrastructure spike pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -424,11 +425,10 @@ Delivery sequence:
    `D-001` to `D-004`, ADR-0011 and the M3 logical threat-model baseline are
    accepted. This closes the logical design slice only; schemas, implementation
    and physical bindings remain pending.
-2. **M3.2 — presentation and hosted-lifecycle binding:** approve `CTL-02`,
-   `P-001` to `P-004`, the event, presenter-authentication and surface-binding
-   ADRs, and the Google Cloud `off`/`on`, operator, managed-trust, cost and
-   automatic-expiry design. Perform one disposable infrastructure
-   create/destroy spike without claiming a hosted application.
+2. **M3.2 — presentation and hosted-lifecycle binding — design accepted 27
+   August 2026; spike pending:** `CTL-02`, `P-001` to `P-004`, ADR-0013 to
+   ADR-0016 and the M3.2 threat extension are accepted. Perform one disposable
+   infrastructure create/destroy spike without claiming a hosted application.
 3. **M3.3 — runtime walking skeleton:** implement one Director/runtime,
    registry and Presentation Surface path with lifecycle, cue and outcome
    locally first, then run a private Google Cloud health and contract smoke
@@ -443,10 +443,11 @@ Delivery sequence:
    limitations, gross usage, credits, net cost and teardown evidence for
    founder review.
 
-M3.1 is closed as an accepted logical baseline. Work proceeds to M3.2 without
-assuming a package format, database, event broker, presenter-authentication
-provider, browser protocol, clock implementation, reset adapter or fault
-mechanism.
+M3.1 is closed as an accepted logical baseline. M3.2 accepts NATS JetStream,
+Google OIDC, the backend-mediated SSE/POST surface channel and the ephemeral GKE
+Autopilot/OpenTofu hosted lifecycle at design maturity. Package format,
+database, control-state persistence, clock implementation, reset adapter and
+fault mechanism remain unselected.
 
 ### Hosted-preview scheduling and cost boundary
 
@@ -463,9 +464,10 @@ underlying design cost. Exact billing configuration and balances remain in
 protected infrastructure records.
 
 The public static website is not the demonstrator control plane and does not
-keep the hosted environment active. Exact Google Cloud service, persistence,
-network, issuer, pipeline and infrastructure-as-code bindings remain M3.2
-decisions.
+keep the hosted environment active. ADR-0016 accepts the first GKE Autopilot,
+Workload Identity Federation, Cloud KMS, Cloud Tasks/Cloud Build and OpenTofu
+binding. Exact account configuration and later application persistence remain
+protected or deferred implementation decisions.
 
 Exit evidence:
 

@@ -50,3 +50,7 @@ What evidence will validate or cause reconsideration of the decision?
 - [ADR-0010: Use a locked local security journal and rebuild recovery for the M2 reference path](0010-use-a-locked-local-security-journal-and-rebuild-recovery-for-the-m2-reference-path.md)
 - [ADR-0011: Establish the M3 scenario-control invariants](0011-establish-the-m3-scenario-control-invariants.md)
 - [ADR-0012: Introduce a cost-controlled Google Cloud hosted preview during M3](0012-introduce-a-cost-controlled-google-cloud-hosted-preview-during-m3.md)
+- [ADR-0013: Use NATS JetStream for the first component event binding](0013-use-nats-jetstream-for-the-first-component-event-binding.md)
+- [ADR-0014: Bind presenters through Google OIDC and backend sessions](0014-bind-presenters-through-google-oidc-and-backend-sessions.md)
+- [ADR-0015: Use a backend-mediated presentation channel](0015-use-a-backend-mediated-presentation-channel.md)
+- [ADR-0016: Bind the first hosted preview to ephemeral GKE Autopilot](0016-bind-the-first-hosted-preview-to-gke-autopilot.md)

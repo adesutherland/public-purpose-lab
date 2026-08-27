@@ -20,6 +20,9 @@ bounded milestone baselines. The
 [M3 Scenario Director threat model](security/m3-threat-model.md) is the accepted
 M3.1 logical threat baseline; its physical bindings remain undecided. None is a
 claim of production security qualification.
+The [M3.2 presentation and hosted-binding extension](security/m3-2-presentation-threat-extension.md)
+is the accepted binding threat baseline; its selected products and controls
+remain unimplemented and unqualified.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
 

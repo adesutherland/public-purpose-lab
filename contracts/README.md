@@ -29,6 +29,10 @@ Contract source will be organised by family:
 schema-free and unimplemented; the catalogue's `agreed` status accepts their
 semantics but is not a schema, runtime or deployment claim.
 
+`P-001` to `P-004` have accepted M3.2 logical specifications. Their `agreed`
+catalogue status accepts the semantics without implying a canonical schema,
+implementation or qualified deployment.
+
 JSON Schema is the canonical representation; it does not select OpenAPI,
 AsyncAPI, CloudEvents, Protobuf, an event broker or an API framework. Run
 `pnpm check:contracts` to compile every registered schema and verify its
