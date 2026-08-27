@@ -7,3 +7,4 @@ working baseline into production or compliance assurance.
 
 - [M1 common interaction baseline](m1-common-interaction-baseline.md)
 - [M2 local-synthetic identity baseline](m2-local-synthetic-identity-baseline.md)
+- [M3.2 Google Cloud hosted-lifecycle spike](m3-2-google-cloud-hosted-lifecycle-spike.md)

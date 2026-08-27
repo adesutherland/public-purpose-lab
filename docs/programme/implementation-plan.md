@@ -333,7 +333,7 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 ### M3 — Scenario Director and presentation control
 
 Status: In progress — M3.1 and M3.2 design baselines accepted; M3.2
-infrastructure spike pending
+infrastructure lifecycle spike evidenced; runtime implementation pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -425,10 +425,12 @@ Delivery sequence:
    `D-001` to `D-004`, ADR-0011 and the M3 logical threat-model baseline are
    accepted. This closes the logical design slice only; schemas, implementation
    and physical bindings remain pending.
-2. **M3.2 — presentation and hosted-lifecycle binding — design accepted 27
-   August 2026; spike pending:** `CTL-02`, `P-001` to `P-004`, ADR-0013 to
-   ADR-0016 and the M3.2 threat extension are accepted. Perform one disposable
-   infrastructure create/destroy spike without claiming a hosted application.
+2. **M3.2 — presentation and hosted-lifecycle binding — design accepted and
+   infrastructure spike completed 27 August 2026:** `CTL-02`, `P-001` to
+   `P-004`, ADR-0013 to ADR-0016 and the M3.2 threat extension are accepted.
+   The disposable infrastructure create/manual-off result is recorded in the
+   [M3.2 hosted-lifecycle evidence](../architecture/evidence/m3-2-google-cloud-hosted-lifecycle-spike.md);
+   no hosted application claim follows from it.
 3. **M3.3 — runtime walking skeleton:** implement one Director/runtime,
    registry and Presentation Surface path with lifecycle, cue and outcome
    locally first, then run a private Google Cloud health and contract smoke
@@ -448,6 +450,13 @@ Google OIDC, the backend-mediated SSE/POST surface channel and the ephemeral GKE
 Autopilot/OpenTofu hosted lifecycle at design maturity. Package format,
 database, control-state persistence, clock implementation, reset adapter and
 fault mechanism remain unselected.
+
+The M3.2 infrastructure sub-slice is now evidenced: short-lived operator
+federation, pre-apply expiry arming, private-node Autopilot create, explicit
+off, partial-failure recovery and empty residual activation inventory were
+observed. Automatic-expiry execution, application deployment, managed trust,
+presenter/workload binding and the presentation/event runtime remain pending
+under M3.3 to M3.5.
 
 ### Hosted-preview scheduling and cost boundary
 
