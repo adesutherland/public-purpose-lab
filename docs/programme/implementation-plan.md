@@ -332,8 +332,8 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 
 ### M3 — Scenario Director and presentation control
 
-Status: In progress — M3.1 and M3.2 design baselines accepted; M3.2
-infrastructure lifecycle spike evidenced; runtime implementation pending
+Status: In progress — M3.1 to M3.3 design baselines accepted; M3.2
+infrastructure lifecycle spike evidenced; M3.3 runtime implementation pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -431,10 +431,10 @@ Delivery sequence:
    The disposable infrastructure create/manual-off result is recorded in the
    [M3.2 hosted-lifecycle evidence](../architecture/evidence/m3-2-google-cloud-hosted-lifecycle-spike.md);
    no hosted application claim follows from it.
-3. **M3.3 — runtime walking skeleton:** implement one Director/runtime,
-   registry and Presentation Surface path with lifecycle, cue and outcome
-   locally first, then run a private Google Cloud health and contract smoke
-   using the same versioned artifacts.
+3. **M3.3 — runtime walking skeleton — design accepted 27 August 2026:**
+   implement one Director/runtime, registry and Presentation Surface path with
+   lifecycle, cue and outcome locally first, then run a private Google Cloud
+   health and contract smoke using the same versioned artifacts.
 4. **M3.4 — identity and resilience:** integrate M2 synthetic sign-in,
    reconnect, duplicate, expiry, restart, reset and safe-failure cases. Before
    any shared hosted demonstration, add the narrow managed-root, presenter,
@@ -445,11 +445,20 @@ Delivery sequence:
    limitations, gross usage, credits, net cost and teardown evidence for
    founder review.
 
+The accepted
+[M3.3 runtime walking-skeleton baseline](../architecture/m3-3-runtime-walking-skeleton-baseline.md)
+and ADR-0017 to ADR-0020 define the current package, component-state,
+controlled-time/reset/fault and deployable bindings. Founder acceptance permits
+implementation against this baseline; it does not claim that implementation or
+M3.3 evidence exists.
+
 M3.1 is closed as an accepted logical baseline. M3.2 accepts NATS JetStream,
 Google OIDC, the backend-mediated SSE/POST surface channel and the ephemeral GKE
-Autopilot/OpenTofu hosted lifecycle at design maturity. Package format,
-database, control-state persistence, clock implementation, reset adapter and
-fault mechanism remain unselected.
+Autopilot/OpenTofu hosted lifecycle at design maturity. M3.3 accepts canonical
+JSON packages, component-owned SQLite stores, separate operational/logical
+time, bounded reset/fault adapters and one application image with separate
+Director and Presentation Gateway workloads at design maturity. Exact library
+versions, numerical limits and implementation evidence remain pending.
 
 The M3.2 infrastructure sub-slice is now evidenced: short-lived operator
 federation, pre-apply expiry arming, private-node Autopilot create, explicit

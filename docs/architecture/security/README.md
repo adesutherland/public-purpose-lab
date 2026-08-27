@@ -23,6 +23,9 @@ shared, production-like, production or non-synthetic-data environments.
   — accepted binding threats and evidence gates for `CTL-02`, browser
   delivery, presenter identity, event transport and the first Google Cloud
   binding.
+- [M3.3 runtime-binding threat extension](m3-3-runtime-binding-threat-extension.md)
+  — accepted threats and evidence gates for canonical packages, component
+  state, bounded assurance controls and the first executable composition.
 
 These documents are expected to evolve as demonstrators expose better
 evidence. A revision is controlled and attributable; it does not silently

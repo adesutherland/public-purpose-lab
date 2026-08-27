@@ -13,6 +13,12 @@ The [logical architecture overview](logical/README.md) starts the next level of
 design. It identifies every logical component and contract family and defines
 the order in which each will be documented and reviewed.
 
+The accepted
+[M3.3 runtime walking-skeleton baseline](m3-3-runtime-walking-skeleton-baseline.md)
+binds the Director and presentation contracts to a minimal executable
+composition. Acceptance establishes an implementation baseline, not an
+implemented capability.
+
 The [framework security model](security/framework-security-model.md),
 [M1 threat model](security/m1-threat-model.md) and
 [M2 threat model](security/m2-threat-model.md) define accepted cross-cutting and
@@ -21,8 +27,13 @@ bounded milestone baselines. The
 M3.1 logical threat baseline; its physical bindings remain undecided. None is a
 claim of production security qualification.
 The [M3.2 presentation and hosted-binding extension](security/m3-2-presentation-threat-extension.md)
-is the accepted binding threat baseline; its selected products and controls
+is the accepted binding threat baseline. Its infrastructure lifecycle is
+evidenced separately; its presentation, application and managed-trust controls
 remain unimplemented and unqualified.
+The accepted
+[M3.3 runtime-binding threat extension](security/m3-3-runtime-binding-threat-extension.md)
+covers the package, state, time/reset/fault and deployable bindings; executable
+evidence remains pending.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
 

@@ -54,3 +54,7 @@ What evidence will validate or cause reconsideration of the decision?
 - [ADR-0014: Bind presenters through Google OIDC and backend sessions](0014-bind-presenters-through-google-oidc-and-backend-sessions.md)
 - [ADR-0015: Use a backend-mediated presentation channel](0015-use-a-backend-mediated-presentation-channel.md)
 - [ADR-0016: Bind the first hosted preview to ephemeral GKE Autopilot](0016-bind-the-first-hosted-preview-to-gke-autopilot.md)
+- [ADR-0017: Use canonical JSON and repository provenance for M3 scenario packages](0017-use-canonical-json-and-repository-provenance-for-m3-scenario-packages.md)
+- [ADR-0018: Use component-owned SQLite state for the M3 single-instance runtime](0018-use-component-owned-sqlite-state-for-the-m3-single-instance-runtime.md)
+- [ADR-0019: Bind M3 controlled time, reset and faults to bounded runtime adapters](0019-bind-m3-controlled-time-reset-and-faults-to-bounded-runtime-adapters.md)
+- [ADR-0020: Use one application image with separate Director and presentation workloads](0020-use-one-application-image-with-separate-director-and-presentation-workloads.md)
