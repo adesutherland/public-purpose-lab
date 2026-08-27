@@ -24,6 +24,18 @@ const contractSets = [
     fixtures: "contracts/authorisation/fixtures.json",
     compatibility: "contracts/authorisation/compatibility.json",
   },
+  {
+    name: "demonstration",
+    ids: ["D-001", "D-002", "D-003", "D-004"],
+    fixtures: "contracts/demonstration/fixtures.json",
+    compatibility: "contracts/demonstration/compatibility.json",
+  },
+  {
+    name: "presentation",
+    ids: ["P-001", "P-002", "P-003", "P-004"],
+    fixtures: "contracts/presentation/fixtures.json",
+    compatibility: "contracts/presentation/compatibility.json",
+  },
 ];
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 

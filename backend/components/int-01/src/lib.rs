@@ -24,6 +24,8 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use time::{Duration, OffsetDateTime, format_description::well_known::Rfc3339};
 
+pub mod nats;
+
 const INTERACTION_CONTRACTS: &[&str] = &["C-001", "C-002", "C-003", "C-004", "C-005", "C-006"];
 const JOURNAL_VERSION: u32 = 1;
 const JOURNAL_FILE: &str = "interaction-journal.jsonl";

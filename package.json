@@ -14,7 +14,7 @@
     "build:web": "pnpm --recursive --if-present build",
     "check": "pnpm check:architecture && pnpm check:contracts && pnpm check:links && pnpm format:check && pnpm check:web && pnpm check:rust && pnpm check:m1-runtime && pnpm check:m2-runtime",
     "check:architecture": "node tools/check-architecture-catalog.mjs",
-    "check:contracts": "node tools/check-contracts.mjs",
+    "check:contracts": "node tools/check-contracts.mjs && node tools/check-scenario-package.mjs",
     "check:links": "node tools/check-local-links.mjs",
     "check:m1-runtime": "node tools/check-m1-runtime.mjs",
     "check:m2-runtime": "node tools/check-m2-runtime.mjs",
@@ -23,13 +23,15 @@
     "dev:director": "pnpm --filter @public-purpose-lab/director dev",
     "dev:presentation": "pnpm --filter @public-purpose-lab/presentation dev",
     "dev:workbench": "pnpm --filter @public-purpose-lab/workbench dev",
-    "format": "prettier --write .github/workflows/ci.yml architecture backend/README.md contracts deploy docs/architecture docs/programme/implementation-plan.md frontend tools DEVELOPMENT.md package.json pnpm-workspace.yaml",
-    "format:check": "prettier --check .github/workflows/ci.yml architecture backend/README.md contracts deploy docs/architecture docs/programme/implementation-plan.md frontend tools DEVELOPMENT.md package.json pnpm-workspace.yaml",
+    "format": "prettier --write .github/workflows/ci.yml architecture backend/README.md contracts deploy docs/architecture docs/guides docs/programme/implementation-plan.md frontend tools DEVELOPMENT.md package.json pnpm-workspace.yaml",
+    "format:check": "prettier --check .github/workflows/ci.yml architecture backend/README.md contracts deploy docs/architecture docs/guides docs/programme/implementation-plan.md frontend tools DEVELOPMENT.md package.json pnpm-workspace.yaml",
     "test": "pnpm check"
   },
   "devDependencies": {
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
+    "canonicalize": "4.0.0",
+    "json-dup-key-validator": "1.0.3",
     "prettier": "3.9.6"
   }
 }

@@ -1,0 +1,17 @@
+{
+  "contractId": "P-004",
+  "contractVersion": "1.0.0",
+  "outcomeId": "outcome:cue:001",
+  "cueId": "cue:welcome:001",
+  "cueDigest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "sessionId": "session:assurance:001",
+  "sessionRevision": 3,
+  "surfaceSlot": "audience-display",
+  "registrationId": "registration:audience:001",
+  "registrationRevision": 1,
+  "connectionGeneration": 1,
+  "semanticView": "assurance-welcome",
+  "result": "applied",
+  "concludedAt": "2026-08-27T12:05:02Z",
+  "businessCompletionClaimed": false
+}

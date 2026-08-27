@@ -17,7 +17,9 @@ The accepted
 [M3.3 runtime walking-skeleton baseline](m3-3-runtime-walking-skeleton-baseline.md)
 binds the Director and presentation contracts to a minimal executable
 composition. Acceptance establishes an implementation baseline, not an
-implemented capability.
+implemented or qualified capability. The first implementation and its open
+closure gates are recorded in the
+[M3.3 evidence record](evidence/m3-3-runtime-walking-skeleton.md).
 
 The [framework security model](security/framework-security-model.md),
 [M1 threat model](security/m1-threat-model.md) and
@@ -33,7 +35,8 @@ remain unimplemented and unqualified.
 The accepted
 [M3.3 runtime-binding threat extension](security/m3-3-runtime-binding-threat-extension.md)
 covers the package, state, time/reset/fault and deployable bindings; executable
-evidence remains pending.
+native and Minikube evidence now exists, while exact-image container and private
+hosted evidence remains pending.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
 

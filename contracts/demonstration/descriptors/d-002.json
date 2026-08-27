@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "D-002",
+  "describedContractName": "Scenario lifecycle",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:D-002:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": ["contracts/demonstration/examples/d-002-create-session.json"],
+  "producerExpectations": [
+    "Supply one supported action with the current expected revision and immutable operation identity."
+  ],
+  "consumerExpectations": [
+    "Serialise transitions and return the original outcome for an identical duplicate."
+  ],
+  "evidence": []
+}

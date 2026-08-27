@@ -1,0 +1,15 @@
+{
+  "contractId": "P-002",
+  "contractVersion": "1.0.0",
+  "registrationId": "registration:audience:001",
+  "sessionId": "session:assurance:001",
+  "surfaceSlot": "audience-display",
+  "surfaceRole": "audience-display",
+  "manifestId": "assurance-presentation-surface",
+  "manifestVersion": "1.0.0",
+  "supportedViews": ["assurance-welcome"],
+  "bindingMode": "development-assurance",
+  "registrationRevision": 1,
+  "connectionGeneration": 1,
+  "leaseExpiresAt": "2026-08-27T12:20:00Z"
+}

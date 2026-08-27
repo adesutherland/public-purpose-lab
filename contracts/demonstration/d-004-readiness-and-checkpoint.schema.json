@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:D-004:1.0.0",
+  "title": "D-004 Readiness and checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "evaluationId",
+    "sessionId",
+    "claimClass",
+    "claimId",
+    "result",
+    "sourceContract",
+    "observedAt",
+    "evidenceReferences"
+  ],
+  "properties": {
+    "contractId": { "const": "D-004" },
+    "contractVersion": { "const": "1.0.0" },
+    "evaluationId": { "$ref": "#/$defs/id" },
+    "sessionId": { "$ref": "#/$defs/id" },
+    "claimClass": {
+      "enum": [
+        "software-health",
+        "scenario-readiness",
+        "presentation-progress",
+        "business-completion"
+      ]
+    },
+    "claimId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 80
+    },
+    "result": {
+      "enum": [
+        "satisfied",
+        "not-satisfied",
+        "pending",
+        "not-evaluable",
+        "uncertain"
+      ]
+    },
+    "sourceContract": { "type": "string", "pattern": "^[A-Z]{1,2}-[0-9]{3}$" },
+    "sourceReference": { "$ref": "#/$defs/id" },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "reason": { "type": "string", "minLength": 3, "maxLength": 240 },
+    "evidenceReferences": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "claimClass": { "const": "presentation-progress" },
+          "result": { "const": "satisfied" }
+        },
+        "required": ["claimClass", "result"]
+      },
+      "then": {
+        "properties": {
+          "sourceContract": { "const": "P-004" },
+          "sourceReference": true
+        },
+        "required": ["sourceReference"]
+      }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" }
+  }
+}

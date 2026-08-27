@@ -1,0 +1,13 @@
+{
+  "contractId": "D-004",
+  "contractVersion": "1.0.0",
+  "evaluationId": "evaluation:bad:001",
+  "sessionId": "session:bad:001",
+  "claimClass": "presentation-progress",
+  "claimId": "bad-source",
+  "result": "satisfied",
+  "sourceContract": "D-002",
+  "sourceReference": "outcome:bad:001",
+  "observedAt": "2026-08-27T12:00:00Z",
+  "evidenceReferences": []
+}

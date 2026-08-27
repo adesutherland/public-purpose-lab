@@ -1,0 +1,100 @@
+name: public-purpose-lab-m3
+
+services:
+  nats:
+    image: nats:2.14.5-alpine
+    command: ["-c", "/etc/nats/nats.conf"]
+    restart: unless-stopped
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/nats-server.conf:/etc/nats/nats.conf:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/nats/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/nats-server.crt:/etc/nats/nats-server.crt:ro
+      - nats-state:/data
+    secrets:
+      - source: nats-server-key
+        target: /etc/nats/nats-server.key
+        mode: 0400
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+  scenario-director:
+    build:
+      context: ../..
+      dockerfile: deploy/containers/m3-runtime.Containerfile
+    image: public-purpose-lab/m3-runtime:development
+    restart: on-failure
+    depends_on: ["nats"]
+    environment:
+      PPL_RUNTIME_MODE: scenario-director
+      PPL_RUNTIME_PROFILE: local-containers
+      PPL_LISTEN_ADDRESS: 0.0.0.0:8080
+      PPL_ALLOWED_ORIGIN: http://127.0.0.1:18081
+      PPL_STATE_PATH: /var/lib/public-purpose-lab/ctl-01.sqlite
+      PPL_STATIC_DIRECTORY: /opt/public-purpose-lab/frontend/director
+      PPL_NATS_URL: tls://nats:4222
+      PPL_NATS_NKEY_SEED_FILE: /run/secrets/director-nkey
+      PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+    ports:
+      - 127.0.0.1:18081:8080
+    volumes:
+      - director-state:/var/lib/public-purpose-lab
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+    secrets:
+      - source: director-nkey
+        target: /run/secrets/director-nkey
+        uid: "65532"
+        gid: "65532"
+        mode: 0400
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+  presentation-gateway:
+    image: public-purpose-lab/m3-runtime:development
+    restart: on-failure
+    depends_on: ["nats"]
+    environment:
+      PPL_RUNTIME_MODE: presentation-gateway
+      PPL_RUNTIME_PROFILE: local-containers
+      PPL_LISTEN_ADDRESS: 0.0.0.0:8080
+      PPL_ALLOWED_ORIGIN: http://127.0.0.1:18082
+      PPL_STATE_PATH: /var/lib/public-purpose-lab/ctl-02.sqlite
+      PPL_STATIC_DIRECTORY: /opt/public-purpose-lab/frontend/presentation
+      PPL_WORKBENCH_DIRECTORY: /opt/public-purpose-lab/frontend/workbench
+      PPL_NATS_URL: tls://nats:4222
+      PPL_NATS_NKEY_SEED_FILE: /run/secrets/presentation-nkey
+      PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+    ports:
+      - 127.0.0.1:18082:8080
+    volumes:
+      - presentation-state:/var/lib/public-purpose-lab
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+    secrets:
+      - source: presentation-nkey
+        target: /run/secrets/presentation-nkey
+        uid: "65532"
+        gid: "65532"
+        mode: 0400
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+secrets:
+  director-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/director.seed
+  presentation-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/presentation.seed
+  nats-server-key:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/nats-server.key
+
+volumes:
+  director-state:
+  presentation-state:
+  nats-state:

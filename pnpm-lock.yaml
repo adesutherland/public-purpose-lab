@@ -41,12 +41,21 @@ importers:
       ajv-formats:
         specifier: 3.0.1
         version: 3.0.1(ajv@8.17.1)
+      canonicalize:
+        specifier: 4.0.0
+        version: 4.0.0
+      json-dup-key-validator:
+        specifier: 1.0.3
+        version: 1.0.3
       prettier:
         specifier: 3.9.6
         version: 3.9.6
 
   frontend/apps/director:
     dependencies:
+      '@public-purpose-lab/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@public-purpose-lab/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -78,6 +87,9 @@ importers:
 
   frontend/apps/presentation:
     dependencies:
+      '@public-purpose-lab/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@public-purpose-lab/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -109,6 +121,9 @@ importers:
 
   frontend/apps/workbench:
     dependencies:
+      '@public-purpose-lab/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@public-purpose-lab/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -485,6 +500,14 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
+  backslash@0.2.2:
+    resolution: {integrity: sha512-PKRYPE2LLTtNUYz1dszquxKSBs6XyLyJRHgFpY5rlq7y3DscDx239k5Gm+zenoY47OU4CApan1o0k2R8ptZC1Q==}
+
+  canonicalize@4.0.0:
+    resolution: {integrity: sha512-FEdXzwWs+N3rZqEqpqleiY9M1A6IAf9oo1zHFABnLW9FcJ/jzsu+G/Ks3Hq3FglmPKe80GeGBw8ZXLEnwPB0vQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   chai@6.2.2:
     resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
     engines: {node: '>=18'}
@@ -528,6 +551,9 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
+
+  json-dup-key-validator@1.0.3:
+    resolution: {integrity: sha512-JvJcV01JSiO7LRz7DY1Fpzn4wX2rJ3dfNTiAfnlvLNdhhnm0Pgdvhi2SGpENrZn7eSg26Ps3TPhOcuD/a4STXQ==}
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
@@ -971,6 +997,10 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
+  backslash@0.2.2: {}
+
+  canonicalize@4.0.0: {}
+
   chai@6.2.2: {}
 
   convert-source-map@2.0.0: {}
@@ -997,6 +1027,10 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
+
+  json-dup-key-validator@1.0.3:
+    dependencies:
+      backslash: 0.2.2
 
   json-schema-traverse@1.0.0: {}
 

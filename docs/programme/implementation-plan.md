@@ -333,7 +333,8 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 ### M3 — Scenario Director and presentation control
 
 Status: In progress — M3.1 to M3.3 design baselines accepted; M3.2
-infrastructure lifecycle spike evidenced; M3.3 runtime implementation pending
+infrastructure lifecycle spike evidenced; M3.3 runtime baseline implemented
+with final portability and private-hosted evidence pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -431,10 +432,12 @@ Delivery sequence:
    The disposable infrastructure create/manual-off result is recorded in the
    [M3.2 hosted-lifecycle evidence](../architecture/evidence/m3-2-google-cloud-hosted-lifecycle-spike.md);
    no hosted application claim follows from it.
-3. **M3.3 — runtime walking skeleton — design accepted 27 August 2026:**
-   implement one Director/runtime, registry and Presentation Surface path with
-   lifecycle, cue and outcome locally first, then run a private Google Cloud
-   health and contract smoke using the same versioned artifacts.
+3. **M3.3 — runtime walking skeleton — design accepted and implementation in
+   evidence 27 August 2026:** one Director/runtime, registry and Presentation
+   Surface path now exercises lifecycle, logical time, bounded cue fault,
+   semantic cue/outcome, checkpoint, stop and successor reset natively and in
+   Minikube. Exact-image local-container and private Google Cloud
+   health/contract/fail-closed smoke evidence remain the closure gates.
 4. **M3.4 — identity and resilience:** integrate M2 synthetic sign-in,
    reconnect, duplicate, expiry, restart, reset and safe-failure cases. Before
    any shared hosted demonstration, add the narrow managed-root, presenter,
@@ -449,8 +452,9 @@ The accepted
 [M3.3 runtime walking-skeleton baseline](../architecture/m3-3-runtime-walking-skeleton-baseline.md)
 and ADR-0017 to ADR-0020 define the current package, component-state,
 controlled-time/reset/fault and deployable bindings. Founder acceptance permits
-implementation against this baseline; it does not claim that implementation or
-M3.3 evidence exists.
+implementation against this baseline. The repository now contains that
+implementation and partial evidence; M3.3 is not closed until every accepted
+gate in the evidence record is conclusive.
 
 M3.1 is closed as an accepted logical baseline. M3.2 accepts NATS JetStream,
 Google OIDC, the backend-mediated SSE/POST surface channel and the ephemeral GKE

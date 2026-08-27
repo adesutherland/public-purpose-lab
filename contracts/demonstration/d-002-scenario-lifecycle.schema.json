@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:D-002:1.0.0",
+  "title": "D-002 Scenario lifecycle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "operationId",
+    "sessionId",
+    "packageId",
+    "packageVersion",
+    "action",
+    "expectedRevision",
+    "requestedAt"
+  ],
+  "properties": {
+    "contractId": { "const": "D-002" },
+    "contractVersion": { "const": "1.0.0" },
+    "operationId": { "$ref": "#/$defs/id" },
+    "sessionId": { "$ref": "#/$defs/id" },
+    "packageId": { "$ref": "#/$defs/id" },
+    "packageVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "action": {
+      "enum": [
+        "create",
+        "prepare",
+        "start",
+        "pause",
+        "resume",
+        "complete",
+        "stop",
+        "reset"
+      ]
+    },
+    "expectedState": {
+      "enum": [
+        "preparing",
+        "ready",
+        "running",
+        "paused",
+        "completed",
+        "stopped",
+        "failed",
+        "superseded"
+      ]
+    },
+    "expectedRevision": { "type": "integer", "minimum": 0 },
+    "requestedAt": { "type": "string", "format": "date-time" },
+    "reason": { "type": "string", "minLength": 3, "maxLength": 240 }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" }
+  }
+}

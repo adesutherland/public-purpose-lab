@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: public-purpose-lab
+  labels:
+    app.kubernetes.io/part-of: public-purpose-lab
+    ppl.public-purpose-lab.org/information-profile: synthetic-only
+    ppl.public-purpose-lab.org/maturity: in-development

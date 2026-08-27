@@ -13,8 +13,11 @@ identity, domain decisions or the evidence content referenced by an
 interaction.
 
 The M1 implementation is a local assurance adapter in the existing framework
-host. It is a revisable baseline, not the selection of the eventual API, event
-broker, database or audit platform.
+host. M3.3 adds a replaceable NATS JetStream adapter for the D/P demonstration
+and presentation contracts, using separate authenticated workload identities,
+TLS, durable consumers, explicit acknowledgement after durable decisions and
+component-owned inbox/outbox state. Both are revisable baselines, not a
+production transport, database or audit-platform qualification.
 
 ## Accountable ownership
 
@@ -147,6 +150,13 @@ A future HTTP, broker or database binding must preserve schema/version checks,
 authenticated workload context, receiver authority, idempotency conflict,
 outcome, evidence, corruption and disclosure semantics. Product access or
 transport delivery is never accepted as authority.
+
+The M3.3 broker adapter is implemented in
+[`backend/components/int-01/src/nats.rs`](../../../../backend/components/int-01/src/nats.rs).
+Its NATS subject names remain a private physical binding; browser clients and
+scenario packages do not receive them. Local and Minikube environments use
+separate NKey permissions for the Director and Presentation Gateway. Hosted
+managed workload identity and multi-replica operation remain deferred.
 
 ## Conformance evidence
 

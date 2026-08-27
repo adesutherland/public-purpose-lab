@@ -1,0 +1,19 @@
+{
+  "contractId": "P-001",
+  "contractVersion": "1.0.0",
+  "manifestId": "bad-manifest",
+  "manifestVersion": "1.0.0",
+  "applicationId": "bad-application",
+  "applicationRelease": "0.1.0",
+  "surfaceRoles": ["audience-display"],
+  "views": [
+    {
+      "viewId": "bad-view",
+      "viewVersion": "1.0.0",
+      "contextKeys": [],
+      "route": "/unsafe"
+    }
+  ],
+  "informationProfiles": ["synthetic-only"],
+  "releasedAt": "2026-08-27T12:00:00Z"
+}

@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "D-001",
+  "describedContractName": "Scenario package",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:D-001:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": ["scenarios/presentation-control-assurance/scenario.json"],
+  "producerExpectations": [
+    "Produce closed synthetic-only declarative packages without routes, credentials or executable content."
+  ],
+  "consumerExpectations": [
+    "Validate the exact schema, canonical digest and runtime profile before admission."
+  ],
+  "evidence": []
+}

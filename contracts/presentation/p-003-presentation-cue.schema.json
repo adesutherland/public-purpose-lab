@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:P-003:1.0.0",
+  "title": "P-003 Presentation cue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "cueId",
+    "cueDigest",
+    "idempotencyKey",
+    "sessionId",
+    "sessionRevision",
+    "surfaceSlot",
+    "registrationId",
+    "registrationRevision",
+    "connectionGeneration",
+    "semanticView",
+    "viewVersion",
+    "context",
+    "issuedAt",
+    "expiresAt",
+    "stageId",
+    "stepId"
+  ],
+  "properties": {
+    "contractId": { "const": "P-003" },
+    "contractVersion": { "const": "1.0.0" },
+    "cueId": { "$ref": "#/$defs/id" },
+    "cueDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "idempotencyKey": { "$ref": "#/$defs/id" },
+    "sessionId": { "$ref": "#/$defs/id" },
+    "sessionRevision": { "type": "integer", "minimum": 1 },
+    "surfaceSlot": { "$ref": "#/$defs/name" },
+    "registrationId": { "$ref": "#/$defs/id" },
+    "registrationRevision": { "type": "integer", "minimum": 1 },
+    "connectionGeneration": { "type": "integer", "minimum": 1 },
+    "semanticView": { "$ref": "#/$defs/name" },
+    "viewVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "maxProperties": 8,
+      "properties": {
+        "heading": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "syntheticReference": { "$ref": "#/$defs/name" }
+      }
+    },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "stageId": { "$ref": "#/$defs/name" },
+    "stepId": { "$ref": "#/$defs/name" }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 80
+    }
+  }
+}

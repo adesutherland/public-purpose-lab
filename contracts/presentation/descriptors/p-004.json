@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "P-004",
+  "describedContractName": "Presentation cue outcome",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:P-004:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": ["contracts/presentation/examples/p-004-welcome-applied.json"],
+  "producerExpectations": [
+    "Report one bounded result for the current cue and registration generation."
+  ],
+  "consumerExpectations": [
+    "Use a conclusive result for presentation progress only, never business completion."
+  ],
+  "evidence": []
+}

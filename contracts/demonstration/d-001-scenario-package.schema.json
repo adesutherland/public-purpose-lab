@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:D-001:1.0.0",
+  "title": "D-001 Scenario package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "packageId",
+    "packageVersion",
+    "title",
+    "purpose",
+    "publisher",
+    "releasedAt",
+    "informationProfile",
+    "permittedProfiles",
+    "surfaceSlots",
+    "stages",
+    "controls",
+    "limitations"
+  ],
+  "properties": {
+    "contractId": { "const": "D-001" },
+    "contractVersion": { "const": "1.0.0" },
+    "packageId": { "$ref": "#/$defs/id" },
+    "packageVersion": { "$ref": "#/$defs/version" },
+    "title": { "type": "string", "minLength": 3, "maxLength": 120 },
+    "purpose": { "type": "string", "minLength": 10, "maxLength": 500 },
+    "publisher": { "$ref": "#/$defs/id" },
+    "releasedAt": { "type": "string", "format": "date-time" },
+    "informationProfile": { "const": "synthetic-only" },
+    "permittedProfiles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "native-development",
+          "local-containers",
+          "minikube",
+          "private-hosted-smoke"
+        ]
+      }
+    },
+    "surfaceSlots": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["slotId", "role", "required", "supportedViews"],
+        "properties": {
+          "slotId": { "$ref": "#/$defs/id" },
+          "role": { "enum": ["audience-display", "reviewer-workbench"] },
+          "required": { "type": "boolean" },
+          "supportedViews": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/id" }
+          }
+        }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stageId", "title", "steps"],
+        "properties": {
+          "stageId": { "$ref": "#/$defs/id" },
+          "title": { "type": "string", "minLength": 3, "maxLength": 120 },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 32,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["stepId", "kind", "description"],
+              "properties": {
+                "stepId": { "$ref": "#/$defs/id" },
+                "kind": {
+                  "enum": [
+                    "lifecycle",
+                    "presentation-cue",
+                    "checkpoint",
+                    "control"
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 240
+                },
+                "target": { "$ref": "#/$defs/id" },
+                "semanticView": { "$ref": "#/$defs/id" },
+                "operation": { "$ref": "#/$defs/id" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logicalTime", "resetTargets", "faultProfiles"],
+      "properties": {
+        "logicalTime": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "initialInstant", "maximumAdvanceSeconds"],
+          "properties": {
+            "mode": { "const": "manual-step" },
+            "initialInstant": { "type": "string", "format": "date-time" },
+            "maximumAdvanceSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 86400
+            }
+          }
+        },
+        "resetTargets": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "director-control-baseline",
+              "presentation-registry-baseline"
+            ]
+          }
+        },
+        "faultProfiles": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "const": "presentation-cue-delay" }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 3, "maxLength": 240 }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 80
+    },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+  }
+}

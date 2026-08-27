@@ -1,0 +1,20 @@
+{
+  "contractId": "P-003",
+  "contractVersion": "1.0.0",
+  "cueId": "cue:bad:001",
+  "cueDigest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "idempotencyKey": "idem:bad:001",
+  "sessionId": "session:bad:001",
+  "sessionRevision": 2,
+  "surfaceSlot": "audience-display",
+  "registrationId": "registration:bad:001",
+  "registrationRevision": 1,
+  "connectionGeneration": 1,
+  "semanticView": "assurance-welcome",
+  "viewVersion": "1.0.0",
+  "context": { "route": "/unsafe" },
+  "issuedAt": "2026-08-27T12:00:00Z",
+  "expiresAt": "2026-08-27T12:01:00Z",
+  "stageId": "assurance-path",
+  "stepId": "show-welcome"
+}

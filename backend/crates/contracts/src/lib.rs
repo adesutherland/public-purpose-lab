@@ -19,6 +19,265 @@ pub const I003_VERSION: &str = "1.0.0";
 pub const I004_VERSION: &str = "1.0.0";
 pub const I005_VERSION: &str = "1.0.0";
 pub const AZ001_VERSION: &str = "1.0.0";
+pub const D001_VERSION: &str = "1.0.0";
+pub const D002_VERSION: &str = "1.0.0";
+pub const D003_VERSION: &str = "1.0.0";
+pub const D004_VERSION: &str = "1.0.0";
+pub const P001_VERSION: &str = "1.0.0";
+pub const P002_VERSION: &str = "1.0.0";
+pub const P003_VERSION: &str = "1.0.0";
+pub const P004_VERSION: &str = "1.0.0";
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioSurfaceSlot {
+    pub slot_id: String,
+    pub role: String,
+    pub required: bool,
+    pub supported_views: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioStep {
+    pub step_id: String,
+    pub kind: String,
+    pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub semantic_view: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioStage {
+    pub stage_id: String,
+    pub title: String,
+    pub steps: Vec<ScenarioStep>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioLogicalTimeDefinition {
+    pub mode: String,
+    pub initial_instant: String,
+    pub maximum_advance_seconds: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioControls {
+    pub logical_time: ScenarioLogicalTimeDefinition,
+    pub reset_targets: Vec<String>,
+    pub fault_profiles: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioPackage {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub package_id: String,
+    pub package_version: String,
+    pub title: String,
+    pub purpose: String,
+    pub publisher: String,
+    pub released_at: String,
+    pub information_profile: String,
+    pub permitted_profiles: Vec<String>,
+    pub surface_slots: Vec<ScenarioSurfaceSlot>,
+    pub stages: Vec<ScenarioStage>,
+    pub controls: ScenarioControls,
+    pub limitations: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ScenarioLifecycleAction {
+    Create,
+    Prepare,
+    Start,
+    Pause,
+    Resume,
+    Complete,
+    Stop,
+    Reset,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ScenarioState {
+    Preparing,
+    Ready,
+    Running,
+    Paused,
+    Completed,
+    Stopped,
+    Failed,
+    Superseded,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioLifecycleCommand {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub operation_id: String,
+    pub session_id: String,
+    pub package_id: String,
+    pub package_version: String,
+    pub action: ScenarioLifecycleAction,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expected_state: Option<ScenarioState>,
+    pub expected_revision: u64,
+    pub requested_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioControlCommand {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub operation_id: String,
+    pub session_id: String,
+    pub kind: String,
+    pub operation: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub logical_instant: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub advance_seconds: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delay_milliseconds: Option<u64>,
+    pub expected_revision: u64,
+    pub requested_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ScenarioCheckpointEvaluation {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub evaluation_id: String,
+    pub session_id: String,
+    pub claim_class: String,
+    pub claim_id: String,
+    pub result: String,
+    pub source_contract: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_reference: Option<String>,
+    pub observed_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    pub evidence_references: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct PresentationViewCapability {
+    pub view_id: String,
+    pub view_version: String,
+    pub context_keys: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct PresentationCapabilityManifest {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub manifest_id: String,
+    pub manifest_version: String,
+    pub application_id: String,
+    pub application_release: String,
+    pub surface_roles: Vec<String>,
+    pub views: Vec<PresentationViewCapability>,
+    pub information_profiles: Vec<String>,
+    pub released_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct PresentationRegistration {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub registration_id: String,
+    pub session_id: String,
+    pub surface_slot: String,
+    pub surface_role: String,
+    pub manifest_id: String,
+    pub manifest_version: String,
+    pub supported_views: Vec<String>,
+    pub binding_mode: String,
+    pub registration_revision: u64,
+    pub connection_generation: u64,
+    pub lease_expires_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct PresentationCue {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub cue_id: String,
+    pub cue_digest: String,
+    pub idempotency_key: String,
+    pub session_id: String,
+    pub session_revision: u64,
+    pub surface_slot: String,
+    pub registration_id: String,
+    pub registration_revision: u64,
+    pub connection_generation: u64,
+    pub semantic_view: String,
+    pub view_version: String,
+    pub context: std::collections::BTreeMap<String, String>,
+    pub issued_at: String,
+    pub expires_at: String,
+    pub stage_id: String,
+    pub step_id: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PresentationOutcomeResult {
+    Applied,
+    Refused,
+    Unsupported,
+    Expired,
+    Duplicate,
+    Superseded,
+    Failed,
+    Uncertain,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct PresentationCueOutcome {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub outcome_id: String,
+    pub cue_id: String,
+    pub cue_digest: String,
+    pub session_id: String,
+    pub session_revision: u64,
+    pub surface_slot: String,
+    pub registration_id: String,
+    pub registration_revision: u64,
+    pub connection_generation: u64,
+    pub semantic_view: String,
+    pub result: PresentationOutcomeResult,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub diagnostic_code: Option<String>,
+    pub concluded_at: String,
+    pub business_completion_claimed: bool,
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
@@ -601,7 +860,10 @@ mod tests {
     use super::{
         AuthorisationDecision, CommandOutcome, ComponentCapabilityManifest,
         ContractCompatibilityDescriptor, DemonstrationSignInGrant, ExternalHumanIdentityContext,
-        InteractionEnvelope, PrincipalType, SyntheticSessionOutcome, SyntheticTrustBootstrapRecord,
+        InteractionEnvelope, PresentationCapabilityManifest, PresentationCue,
+        PresentationCueOutcome, PresentationRegistration, PrincipalType,
+        ScenarioCheckpointEvaluation, ScenarioControlCommand, ScenarioLifecycleCommand,
+        ScenarioPackage, SyntheticSessionOutcome, SyntheticTrustBootstrapRecord,
         WorkloadIdentityContext,
     };
 
@@ -662,5 +924,42 @@ mod tests {
             "../../../../contracts/authorisation/examples/az-001-permit-decision.json"
         ))
         .expect("AZ-001 example must match Rust types");
+    }
+
+    #[test]
+    fn canonical_m3_examples_deserialise() {
+        let _: ScenarioPackage = serde_json::from_str(include_str!(
+            "../../../../scenarios/presentation-control-assurance/scenario.json"
+        ))
+        .expect("D-001 example must match Rust types");
+        let _: ScenarioLifecycleCommand = serde_json::from_str(include_str!(
+            "../../../../contracts/demonstration/examples/d-002-create-session.json"
+        ))
+        .expect("D-002 example must match Rust types");
+        let _: ScenarioControlCommand = serde_json::from_str(include_str!(
+            "../../../../contracts/demonstration/examples/d-003-advance-time.json"
+        ))
+        .expect("D-003 example must match Rust types");
+        let _: ScenarioCheckpointEvaluation = serde_json::from_str(include_str!(
+            "../../../../contracts/demonstration/examples/d-004-presentation-checkpoint.json"
+        ))
+        .expect("D-004 example must match Rust types");
+        let _: PresentationCapabilityManifest = serde_json::from_str(include_str!(
+            "../../../../contracts/presentation/examples/p-001-assurance-surface.json"
+        ))
+        .expect("P-001 example must match Rust types");
+        let _: PresentationRegistration = serde_json::from_str(include_str!(
+            "../../../../contracts/presentation/examples/p-002-audience-registration.json"
+        ))
+        .expect("P-002 example must match Rust types");
+        let _: PresentationCue = serde_json::from_str(include_str!(
+            "../../../../contracts/presentation/examples/p-003-welcome-cue.json"
+        ))
+        .expect("P-003 example must match Rust types");
+        let outcome: PresentationCueOutcome = serde_json::from_str(include_str!(
+            "../../../../contracts/presentation/examples/p-004-welcome-applied.json"
+        ))
+        .expect("P-004 example must match Rust types");
+        assert!(!outcome.business_completion_claimed);
     }
 }

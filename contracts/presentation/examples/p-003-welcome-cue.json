@@ -1,0 +1,24 @@
+{
+  "contractId": "P-003",
+  "contractVersion": "1.0.0",
+  "cueId": "cue:welcome:001",
+  "cueDigest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "idempotencyKey": "idem:cue:welcome:001",
+  "sessionId": "session:assurance:001",
+  "sessionRevision": 3,
+  "surfaceSlot": "audience-display",
+  "registrationId": "registration:audience:001",
+  "registrationRevision": 1,
+  "connectionGeneration": 1,
+  "semanticView": "assurance-welcome",
+  "viewVersion": "1.0.0",
+  "context": {
+    "heading": "Assurance demonstration",
+    "message": "This is synthetic development evidence.",
+    "syntheticReference": "welcome-record"
+  },
+  "issuedAt": "2026-08-27T12:05:00Z",
+  "expiresAt": "2026-08-27T12:06:00Z",
+  "stageId": "assurance-path",
+  "stepId": "show-welcome"
+}

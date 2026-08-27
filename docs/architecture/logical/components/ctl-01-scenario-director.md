@@ -1,6 +1,6 @@
 # CTL-01: Scenario Director
 
-Status: Accepted M3.1 logical baseline; implementation not started
+Status: Accepted M3.1 logical baseline; M3.3 reference implementation in development
 
 Version: 0.1.0
 
@@ -353,18 +353,25 @@ Evidence must show that:
 
 ## Current limitations and decisions deferred
 
-`CTL-01` remains planned and unimplemented. The following require later founder
-review and, where material, ADRs:
+`CTL-01` now has an M3.3 Rust reference implementation with a closed bundled
+scenario package, component-owned SQLite state, expected revisions, durable
+inbox/outbox decisions, manual-step logical time, semantic reset coordination
+and presentation checkpoint evaluation. Its executable source is
+[`backend/components/ctl-01`](../../../../backend/components/ctl-01), with the
+HTTP process adapter in
+[`backend/apps/m3-runtime`](../../../../backend/apps/m3-runtime).
 
-- package schema, digest, signature and distribution binding;
-- presenter authentication and Director workload binding;
-- event and command transport and delivery guarantees;
-- control-state persistence, transaction and reconciliation mechanism;
-- presentation capability, registration and session-binding proof;
-- controlled-time implementation and component opt-in profile;
-- allowed reset and fault adapters and their operational safeguards;
+ADR-0017 to ADR-0020 record the current implementation bindings. The following
+still require later founder review and, where material, ADRs:
+
+- package signing, reviewed distribution and mutable-package governance;
+- managed presenter authentication and Director workload binding;
+- multi-replica transport, state and recovery qualification;
+- managed persistence, retention, backup and restore qualification;
+- external surface-session binding through `IAM-01`;
+- additional controlled-time, reset or fault capabilities;
 - retention and tamper-evidence binding for control evidence; and
-- physical composition, availability, resource and deployment profiles.
+- production availability, resource and deployment profiles.
 
 No binding may weaken the accepted framework security invariants or broaden
 the synthetic-only M3 scope without separate governance and qualification.

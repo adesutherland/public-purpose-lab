@@ -1,0 +1,12 @@
+{
+  "contractId": "D-003",
+  "contractVersion": "1.0.0",
+  "operationId": "op:fault:bad",
+  "sessionId": "session:bad:001",
+  "kind": "fault",
+  "operation": "activate",
+  "target": "presentation-cue-delay",
+  "delayMilliseconds": 60000,
+  "expectedRevision": 1,
+  "requestedAt": "2026-08-27T12:00:00Z"
+}

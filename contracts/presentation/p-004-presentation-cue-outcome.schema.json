@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:P-004:1.0.0",
+  "title": "P-004 Presentation cue outcome",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "outcomeId",
+    "cueId",
+    "cueDigest",
+    "sessionId",
+    "sessionRevision",
+    "surfaceSlot",
+    "registrationId",
+    "registrationRevision",
+    "connectionGeneration",
+    "semanticView",
+    "result",
+    "concludedAt",
+    "businessCompletionClaimed"
+  ],
+  "properties": {
+    "contractId": { "const": "P-004" },
+    "contractVersion": { "const": "1.0.0" },
+    "outcomeId": { "$ref": "#/$defs/id" },
+    "cueId": { "$ref": "#/$defs/id" },
+    "cueDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sessionId": { "$ref": "#/$defs/id" },
+    "sessionRevision": { "type": "integer", "minimum": 1 },
+    "surfaceSlot": { "$ref": "#/$defs/name" },
+    "registrationId": { "$ref": "#/$defs/id" },
+    "registrationRevision": { "type": "integer", "minimum": 1 },
+    "connectionGeneration": { "type": "integer", "minimum": 1 },
+    "semanticView": { "$ref": "#/$defs/name" },
+    "result": {
+      "enum": [
+        "applied",
+        "refused",
+        "unsupported",
+        "expired",
+        "duplicate",
+        "superseded",
+        "failed",
+        "uncertain"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 80
+    },
+    "diagnosticCode": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,31}$" },
+    "concludedAt": { "type": "string", "format": "date-time" },
+    "businessCompletionClaimed": { "const": false }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 80
+    }
+  }
+}

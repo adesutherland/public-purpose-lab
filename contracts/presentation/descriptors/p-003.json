@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "P-003",
+  "describedContractName": "Presentation cue",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:P-003:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": ["contracts/presentation/examples/p-003-welcome-cue.json"],
+  "producerExpectations": [
+    "Address a current registration using semantic view identity and operational expiry only."
+  ],
+  "consumerExpectations": [
+    "Refuse routes, secrets, stale generations, unsupported views and expired cues."
+  ],
+  "evidence": []
+}

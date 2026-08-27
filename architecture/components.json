@@ -58,7 +58,7 @@
       "id": "CTL-01",
       "name": "Scenario Director",
       "group": "control",
-      "maturity": "planned",
+      "maturity": "in-development",
       "contracts": [
         "D-001",
         "D-002",
@@ -68,13 +68,13 @@
         "I-004",
         "AU-001"
       ],
-      "repositoryPath": null
+      "repositoryPath": "backend/components/ctl-01"
     },
     {
       "id": "CTL-02",
       "name": "Presentation Gateway and screen registry",
       "group": "control",
-      "maturity": "planned",
+      "maturity": "in-development",
       "contracts": [
         "P-001",
         "P-002",
@@ -84,7 +84,7 @@
         "I-005",
         "O-001"
       ],
-      "repositoryPath": null
+      "repositoryPath": "backend/components/ctl-02"
     },
     {
       "id": "IAM-01",
