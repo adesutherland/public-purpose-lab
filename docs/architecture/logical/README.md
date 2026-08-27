@@ -2,7 +2,7 @@
 
 Status: Working draft
 
-Last reviewed: 25 August 2026
+Last reviewed: 26 August 2026
 
 ## Purpose
 
@@ -57,7 +57,7 @@ updated together.
 
 | ID                                                                                | Component                                        | Owned responsibility                                                                                                             | Principal contract families                                           |
 | --------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `CTL-01`                                                                          | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.                       | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
+| [`CTL-01`](components/ctl-01-scenario-director.md)                                | Scenario Director                                | Scenario definitions, demonstration execution, checkpoints, controlled time, faults and evidence assembly.                       | `D-001` to `D-004`, `P-003`, `I-004`, `AU-001`                        |
 | `CTL-02`                                                                          | Presentation Gateway and screen registry         | Surface registration, capability discovery, cue routing, expiry and acknowledgements.                                            | `P-001` to `P-004`, `I-002`, `I-005`, `O-001`                         |
 | [`IAM-01`](components/iam-01-identity-trust-and-synthetic-session-broker.md)      | Identity, trust and synthetic session broker     | External identity context, workload trust, visible local-synthetic or managed trust profile, bounded grants, roles and sessions. | `I-001` to `I-005`, `C-002`, `AU-001`                                 |
 | [`AUT-01`](components/aut-01-policy-decision-and-authorisation.md)                | Policy decision and authorisation                | Versioned shared access-control decisions over bounded identity, purpose, resource, relationship and environmental attributes.   | `AZ-001`, `C-002` to `C-004`, `AU-001`, `O-001`                       |
@@ -108,16 +108,16 @@ when different authority, delivery or compatibility rules require it.
 
 ### Demonstration and presentation contracts
 
-| ID      | Working name                      | Main participants                                 | Enduring purpose                                                                                            |
-| ------- | --------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `D-001` | Scenario package                  | `CTL-01`, `PLT-01`, scenario components           | Defines synthetic fixtures, actors, stages, commands, cues, checkpoints, reset scope and expected evidence. |
-| `D-002` | Scenario lifecycle                | `UX-03`, `CTL-01`, participating components       | Starts, pauses, resumes, stops and reports one Demonstration Session.                                       |
-| `D-003` | Reset, clock and fault control    | `CTL-01`, authorised test adapters and components | Applies bounded reset, synthetic time and approved failure injection without bypassing component ownership. |
-| `D-004` | Readiness and checkpoint          | `CTL-01`, `OPS-01`, participating components      | Reports prerequisites, observed progress and verifiable checkpoint outcomes.                                |
-| `P-001` | Presentation capability manifest  | `UX-04`, `CTL-02`                                 | Declares semantic views, accepted context, version and presentation constraints.                            |
-| `P-002` | Presentation surface registration | `UX-04`, `CTL-02`, `IAM-01`                       | Binds an authenticated screen and its capabilities to one Demonstration Session and screen role.            |
-| `P-003` | Presentation cue                  | `CTL-01`, `CTL-02`, `UX-04`                       | Requests a short-lived semantic view without carrying a route or changing business state.                   |
-| `P-004` | Presentation cue outcome          | `UX-04`, `CTL-02`, `CTL-01`                       | Reports applied, refused, unsupported, expired or failed cue handling.                                      |
+| ID                                                                        | Working name                      | Main participants                                 | Enduring purpose                                                                                            |
+| ------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`D-001`](contracts/demonstration/d-001-scenario-package.md)              | Scenario package                  | `CTL-01`, `PLT-01`, scenario components           | Defines synthetic fixtures, actors, stages, commands, cues, checkpoints, reset scope and expected evidence. |
+| [`D-002`](contracts/demonstration/d-002-scenario-lifecycle.md)            | Scenario lifecycle                | `UX-03`, `CTL-01`, participating components       | Starts, pauses, resumes, stops and reports one Demonstration Session.                                       |
+| [`D-003`](contracts/demonstration/d-003-reset-clock-and-fault-control.md) | Reset, clock and fault control    | `CTL-01`, authorised test adapters and components | Applies bounded reset, synthetic time and approved failure injection without bypassing component ownership. |
+| [`D-004`](contracts/demonstration/d-004-readiness-and-checkpoint.md)      | Readiness and checkpoint          | `CTL-01`, `OPS-01`, participating components      | Reports prerequisites, observed progress and verifiable checkpoint outcomes.                                |
+| `P-001`                                                                   | Presentation capability manifest  | `UX-04`, `CTL-02`                                 | Declares semantic views, accepted context, version and presentation constraints.                            |
+| `P-002`                                                                   | Presentation surface registration | `UX-04`, `CTL-02`, `IAM-01`                       | Binds an authenticated screen and its capabilities to one Demonstration Session and screen role.            |
+| `P-003`                                                                   | Presentation cue                  | `CTL-01`, `CTL-02`, `UX-04`                       | Requests a short-lived semantic view without carrying a route or changing business state.                   |
+| `P-004`                                                                   | Presentation cue outcome          | `UX-04`, `CTL-02`, `CTL-01`                       | Reports applied, refused, unsupported, expired or failed cue handling.                                      |
 
 ### Identity and trust contracts
 
@@ -138,6 +138,12 @@ The linked `IAM-01` and `I-001` to `I-005` logical specifications are accepted.
 Their local-synthetic reference implementation provides the accepted M2
 development-assurance baseline; `IAM-01` remains in development and is not a
 managed, external-human or production identity capability.
+
+The linked `CTL-01` and `D-001` to `D-004` specifications are the accepted M3.1
+logical baseline. They select no package schema, runtime, persistence,
+transport, presenter-authentication, surface-binding, clock, reset or fault
+implementation, and make no claim that Scenario Director behaviour is
+implemented.
 
 ### Authorisation contract
 

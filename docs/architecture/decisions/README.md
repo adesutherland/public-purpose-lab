@@ -48,3 +48,5 @@ What evidence will validate or cause reconsideration of the decision?
 - [ADR-0008: Use Ed25519 and protected local state for the M2 reference trust binding](0008-use-ed25519-and-protected-local-state-for-the-m2-reference-trust-binding.md)
 - [ADR-0009: Use a bounded in-process policy adapter for the M2 reference path](0009-use-a-bounded-in-process-policy-adapter-for-the-m2-reference-path.md)
 - [ADR-0010: Use a locked local security journal and rebuild recovery for the M2 reference path](0010-use-a-locked-local-security-journal-and-rebuild-recovery-for-the-m2-reference-path.md)
+- [ADR-0011: Establish the M3 scenario-control invariants](0011-establish-the-m3-scenario-control-invariants.md)
+- [ADR-0012: Introduce a cost-controlled Google Cloud hosted preview during M3](0012-introduce-a-cost-controlled-google-cloud-hosted-preview-during-m3.md)

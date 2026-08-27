@@ -15,11 +15,11 @@ the order in which each will be documented and reviewed.
 
 The [framework security model](security/framework-security-model.md),
 [M1 threat model](security/m1-threat-model.md) and
-[M2 threat model](security/m2-threat-model.md) define the cross-cutting baseline
-against which those components and contracts are implemented. The framework
-model is the accepted framework baseline and the threat models are bounded,
-versioned development baselines; none is a claim of production security
-qualification.
+[M2 threat model](security/m2-threat-model.md) define accepted cross-cutting and
+bounded milestone baselines. The
+[M3 Scenario Director threat model](security/m3-threat-model.md) is the accepted
+M3.1 logical threat baseline; its physical bindings remain undecided. None is a
+claim of production security qualification.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
 

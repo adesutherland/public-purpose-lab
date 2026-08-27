@@ -54,32 +54,32 @@
       "id": "D-001",
       "name": "Scenario package",
       "group": "demonstration",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/demonstration/d-001-scenario-package.md",
       "schema": null
     },
     {
       "id": "D-002",
       "name": "Scenario lifecycle",
       "group": "demonstration",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/demonstration/d-002-scenario-lifecycle.md",
       "schema": null
     },
     {
       "id": "D-003",
       "name": "Reset, clock and fault control",
       "group": "demonstration",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/demonstration/d-003-reset-clock-and-fault-control.md",
       "schema": null
     },
     {
       "id": "D-004",
       "name": "Readiness and checkpoint",
       "group": "demonstration",
-      "status": "planned",
-      "documentation": null,
+      "status": "agreed",
+      "documentation": "docs/architecture/logical/contracts/demonstration/d-004-readiness-and-checkpoint.md",
       "schema": null
     },
     {

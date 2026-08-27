@@ -25,6 +25,10 @@ Contract source will be organised by family:
   adapter contracts; and
 - `operation/` for audit, analytics, health, recovery and delivery contracts.
 
+`D-001` to `D-004` have accepted M3.1 logical specifications. They remain
+schema-free and unimplemented; the catalogue's `agreed` status accepts their
+semantics but is not a schema, runtime or deployment claim.
+
 JSON Schema is the canonical representation; it does not select OpenAPI,
 AsyncAPI, CloudEvents, Protobuf, an event broker or an API framework. Run
 `pnpm check:contracts` to compile every registered schema and verify its
