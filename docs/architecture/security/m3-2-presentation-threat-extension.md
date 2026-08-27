@@ -1,6 +1,6 @@
 # M3.2 presentation and hosted-binding threat extension
 
-Status: Accepted M3.2 binding threat baseline; implementation evidence pending
+Status: Accepted M3.2 binding threat baseline; hosted-lifecycle spike evidenced
 
 Version: 0.1.0
 
@@ -25,6 +25,12 @@ It does not qualify a shared hosted demonstration, managed identity service,
 production environment, real-data path or compliance control. Acceptance
 creates no Google Cloud resource. The selected service choices remain subject
 to implementation and conformance evidence.
+
+The subsequent infrastructure-only spike is recorded in the
+[M3.2 hosted-lifecycle evidence](../evidence/m3-2-google-cloud-hosted-lifecycle-spike.md).
+It supplies bounded lifecycle and recovery evidence only; the presenter,
+surface, event, managed-trust and application controls in this threat model
+remain unimplemented or unevidenced.
 
 The accepted M3.1 invariants continue unchanged: a cue has presentation
 authority only, browser routes are not contract meaning, business actions are
@@ -147,6 +153,12 @@ Implementation must now supply the positive, negative, restart, disclosure and
 profile evidence specified in this extension. Design acceptance is not an
 executable-control claim.
 
+The infrastructure spike supplied evidence for short-lived operator
+federation, expiry arming, a dedicated node identity, exact create/manual-off,
+partial-failure recovery and empty residual activation inventory. It did not
+exercise scheduled expiry execution, a hosted workload identity, managed
+signing or any browser/presentation path.
+
 Before any M3.4 shared hosted demonstration, implementation evidence must show
 the managed trust, presenter/workload identity, protected state and automatic
 expiry paths end to end. A disposable infrastructure spike supplies lifecycle
@@ -156,9 +168,9 @@ evidence only and cannot satisfy that gate.
 
 The main residual risks are still physical: frontend session implementation,
 OIDC client registration, broker configuration, state atomicity, exact resource
-limits, Cloud KMS certificate/issuer construction, pipeline IAM and teardown
-coverage. Accepted ADRs narrow those choices but do not close the risks without
-tests and recovery evidence.
+limits, Cloud KMS certificate/issuer construction, scheduled-expiry execution,
+application teardown coverage and workload-level IAM. Accepted ADRs narrow
+those choices but do not close the risks without tests and recovery evidence.
 
 The founders accepted this document as the M3.2 binding threat baseline on 27
 August 2026. Acceptance applies only to the design maturity stated in the
