@@ -3,7 +3,7 @@ set -eu
 
 environment_directory=${1:-.local/m3-environment}
 layout=${2:-native}
-nats_port=${PPL_LOCAL_NATS_PORT:-4223}
+nats_port=${PPL_LOCAL_NATS_PORT:-}
 
 if [ -e "$environment_directory/root-ca.key" ]; then
   printf '%s\n' 'M3 environment already exists; refusing to rotate its trust material.' >&2
@@ -12,11 +12,13 @@ fi
 
 case "$layout" in
   native)
+    nats_port=${nats_port:-4223}
     listen_address=127.0.0.1
     store_directory="$environment_directory/nats-data"
     certificate_directory="$environment_directory"
     ;;
   portable)
+    nats_port=${nats_port:-4222}
     listen_address=0.0.0.0
     store_directory=/data
     certificate_directory=/etc/nats

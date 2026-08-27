@@ -89,7 +89,10 @@ The evidence cycles found and corrected issues before closure:
 - Docker Compose ignored requested ownership for bind-backed secrets, so the
   portable environment now combines an owner-only parent directory with
   container-readable mounted files while retaining the unmounted root private
-  key at owner-only mode.
+  key at owner-only mode; and
+- the native host layout's coexistence port was initially reused inside the
+  portable container, so native now defaults to `4223` and portable to the
+  standard container port `4222`.
 
 These corrections illustrate why the current mechanisms remain a revisable
 baseline even when their accepted invariants are stable.
