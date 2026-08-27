@@ -334,7 +334,8 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 
 Status: In progress — M3.1 to M3.3 design baselines accepted; M3.2
 infrastructure lifecycle spike evidenced; M3.3 runtime baseline implemented
-with final portability and private-hosted evidence pending
+with native, independent OCI Compose and Minikube evidence; reviewed
+immutable-image private-hosted evidence pending
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -436,8 +437,10 @@ Delivery sequence:
    evidence 27 August 2026:** one Director/runtime, registry and Presentation
    Surface path now exercises lifecycle, logical time, bounded cue fault,
    semantic cue/outcome, checkpoint, stop and successor reset natively and in
-   Minikube. Exact-image local-container and private Google Cloud
-   health/contract/fail-closed smoke evidence remain the closure gates.
+   independent OCI Compose and Minikube profiles. Publication of the reviewed
+   source as an immutable image, followed by private Google Cloud
+   health/contract/fail-closed smoke, teardown and cost evidence, remains the
+   closure gate.
 4. **M3.4 — identity and resilience:** integrate M2 synthetic sign-in,
    reconnect, duplicate, expiry, restart, reset and safe-failure cases. Before
    any shared hosted demonstration, add the narrow managed-root, presenter,
@@ -453,23 +456,26 @@ The accepted
 and ADR-0017 to ADR-0020 define the current package, component-state,
 controlled-time/reset/fault and deployable bindings. Founder acceptance permits
 implementation against this baseline. The repository now contains that
-implementation and partial evidence; M3.3 is not closed until every accepted
-gate in the evidence record is conclusive.
+implementation plus native, independent OCI Compose and Minikube evidence;
+M3.3 is not closed until every accepted gate in the evidence record is
+conclusive.
 
 M3.1 is closed as an accepted logical baseline. M3.2 accepts NATS JetStream,
 Google OIDC, the backend-mediated SSE/POST surface channel and the ephemeral GKE
 Autopilot/OpenTofu hosted lifecycle at design maturity. M3.3 accepts canonical
 JSON packages, component-owned SQLite stores, separate operational/logical
 time, bounded reset/fault adapters and one application image with separate
-Director and Presentation Gateway workloads at design maturity. Exact library
-versions, numerical limits and implementation evidence remain pending.
+Director and Presentation Gateway workloads. Exact library versions and
+numerical limits are recorded by the implementation and remain a revisable
+current baseline rather than a production qualification.
 
 The M3.2 infrastructure sub-slice is now evidenced: short-lived operator
 federation, pre-apply expiry arming, private-node Autopilot create, explicit
 off, partial-failure recovery and empty residual activation inventory were
 observed. Automatic-expiry execution, application deployment, managed trust,
-presenter/workload binding and the presentation/event runtime remain pending
-under M3.3 to M3.5.
+presenter/workload binding and synthetic application sign-in remain pending
+under M3.3 to M3.5. The local presentation/event runtime is implemented and
+evidenced; its exact-image private Google Cloud deployment remains open.
 
 ### Hosted-preview scheduling and cost boundary
 

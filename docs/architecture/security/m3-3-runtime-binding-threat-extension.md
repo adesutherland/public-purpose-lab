@@ -1,6 +1,6 @@
 # M3.3 runtime-binding threat extension
 
-Status: Accepted M3.3 runtime-binding threat baseline; implementation evidence pending
+Status: Accepted M3.3 runtime-binding threat baseline; local implementation evidence recorded, hosted closure pending
 
 Version: 0.1.0
 

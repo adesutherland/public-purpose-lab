@@ -36,10 +36,11 @@ This acceptance establishes those choices as the current M3.3 implementation
 baseline. It does not approve code by implication, close M3.3 or permit a
 shared hosted demonstration.
 
-The first implementation now exists in the repository. Native and Minikube
-assurance runs exercise the positive path, bounded fault, restart and reset
-behaviour. M3.3 remains open until the exact immutable image completes the
-local-container and private hosted gates listed under acceptance evidence.
+The first implementation now exists in the repository. Native, independent OCI
+Compose and Minikube assurance runs exercise the positive path, bounded fault,
+restart and reset behaviour. M3.3 remains open until the reviewed source is
+published as an immutable image and that exact digest completes the private
+hosted gates listed under acceptance evidence.
 
 ## Outcome and claim boundary
 
