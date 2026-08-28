@@ -129,7 +129,11 @@ jobs:
         run: docker build --file deploy/containers/web.Containerfile --tag ppl-web:test .
 
       - name: Build M3.4 runtime container
-        run: docker build --file deploy/containers/m3-runtime.Containerfile --tag public-purpose-lab/m3-runtime:development .
+        run: |
+          docker build --file deploy/containers/m3-runtime.Containerfile --tag public-purpose-lab/m3-runtime:development .
+          docker run --rm --entrypoint /bin/sh \
+            public-purpose-lab/m3-runtime:development \
+            -c 'test -s /etc/ssl/certs/ca-certificates.crt'
 
       - name: Install pinned NKey environment tool
         run: |
