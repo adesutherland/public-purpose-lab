@@ -322,6 +322,27 @@ export function App() {
                 Sign synthetic viewer into display
               </button>
               <button
+                className="ppl-button"
+                type="button"
+                disabled={!authenticated || !session}
+                onClick={() =>
+                  void run(async () => {
+                    await requestJson(
+                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/synthetic-sign-in`,
+                      {
+                        actorId: "synthetic-reviewer",
+                        surfaceSlot: "reviewer-workbench",
+                      },
+                    );
+                    setMessage(
+                      "Protected synthetic sign-in requested for the registered reviewer workbench.",
+                    );
+                  })
+                }
+              >
+                Sign synthetic reviewer into workbench
+              </button>
+              <button
                 className="ppl-button ppl-button-secondary"
                 type="button"
                 disabled={
@@ -380,6 +401,32 @@ export function App() {
                 }
               >
                 Cue audience display
+              </button>
+              <button
+                className="ppl-button"
+                type="button"
+                disabled={
+                  session.state !== "running" || !session.logicalTimeInitialised
+                }
+                onClick={() =>
+                  void run(async () => {
+                    await requestJson(
+                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/cue`,
+                      {
+                        surfaceSlot: "reviewer-workbench",
+                        semanticView: "assurance-welcome",
+                        heading: cueHeading,
+                        message: cueMessage,
+                        expiresInSeconds: 60,
+                      },
+                    );
+                    setMessage(
+                      "Workbench semantic cue committed to the Director outbox.",
+                    );
+                  })
+                }
+              >
+                Cue reviewer workbench
               </button>
               <button
                 className="ppl-button ppl-button-secondary"
