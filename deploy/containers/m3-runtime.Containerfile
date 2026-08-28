@@ -23,7 +23,10 @@ RUN cargo build --release --locked --bin ppl-m3-runtime
 
 FROM debian:bookworm-slim
 
-RUN groupadd --system --gid 65532 ppl \
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 65532 ppl \
     && useradd --system --uid 65532 --gid 65532 --no-create-home ppl \
     && mkdir --parents /opt/public-purpose-lab/frontend /opt/public-purpose-lab/contracts \
        /opt/public-purpose-lab/scenarios /var/lib/public-purpose-lab \
