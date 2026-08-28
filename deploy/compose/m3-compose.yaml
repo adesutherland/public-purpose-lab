@@ -1,6 +1,25 @@
 name: public-purpose-lab-m3
 
 services:
+  state-initializer:
+    image: public-purpose-lab/m3-runtime:development
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        chmod 700 /state/director /state/presentation /state/identity /state/identity-public
+        && chown 65532:65532 /state/director /state/presentation /state/identity /state/identity-public
+    network_mode: none
+    volumes:
+      - director-state:/state/director
+      - presentation-state:/state/presentation
+      - identity-state:/state/identity
+      - identity-public:/state/identity-public
+    read_only: true
+    cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "FOWNER"]
+    security_opt: ["no-new-privileges:true"]
+
   nats:
     image: nats:2.14.5-alpine
     command: ["-c", "/etc/nats/nats.conf"]
@@ -25,7 +44,13 @@ services:
       dockerfile: deploy/containers/m3-runtime.Containerfile
     image: public-purpose-lab/m3-runtime:development
     restart: on-failure
-    depends_on: ["nats", "identity-broker"]
+    depends_on:
+      state-initializer:
+        condition: service_completed_successfully
+      nats:
+        condition: service_started
+      identity-broker:
+        condition: service_started
     environment:
       PPL_RUNTIME_MODE: scenario-director
       PPL_RUNTIME_PROFILE: local-containers
@@ -56,7 +81,13 @@ services:
   presentation-gateway:
     image: public-purpose-lab/m3-runtime:development
     restart: on-failure
-    depends_on: ["nats", "identity-broker"]
+    depends_on:
+      state-initializer:
+        condition: service_completed_successfully
+      nats:
+        condition: service_started
+      identity-broker:
+        condition: service_started
     environment:
       PPL_RUNTIME_MODE: presentation-gateway
       PPL_RUNTIME_PROFILE: local-containers
@@ -90,7 +121,11 @@ services:
   identity-broker:
     image: public-purpose-lab/m3-runtime:development
     restart: on-failure
-    depends_on: ["nats"]
+    depends_on:
+      state-initializer:
+        condition: service_completed_successfully
+      nats:
+        condition: service_started
     environment:
       PPL_RUNTIME_MODE: identity-broker
       PPL_RUNTIME_PROFILE: local-containers

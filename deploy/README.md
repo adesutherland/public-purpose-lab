@@ -60,7 +60,9 @@ M3.4 extends the synthetic-only walking-skeleton composition:
   Broker, Presentation Gateway and three browser bundles into one immutable
   image;
 - `deploy/compose/m3-compose.yaml` runs that image in three modes with separate
-  SQLite volumes and workload seeds, plus TLS/NKey NATS JetStream;
+  SQLite volumes and workload seeds, plus TLS/NKey NATS JetStream; a
+  network-isolated one-shot initializer gives those empty volumes to the
+  image's non-root runtime identity before any application starts;
 - `deploy/kubernetes/m3/base/` supplies ingress-free Kustomize application
   resources with separate `ReadWriteOnce` claims;
 - `deploy/kubernetes/m3/overlays/managed-hosted/` defines the portable
