@@ -7,9 +7,16 @@ export type { SurfaceDefinition, SurfaceId } from "./surfaces.ts";
 interface SurfaceShellProps {
   readonly surface: SurfaceDefinition;
   readonly children?: ReactNode;
+  readonly maturityLabel?: string;
+  readonly notice?: ReactNode;
 }
 
-export function SurfaceShell({ surface, children }: SurfaceShellProps) {
+export function SurfaceShell({
+  surface,
+  children,
+  maturityLabel = "Repository skeleton",
+  notice,
+}: SurfaceShellProps) {
   return (
     <div className="ppl-shell">
       <header className="ppl-header">
@@ -19,7 +26,7 @@ export function SurfaceShell({ surface, children }: SurfaceShellProps) {
           </span>
           <span>Public Purpose Lab</span>
         </a>
-        <span className="ppl-maturity">Repository skeleton</span>
+        <span className="ppl-maturity">{maturityLabel}</span>
       </header>
 
       <main>
@@ -28,8 +35,8 @@ export function SurfaceShell({ surface, children }: SurfaceShellProps) {
           <h1>{surface.title}</h1>
           <p className="ppl-purpose">{surface.purpose}</p>
           <div className="ppl-notice" role="note">
-            This interface demonstrates the intended boundary only. Its actions
-            are not yet connected.
+            {notice ??
+              "This interface demonstrates the intended boundary only. Its actions are not yet connected."}
           </div>
         </section>
 

@@ -10,6 +10,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@public-purpose-lab/contracts": "workspace:*",
     "@public-purpose-lab/ui": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"

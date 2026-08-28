@@ -2,16 +2,18 @@
 
 ## Current status
 
-This repository contains a buildable framework with M1 common-interaction and
-M2 local-synthetic identity reference paths in development. It proves common
-packaging, presentation surfaces, architecture catalogues, strict contracts,
-safe command outcomes, environment-scoped demonstration trust and local
-idempotency/restart behaviour.
+This repository contains a buildable framework with M1 common-interaction, M2
+local-synthetic identity and M3.3 scenario/presentation reference paths in
+development. It proves common packaging, presentation surfaces, architecture
+catalogues, strict contracts, safe command outcomes, environment-scoped
+demonstration trust and local idempotency/restart behaviour.
 
-Both adapters are local assurance profiles with no network listener. M2 can
+The M1/M2 adapters are local assurance profiles with no network listener. M2 can
 establish bounded synthetic session state, but it is not a browser login,
 external identity provider, managed issuer, production identity service or
-distributed session store. The repository does not yet provide workflow,
+distributed session store. M3.3 adds loopback or port-forwarded HTTP/SSE and a
+TLS/NKey NATS JetStream development-assurance path. It does not add managed
+identity or business authority. The repository does not yet provide workflow,
 business persistence, retrieval, reporting, analytics or cREXX execution.
 
 ## Prerequisites
@@ -86,6 +88,25 @@ production-like, production or authorised for non-synthetic information. Run
 `pnpm check:m2-runtime` for the complete temporary-environment conformance path;
 it does not expose a reusable grant in terminal output.
 
+## Exercise the M3.3 walking skeleton
+
+M3.3 requires the web bundles and `ppl-m3-runtime` binary, plus NATS tools for
+the native path:
+
+```sh
+pnpm build:web
+cargo build --bin ppl-m3-runtime
+deploy/local/setup-m3-environment.sh .local/m3-environment native
+deploy/local/start-m3-native.sh .local/m3-environment
+tools/smoke-m3-native.sh
+deploy/local/stop-m3-native.sh .local/m3-environment
+```
+
+Use a fresh environment-directory name when new synthetic trust is required;
+setup refuses silent key rotation. For Minikube, OCI Compose and manual browser
+exploration, follow the
+[M3.3 operator guide](docs/guides/m3-3-operator-guide.md).
+
 ## Repository layout
 
 - `architecture/`: machine-readable component catalogue;
@@ -102,13 +123,14 @@ packages without asserting that every logical component is a service.
 
 ## Platform boundaries
 
-No infrastructure product is selected yet for events, workflow, external or
-managed identity, storage, retrieval, analytics or observability. The M1 and
-M2 journals are single-host assurance bindings, not product selections.
-Deployment examples contain only the framework host and static browser
-surfaces. The same source is intended to build on macOS, Linux and Windows;
-evidence from one host does not qualify another. Containers provide the common
-hosted form.
+NATS JetStream is the accepted first M3 event binding and SQLite is the
+accepted M3 single-instance component-state binding. Neither is a production,
+multi-replica or long-term evidence-store qualification. No infrastructure
+product is selected yet for workflow, external or managed identity, retrieval,
+analytics or general observability. The M1 and M2 journals remain single-host
+assurance bindings. The same source is intended to build on macOS, Linux and
+Windows; evidence from one host does not qualify another. Containers provide
+the common hosted form.
 
 cREXX remains the preferred future surface for appropriate inspectable rules,
 transformations and scenario scripting. It is excluded from this initial build

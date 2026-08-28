@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: public-purpose-lab
+resources:
+  - namespace.yaml
+  - director-pvc.yaml
+  - presentation-pvc.yaml
+  - director.yaml
+  - presentation.yaml
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: public-purpose-lab
+      app.kubernetes.io/version: m3-3-development
+      ppl.public-purpose-lab.org/information-profile: synthetic-only
+      ppl.public-purpose-lab.org/maturity: in-development

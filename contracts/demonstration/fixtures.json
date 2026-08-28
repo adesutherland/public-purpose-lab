@@ -1,0 +1,44 @@
+{
+  "fixtures": [
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-001:1.0.0",
+      "file": "scenarios/presentation-control-assurance/scenario.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-001:1.0.0",
+      "file": "contracts/demonstration/invalid/d-001-secret-field.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-002:1.0.0",
+      "file": "contracts/demonstration/examples/d-002-create-session.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-002:1.0.0",
+      "file": "contracts/demonstration/invalid/d-002-stale-negative-revision.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-003:1.0.0",
+      "file": "contracts/demonstration/examples/d-003-advance-time.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-003:1.0.0",
+      "file": "contracts/demonstration/invalid/d-003-unbounded-fault.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-004:1.0.0",
+      "file": "contracts/demonstration/examples/d-004-presentation-checkpoint.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:D-004:1.0.0",
+      "file": "contracts/demonstration/invalid/d-004-business-from-presentation.json",
+      "valid": false
+    }
+  ]
+}

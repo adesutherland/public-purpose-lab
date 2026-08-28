@@ -1,0 +1,21 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "P-002",
+  "describedContractName": "Presentation surface registration",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:P-002:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": [
+    "contracts/presentation/examples/p-002-audience-registration.json"
+  ],
+  "producerExpectations": [
+    "Bind one authenticated backend surface to one declared session slot and generation."
+  ],
+  "consumerExpectations": [
+    "Permit at most one active registration for a session and slot."
+  ],
+  "evidence": []
+}

@@ -1,0 +1,13 @@
+{
+  "contractId": "D-004",
+  "contractVersion": "1.0.0",
+  "evaluationId": "evaluation:presentation:001",
+  "sessionId": "session:assurance:001",
+  "claimClass": "presentation-progress",
+  "claimId": "welcome-presented",
+  "result": "satisfied",
+  "sourceContract": "P-004",
+  "sourceReference": "outcome:cue:001",
+  "observedAt": "2026-08-27T12:06:00Z",
+  "evidenceReferences": ["evidence:presentation:001"]
+}

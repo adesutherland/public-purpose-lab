@@ -1,0 +1,12 @@
+{
+  "contractId": "D-002",
+  "contractVersion": "1.0.0",
+  "operationId": "op:create:001",
+  "sessionId": "session:assurance:001",
+  "packageId": "presentation-control-assurance",
+  "packageVersion": "1.0.0",
+  "action": "create",
+  "expectedRevision": 0,
+  "requestedAt": "2026-08-27T12:01:00Z",
+  "reason": "Create the reviewed synthetic assurance run."
+}

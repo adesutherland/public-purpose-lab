@@ -1,0 +1,18 @@
+{
+  "contractId": "P-001",
+  "contractVersion": "1.0.0",
+  "manifestId": "assurance-presentation-surface",
+  "manifestVersion": "1.0.0",
+  "applicationId": "presentation-gateway",
+  "applicationRelease": "0.1.0",
+  "surfaceRoles": ["audience-display", "reviewer-workbench"],
+  "views": [
+    {
+      "viewId": "assurance-welcome",
+      "viewVersion": "1.0.0",
+      "contextKeys": ["heading", "message", "synthetic-reference"]
+    }
+  ],
+  "informationProfiles": ["synthetic-only"],
+  "releasedAt": "2026-08-27T12:00:00Z"
+}

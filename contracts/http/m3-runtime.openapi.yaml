@@ -1,0 +1,462 @@
+openapi: 3.1.0
+info:
+  title: Public Purpose Lab M3 runtime adapter
+  version: 1.0.0
+  description: >-
+    In-development, synthetic-only HTTP and SSE adapter for the M3.3 Scenario
+    Director and Presentation Gateway. These paths are physical adapters, not
+    semantic contract identifiers or production interfaces.
+servers:
+  - url: http://127.0.0.1:18081
+    description: Native Scenario Director
+  - url: http://127.0.0.1:18082
+    description: Native Presentation Gateway
+tags:
+  - name: assurance
+  - name: director
+  - name: presentation
+paths:
+  /health/live:
+    get:
+      tags: [assurance]
+      operationId: getLiveness
+      responses:
+        "200":
+          description: The process is healthy; this is not interactive or business readiness.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Liveness"
+  /health/ready:
+    get:
+      tags: [assurance]
+      operationId: getReadiness
+      responses:
+        "200":
+          description: Local interactive dependencies are ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+        "503":
+          description: Interactive readiness is deliberately unavailable or a dependency is absent.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+  /health/contracts:
+    get:
+      tags: [assurance]
+      operationId: getContractSelfTest
+      responses:
+        "200":
+          description: Image-bundled contract and package or manifest admission result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractSelfTest"
+  /api/v1/development-session:
+    post:
+      tags: [assurance]
+      operationId: createDevelopmentAssuranceSession
+      description: >-
+        Establishes a short-lived local synthetic session. The adapter is
+        terminally unavailable in the private hosted profile.
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+      responses:
+        "200":
+          description: Session established in an HttpOnly SameSite=Strict cookie.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevelopmentSession"
+        "401":
+          $ref: "#/components/responses/Refused"
+  /api/v1/sessions:
+    post:
+      tags: [director]
+      operationId: createDemonstrationSession
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                sessionId:
+                  type: [string, "null"]
+      responses:
+        "200":
+          description: D-002 outcome.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/status/{session_id}:
+    get:
+      tags: [director]
+      operationId: getDemonstrationSessionStatus
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: Scenario, presentation registration and presentation-checkpoint status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/sessions/{session_id}/lifecycle:
+    post:
+      tags: [director]
+      operationId: applyScenarioLifecycle
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LifecycleRequest"
+      responses:
+        "200":
+          description: D-002 lifecycle outcome; reset returns the successor session outcome.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/sessions/{session_id}/logical-time:
+    post:
+      tags: [director]
+      operationId: changeScenarioLogicalTime
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogicalTimeRequest"
+      responses:
+        "200":
+          description: D-003 logical-time outcome.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/sessions/{session_id}/cue-delay:
+    post:
+      tags: [director]
+      operationId: activatePresentationCueDelay
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expectedRevision, delayMilliseconds]
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 0
+                delayMilliseconds:
+                  type: integer
+                  minimum: 50
+                  maximum: 3000
+      responses:
+        "200":
+          description: D-003 component-control outcome.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/sessions/{session_id}/cue:
+    post:
+      tags: [director]
+      operationId: issuePresentationCue
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CueRequest"
+      responses:
+        "200":
+          description: Accepted P-003 presentation cue.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/registrations:
+    post:
+      tags: [presentation]
+      operationId: registerPresentationSurface
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationRequest"
+      responses:
+        "200":
+          description: Current P-002 registration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/cues:
+    get:
+      tags: [presentation]
+      operationId: streamPresentationCues
+      security:
+        - developmentSession: []
+      responses:
+        "200":
+          description: SSE stream of P-003 semantic cues; the browser receives no route or broker credential.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Refused"
+  /api/v1/outcomes:
+    post:
+      tags: [presentation]
+      operationId: recordPresentationCueOutcome
+      security:
+        - developmentSession: []
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../presentation/p-004-presentation-cue-outcome.schema.json
+      responses:
+        "200":
+          description: Conclusive P-004 outcome bound to the issued cue and current registration generation.
+          content:
+            application/json:
+              schema:
+                $ref: ../presentation/p-004-presentation-cue-outcome.schema.json
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+components:
+  securitySchemes:
+    developmentSession:
+      type: apiKey
+      in: cookie
+      name: PPL_DEV_SESSION
+      description: Local synthetic assurance only; unavailable in hosted profiles.
+  parameters:
+    Origin:
+      name: Origin
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Must exactly match the configured local or port-forwarded origin.
+    SessionId:
+      name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Refused:
+      description: Request is unauthorised, stale, unsupported or otherwise safely refused.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Refusal"
+  schemas:
+    ContractValue:
+      type: object
+      additionalProperties: true
+      description: A response validated and emitted as the named repository contract type.
+    Liveness:
+      type: object
+      additionalProperties: false
+      required: [softwareStatus, mode, profile, maturity, informationProfile]
+      properties:
+        softwareStatus: { const: healthy }
+        mode: { type: string }
+        profile: { type: string }
+        maturity: { const: in-development }
+        informationProfile: { const: synthetic-only }
+    Readiness:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          softwareStatus,
+          interactiveReady,
+          trustProfile,
+          reasonCode,
+          maturity,
+          informationProfile,
+        ]
+      properties:
+        softwareStatus: { const: healthy }
+        interactiveReady: { type: boolean }
+        trustProfile: { type: string }
+        reasonCode: { type: [string, "null"] }
+        maturity: { const: in-development }
+        informationProfile: { const: synthetic-only }
+    ContractSelfTest:
+      type: object
+      additionalProperties: true
+      required:
+        [
+          selfTest,
+          contracts,
+          sourceRevision,
+          imageDigest,
+          maturity,
+          informationProfile,
+        ]
+      properties:
+        selfTest: { const: passed }
+        contracts:
+          type: array
+          items: { type: string }
+        sourceRevision: { type: string }
+        imageDigest: { type: string }
+        maturity: { const: in-development }
+        informationProfile: { const: synthetic-only }
+    DevelopmentSession:
+      type: object
+      additionalProperties: false
+      required:
+        [status, actor, expiresInSeconds, maturity, informationProfile, warning]
+      properties:
+        status: { const: established }
+        actor: { type: string }
+        expiresInSeconds: { const: 1800 }
+        maturity: { const: in-development }
+        informationProfile: { const: synthetic-only }
+        warning: { type: string }
+    Refusal:
+      type: object
+      additionalProperties: false
+      required: [status, code, maturity, informationProfile]
+      properties:
+        status: { const: refused }
+        code: { type: string }
+        maturity: { const: in-development }
+        informationProfile: { const: synthetic-only }
+    LifecycleRequest:
+      type: object
+      additionalProperties: false
+      required: [action, expectedRevision]
+      properties:
+        action:
+          enum: [prepare, start, pause, resume, complete, stop, reset]
+        expectedState:
+          type: [string, "null"]
+        expectedRevision:
+          type: integer
+          minimum: 0
+        reason:
+          type: [string, "null"]
+    LogicalTimeRequest:
+      type: object
+      additionalProperties: false
+      required: [operation, expectedRevision]
+      properties:
+        operation:
+          enum: [set, advance]
+        expectedRevision:
+          type: integer
+          minimum: 0
+        logicalInstant:
+          type: [string, "null"]
+          format: date-time
+        advanceSeconds:
+          type: [integer, "null"]
+          minimum: 1
+    CueRequest:
+      type: object
+      additionalProperties: false
+      required: [surfaceSlot, semanticView, heading, message]
+      properties:
+        surfaceSlot: { type: string }
+        semanticView: { type: string }
+        heading: { type: string, maxLength: 120 }
+        message: { type: string, maxLength: 1000 }
+        expiresInSeconds:
+          type: [integer, "null"]
+          minimum: 5
+          maximum: 300
+    RegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [sessionId, surfaceSlot, surfaceRole]
+      properties:
+        sessionId: { type: string }
+        surfaceSlot: { type: string }
+        surfaceRole:
+          enum: [audience-display, reviewer-workbench]

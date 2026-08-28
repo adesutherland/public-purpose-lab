@@ -1,0 +1,44 @@
+{
+  "fixtures": [
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-001:1.0.0",
+      "file": "contracts/presentation/examples/p-001-assurance-surface.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-001:1.0.0",
+      "file": "contracts/presentation/invalid/p-001-unknown-view-field.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-002:1.0.0",
+      "file": "contracts/presentation/examples/p-002-audience-registration.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-002:1.0.0",
+      "file": "contracts/presentation/invalid/p-002-zero-generation.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-003:1.0.0",
+      "file": "contracts/presentation/examples/p-003-welcome-cue.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-003:1.0.0",
+      "file": "contracts/presentation/invalid/p-003-route-content.json",
+      "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-004:1.0.0",
+      "file": "contracts/presentation/examples/p-004-welcome-applied.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:P-004:1.0.0",
+      "file": "contracts/presentation/invalid/p-004-business-claim.json",
+      "valid": false
+    }
+  ]
+}

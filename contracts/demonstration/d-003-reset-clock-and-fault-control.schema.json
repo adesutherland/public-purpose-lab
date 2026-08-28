@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:D-003:1.0.0",
+  "title": "D-003 Reset clock and fault control",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "contractVersion",
+    "operationId",
+    "sessionId",
+    "kind",
+    "operation",
+    "expectedRevision",
+    "requestedAt"
+  ],
+  "properties": {
+    "contractId": { "const": "D-003" },
+    "contractVersion": { "const": "1.0.0" },
+    "operationId": { "$ref": "#/$defs/id" },
+    "sessionId": { "$ref": "#/$defs/id" },
+    "kind": { "enum": ["logical-time", "reset", "fault"] },
+    "operation": { "enum": ["set", "advance", "execute", "activate", "clear"] },
+    "target": {
+      "enum": [
+        "director-control-baseline",
+        "presentation-registry-baseline",
+        "presentation-cue-delay"
+      ]
+    },
+    "logicalInstant": { "type": "string", "format": "date-time" },
+    "advanceSeconds": { "type": "integer", "minimum": 1, "maximum": 86400 },
+    "delayMilliseconds": { "type": "integer", "minimum": 50, "maximum": 3000 },
+    "expectedRevision": { "type": "integer", "minimum": 0 },
+    "requestedAt": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "logical-time" },
+          "operation": { "const": "set" }
+        },
+        "required": ["kind", "operation"]
+      },
+      "then": {
+        "properties": { "logicalInstant": true },
+        "required": ["logicalInstant"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "logical-time" },
+          "operation": { "const": "advance" }
+        },
+        "required": ["kind", "operation"]
+      },
+      "then": {
+        "properties": { "advanceSeconds": true },
+        "required": ["advanceSeconds"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "reset" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["target"],
+        "properties": { "operation": { "const": "execute" }, "target": true }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "fault" },
+          "operation": { "const": "activate" }
+        },
+        "required": ["kind", "operation"]
+      },
+      "then": {
+        "required": ["target", "delayMilliseconds"],
+        "properties": {
+          "target": { "const": "presentation-cue-delay" },
+          "delayMilliseconds": true
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "contractId": "D-003",
+  "contractVersion": "1.0.0",
+  "operationId": "op:time:001",
+  "sessionId": "session:assurance:001",
+  "kind": "logical-time",
+  "operation": "advance",
+  "advanceSeconds": 300,
+  "expectedRevision": 2,
+  "requestedAt": "2026-08-27T12:05:00Z"
+}

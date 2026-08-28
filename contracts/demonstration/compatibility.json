@@ -1,0 +1,8 @@
+{
+  "descriptors": [
+    "contracts/demonstration/descriptors/d-001.json",
+    "contracts/demonstration/descriptors/d-002.json",
+    "contracts/demonstration/descriptors/d-003.json",
+    "contracts/demonstration/descriptors/d-004.json"
+  ]
+}

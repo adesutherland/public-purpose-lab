@@ -56,7 +56,7 @@
       "group": "demonstration",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/demonstration/d-001-scenario-package.md",
-      "schema": null
+      "schema": "contracts/demonstration/d-001-scenario-package.schema.json"
     },
     {
       "id": "D-002",
@@ -64,7 +64,7 @@
       "group": "demonstration",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/demonstration/d-002-scenario-lifecycle.md",
-      "schema": null
+      "schema": "contracts/demonstration/d-002-scenario-lifecycle.schema.json"
     },
     {
       "id": "D-003",
@@ -72,7 +72,7 @@
       "group": "demonstration",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/demonstration/d-003-reset-clock-and-fault-control.md",
-      "schema": null
+      "schema": "contracts/demonstration/d-003-reset-clock-and-fault-control.schema.json"
     },
     {
       "id": "D-004",
@@ -80,7 +80,7 @@
       "group": "demonstration",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/demonstration/d-004-readiness-and-checkpoint.md",
-      "schema": null
+      "schema": "contracts/demonstration/d-004-readiness-and-checkpoint.schema.json"
     },
     {
       "id": "P-001",
@@ -88,7 +88,7 @@
       "group": "presentation",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/presentation/p-001-presentation-capability-manifest.md",
-      "schema": null
+      "schema": "contracts/presentation/p-001-presentation-capability-manifest.schema.json"
     },
     {
       "id": "P-002",
@@ -96,7 +96,7 @@
       "group": "presentation",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/presentation/p-002-presentation-surface-registration.md",
-      "schema": null
+      "schema": "contracts/presentation/p-002-presentation-surface-registration.schema.json"
     },
     {
       "id": "P-003",
@@ -104,7 +104,7 @@
       "group": "presentation",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/presentation/p-003-presentation-cue.md",
-      "schema": null
+      "schema": "contracts/presentation/p-003-presentation-cue.schema.json"
     },
     {
       "id": "P-004",
@@ -112,7 +112,7 @@
       "group": "presentation",
       "status": "agreed",
       "documentation": "docs/architecture/logical/contracts/presentation/p-004-presentation-cue-outcome.md",
-      "schema": null
+      "schema": "contracts/presentation/p-004-presentation-cue-outcome.schema.json"
     },
     {
       "id": "I-001",

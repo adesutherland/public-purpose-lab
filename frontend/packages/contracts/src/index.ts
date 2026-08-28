@@ -16,6 +16,216 @@ export const m2ContractVersions = {
   "AZ-001": "1.0.0",
 } as const;
 
+export const m3ContractVersions = {
+  "D-001": "1.0.0",
+  "D-002": "1.0.0",
+  "D-003": "1.0.0",
+  "D-004": "1.0.0",
+  "P-001": "1.0.0",
+  "P-002": "1.0.0",
+  "P-003": "1.0.0",
+  "P-004": "1.0.0",
+} as const;
+
+export type ScenarioLifecycleAction =
+  | "create"
+  | "prepare"
+  | "start"
+  | "pause"
+  | "resume"
+  | "complete"
+  | "stop"
+  | "reset";
+
+export interface ScenarioPackage {
+  readonly contractId: "D-001";
+  readonly contractVersion: "1.0.0";
+  readonly packageId: string;
+  readonly packageVersion: string;
+  readonly title: string;
+  readonly purpose: string;
+  readonly publisher: string;
+  readonly releasedAt: string;
+  readonly informationProfile: "synthetic-only";
+  readonly permittedProfiles: readonly string[];
+  readonly surfaceSlots: readonly {
+    readonly slotId: string;
+    readonly role: "audience-display" | "reviewer-workbench";
+    readonly required: boolean;
+    readonly supportedViews: readonly string[];
+  }[];
+  readonly stages: readonly {
+    readonly stageId: string;
+    readonly title: string;
+    readonly steps: readonly {
+      readonly stepId: string;
+      readonly kind:
+        "lifecycle" | "presentation-cue" | "checkpoint" | "control";
+      readonly description: string;
+      readonly target?: string;
+      readonly semanticView?: string;
+      readonly operation?: string;
+    }[];
+  }[];
+  readonly controls: {
+    readonly logicalTime: {
+      readonly mode: "manual-step";
+      readonly initialInstant: string;
+      readonly maximumAdvanceSeconds: number;
+    };
+    readonly resetTargets: readonly string[];
+    readonly faultProfiles: readonly string[];
+  };
+  readonly limitations: readonly string[];
+}
+
+export type ScenarioState =
+  | "preparing"
+  | "ready"
+  | "running"
+  | "paused"
+  | "completed"
+  | "stopped"
+  | "failed"
+  | "superseded";
+
+export interface ScenarioLifecycleCommand {
+  readonly contractId: "D-002";
+  readonly contractVersion: "1.0.0";
+  readonly operationId: string;
+  readonly sessionId: string;
+  readonly packageId: string;
+  readonly packageVersion: string;
+  readonly action: ScenarioLifecycleAction;
+  readonly expectedState?: ScenarioState;
+  readonly expectedRevision: number;
+  readonly requestedAt: string;
+  readonly reason?: string;
+}
+
+export interface ScenarioControlCommand {
+  readonly contractId: "D-003";
+  readonly contractVersion: "1.0.0";
+  readonly operationId: string;
+  readonly sessionId: string;
+  readonly kind: "logical-time" | "reset" | "fault";
+  readonly operation: "set" | "advance" | "execute" | "activate" | "clear";
+  readonly target?: string;
+  readonly logicalInstant?: string;
+  readonly advanceSeconds?: number;
+  readonly delayMilliseconds?: number;
+  readonly expectedRevision: number;
+  readonly requestedAt: string;
+}
+
+export interface ScenarioCheckpointEvaluation {
+  readonly contractId: "D-004";
+  readonly contractVersion: "1.0.0";
+  readonly evaluationId: string;
+  readonly sessionId: string;
+  readonly claimClass:
+    | "software-health"
+    | "scenario-readiness"
+    | "presentation-progress"
+    | "business-completion";
+  readonly claimId: string;
+  readonly result:
+    "satisfied" | "not-satisfied" | "pending" | "not-evaluable" | "uncertain";
+  readonly sourceContract: string;
+  readonly sourceReference?: string;
+  readonly observedAt: string;
+  readonly reason?: string;
+  readonly evidenceReferences: readonly string[];
+}
+
+export interface PresentationCapabilityManifest {
+  readonly contractId: "P-001";
+  readonly contractVersion: "1.0.0";
+  readonly manifestId: string;
+  readonly manifestVersion: string;
+  readonly applicationId: string;
+  readonly applicationRelease: string;
+  readonly surfaceRoles: readonly ("audience-display" | "reviewer-workbench")[];
+  readonly views: readonly {
+    readonly viewId: string;
+    readonly viewVersion: string;
+    readonly contextKeys: readonly string[];
+  }[];
+  readonly informationProfiles: readonly "synthetic-only"[];
+  readonly releasedAt: string;
+}
+
+export interface PresentationRegistration {
+  readonly contractId: "P-002";
+  readonly contractVersion: "1.0.0";
+  readonly registrationId: string;
+  readonly sessionId: string;
+  readonly surfaceSlot: string;
+  readonly surfaceRole: "audience-display" | "reviewer-workbench";
+  readonly manifestId: string;
+  readonly manifestVersion: string;
+  readonly supportedViews: readonly string[];
+  readonly bindingMode:
+    | "pre-session"
+    | "external-session"
+    | "synthetic-session"
+    | "development-assurance";
+  readonly registrationRevision: number;
+  readonly connectionGeneration: number;
+  readonly leaseExpiresAt: string;
+}
+
+export interface PresentationCue {
+  readonly contractId: "P-003";
+  readonly contractVersion: "1.0.0";
+  readonly cueId: string;
+  readonly cueDigest: string;
+  readonly idempotencyKey: string;
+  readonly sessionId: string;
+  readonly sessionRevision: number;
+  readonly surfaceSlot: string;
+  readonly registrationId: string;
+  readonly registrationRevision: number;
+  readonly connectionGeneration: number;
+  readonly semanticView: string;
+  readonly viewVersion: string;
+  readonly context: Readonly<Record<string, string>>;
+  readonly issuedAt: string;
+  readonly expiresAt: string;
+  readonly stageId: string;
+  readonly stepId: string;
+}
+
+export type PresentationOutcomeResult =
+  | "applied"
+  | "refused"
+  | "unsupported"
+  | "expired"
+  | "duplicate"
+  | "superseded"
+  | "failed"
+  | "uncertain";
+
+export interface PresentationCueOutcome {
+  readonly contractId: "P-004";
+  readonly contractVersion: "1.0.0";
+  readonly outcomeId: string;
+  readonly cueId: string;
+  readonly cueDigest: string;
+  readonly sessionId: string;
+  readonly sessionRevision: number;
+  readonly surfaceSlot: string;
+  readonly registrationId: string;
+  readonly registrationRevision: number;
+  readonly connectionGeneration: number;
+  readonly semanticView: string;
+  readonly result: PresentationOutcomeResult;
+  readonly reason?: string;
+  readonly diagnosticCode?: string;
+  readonly concludedAt: string;
+  readonly businessCompletionClaimed: false;
+}
+
 export type PrincipalType =
   | "external-human"
   | "synthetic-human"

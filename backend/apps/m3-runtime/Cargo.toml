@@ -1,0 +1,27 @@
+[package]
+name = "ppl-m3-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+axum = "0.8"
+futures-util = "0.3"
+ppl-contracts = { path = "../../crates/contracts" }
+ppl-ctl-01 = { path = "../../components/ctl-01" }
+ppl-ctl-02 = { path = "../../components/ctl-02" }
+ppl-int-01 = { path = "../../components/int-01" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+time = { version = "0.3", features = ["formatting"] }
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tower-http = { version = "0.6", features = ["fs", "set-header", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v4"] }
+
+[lints]
+workspace = true

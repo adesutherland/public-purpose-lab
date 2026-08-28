@@ -1,8 +1,8 @@
 # M3.3 runtime walking-skeleton baseline
 
-Status: Accepted M3.3 design and implementation baseline; implementation not started
+Status: Accepted design; implementation baseline built, final M3.3 evidence pending
 
-Version: 0.1.0
+Version: 0.2.0
 
 Last reviewed: 27 August 2026
 
@@ -35,6 +35,12 @@ The founders accepted four implementation-binding decisions on 27 August 2026:
 This acceptance establishes those choices as the current M3.3 implementation
 baseline. It does not approve code by implication, close M3.3 or permit a
 shared hosted demonstration.
+
+The first implementation now exists in the repository. Native, independent OCI
+Compose and Minikube assurance runs exercise the positive path, bounded fault,
+restart and reset behaviour. M3.3 remains open until the reviewed source is
+published as an immutable image and that exact digest completes the private
+hosted gates listed under acceptance evidence.
 
 ## Outcome and claim boundary
 
@@ -123,6 +129,9 @@ Its paths are not semantic contract identifiers and never appear in scenario
 packages, cues or public evidence. Backend request handlers construct or
 validate the accepted D/P and common-contract types before invoking domain
 modules.
+
+The current adapter is published as
+[`contracts/http/m3-runtime.openapi.yaml`](../../contracts/http/m3-runtime.openapi.yaml).
 
 ## Scenario package baseline
 
@@ -351,6 +360,10 @@ M3.3 is complete only when evidence shows:
 M3.3 evidence qualifies an in-development walking skeleton only. M3.4 remains
 the gate for managed trust, external presenter login, workload identity,
 synthetic application sessions and the fuller restart/reconnect/security suite.
+
+Implementation and evidence status is maintained in the
+[M3.3 evidence record](evidence/m3-3-runtime-walking-skeleton.md). Operational
+use is described in the [M3.3 operator guide](../guides/m3-3-operator-guide.md).
 
 ## Reference material
 

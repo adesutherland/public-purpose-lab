@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m3-scenario-director
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: m3-scenario-director
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: m3-scenario-director
+        app.kubernetes.io/component: scenario-control
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: runtime
+          image: public-purpose-lab/m3-runtime:development
+          imagePullPolicy: Never
+          env:
+            - name: PPL_RUNTIME_MODE
+              value: scenario-director
+            - name: PPL_RUNTIME_PROFILE
+              value: minikube
+            - name: PPL_LISTEN_ADDRESS
+              value: 0.0.0.0:8080
+            - name: PPL_ALLOWED_ORIGIN
+              value: http://127.0.0.1:18081
+            - name: PPL_STATE_PATH
+              value: /var/lib/public-purpose-lab/ctl-01.sqlite
+            - name: PPL_STATIC_DIRECTORY
+              value: /opt/public-purpose-lab/frontend/director
+            - name: PPL_SOURCE_REVISION
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-build-evidence
+                  key: sourceRevision
+            - name: PPL_IMAGE_DIGEST
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-build-evidence
+                  key: imageDigest
+            - name: PPL_NATS_URL
+              value: tls://nats:4222
+            - name: PPL_NATS_NKEY_SEED_FILE
+              value: /run/secrets/ppl/director.seed
+            - name: PPL_NATS_ROOT_CERTIFICATE
+              value: /run/trust/ppl/ca.crt
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 20m
+              memory: 48Mi
+            limits:
+              cpu: 250m
+              memory: 192Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsUser: 65532
+            runAsGroup: 65532
+          volumeMounts:
+            - name: state
+              mountPath: /var/lib/public-purpose-lab
+            - name: nkey
+              mountPath: /run/secrets/ppl
+              readOnly: true
+            - name: root-ca
+              mountPath: /run/trust/ppl
+              readOnly: true
+            - name: temporary
+              mountPath: /tmp
+      volumes:
+        - name: state
+          persistentVolumeClaim:
+            claimName: m3-director-state
+        - name: nkey
+          secret:
+            secretName: ppl-m3-director-nkey
+            defaultMode: 0440
+        - name: root-ca
+          secret:
+            secretName: ppl-m3-root-ca
+            defaultMode: 0444
+        - name: temporary
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m3-scenario-director
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: m3-scenario-director
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

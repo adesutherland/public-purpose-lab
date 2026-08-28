@@ -1,0 +1,21 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "D-004",
+  "describedContractName": "Readiness and checkpoint",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:D-004:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": [
+    "contracts/demonstration/examples/d-004-presentation-checkpoint.json"
+  ],
+  "producerExpectations": [
+    "State the claim class, authoritative source and conclusive or uncertain result explicitly."
+  ],
+  "consumerExpectations": [
+    "Never treat presentation progress as business completion by implication."
+  ],
+  "evidence": []
+}

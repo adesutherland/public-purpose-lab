@@ -1,0 +1,11 @@
+{
+  "contractId": "D-002",
+  "contractVersion": "1.0.0",
+  "operationId": "op:bad:001",
+  "sessionId": "session:bad:001",
+  "packageId": "presentation-control-assurance",
+  "packageVersion": "1.0.0",
+  "action": "start",
+  "expectedRevision": -1,
+  "requestedAt": "2026-08-27T12:00:00Z"
+}

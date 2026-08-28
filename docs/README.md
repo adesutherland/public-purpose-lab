@@ -15,6 +15,7 @@ visitors, but they do not become a second source of programme or policy truth.
 | Policy and governance | Defines authority, participation, conduct, security and other standing rules governing the Lab and its work. | [`policy/`](policy/README.md) and the linked root documents |
 | Architecture | Defines system responsibilities, boundaries and lasting technical decisions. | [`architecture/`](architecture/README.md) |
 | Demonstrators | Defines the synthetic business scenarios used to test the programme and architecture. | [`scenarios/`](scenarios/README.md) |
+| Guides | Gives bounded start, explore and stop instructions for implemented assurance environments. | [`guides/`](guides/) |
 | Brand | Provides approved project identity assets and usage guidance. | [`brand/`](brand/README.md) |
 
 ## Authority and publication

@@ -1,6 +1,6 @@
 # CTL-02: Presentation Gateway and screen registry
 
-Status: Accepted M3.2 logical baseline; implementation not started
+Status: Accepted M3.2 logical baseline; M3.3 reference implementation in development
 
 Version: 0.1.0
 
@@ -309,10 +309,21 @@ Evidence must show that:
 
 ## Current limitations and decisions deferred
 
-`CTL-02` and `P-001` to `P-004` are accepted logical specifications. No schema,
-runtime, database or transport is implemented. Exact size, rate, duration,
-connection, accessibility and multi-surface limits require executable evidence.
+`CTL-02` and `P-001` to `P-004` now have an M3.3 Rust reference
+implementation, strict schemas and conformance fixtures. The implementation
+admits a closed capability manifest, maintains one current registration per
+session/surface slot in component-owned SQLite state, delivers semantic cues
+over authenticated backend-mediated SSE and validates `P-004` against the
+issued cue and current registration generation. Its executable source is
+[`backend/components/ctl-02`](../../../../backend/components/ctl-02), with the
+HTTP process adapter in
+[`backend/apps/m3-runtime`](../../../../backend/apps/m3-runtime).
 
-ADR-0013 to ADR-0016 accept the first product bindings at design maturity only.
-Acceptance does not claim that NATS JetStream, Google OIDC, server-sent events,
-GKE Autopilot, Cloud KMS or OpenTofu is deployed, integrated or qualified.
+Exact production rate, duration, connection, accessibility, multi-surface and
+managed-session limits remain unqualified. M3.3 evidence covers only the
+closed synthetic assurance package and single-instance profiles.
+
+ADR-0013 and ADR-0014 are implemented for the local M3.3 NATS JetStream and
+SSE/POST path. ADR-0015 and ADR-0016 remain design constraints for M3.4 managed
+identity and hosted operation; M3.3 does not claim Google OIDC, managed
+workload identity, Cloud KMS or production GKE qualification.

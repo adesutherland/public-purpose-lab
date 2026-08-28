@@ -1,0 +1,19 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "D-003",
+  "describedContractName": "Reset clock and fault control",
+  "describedVersion": "1.0.0",
+  "status": "agreed",
+  "schemaId": "urn:public-purpose-lab:contract:D-003:1.0.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-08-27T12:00:00Z",
+  "examples": ["contracts/demonstration/examples/d-003-advance-time.json"],
+  "producerExpectations": [
+    "Use only owner-published bounded control names and parameters."
+  ],
+  "consumerExpectations": [
+    "Keep operational time immutable and refuse undeclared or out-of-range controls."
+  ],
+  "evidence": []
+}
