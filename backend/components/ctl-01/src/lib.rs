@@ -15,7 +15,7 @@ use ppl_contracts::{
     ScenarioControlCommand, ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioPackage,
     ScenarioState,
 };
-use rusqlite::{Connection, OptionalExtension, Transaction, params};
+use rusqlite::{Connection, OptionalExtension, Transaction, TransactionBehavior, params};
 use serde::{Deserialize, Deserializer, Serialize, de};
 use serde_json::{Map, Number, Value};
 use sha2::{Digest, Sha256};
@@ -23,6 +23,7 @@ use time::{Duration, OffsetDateTime, format_description::well_known::Rfc3339};
 use uuid::Uuid;
 
 const MAX_DOCUMENT_BYTES: u64 = 65_536;
+const SQLITE_BUSY_TIMEOUT_SECONDS: u64 = 5;
 const ASSURANCE_PACKAGE_ID: &str = "presentation-control-assurance";
 const ASSURANCE_PACKAGE_VERSION: &str = "1.1.0";
 
@@ -155,6 +156,9 @@ impl DirectorRuntime {
         }
         let connection =
             Connection::open(&self.database_path).map_err(|_| DirectorError::StateUnavailable)?;
+        connection
+            .busy_timeout(std::time::Duration::from_secs(SQLITE_BUSY_TIMEOUT_SECONDS))
+            .map_err(|_| DirectorError::StateUnavailable)?;
         connection
             .pragma_update(None, "foreign_keys", "ON")
             .map_err(|_| DirectorError::StateUnavailable)?;
@@ -344,7 +348,7 @@ impl DirectorRuntime {
         let fingerprint = canonical_digest(command)?;
         let mut connection = self.connection()?;
         let transaction = connection
-            .transaction()
+            .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| DirectorError::StateUnavailable)?;
         if let Some(outcome) = duplicate_outcome(&transaction, &command.operation_id, &fingerprint)?
         {
@@ -395,7 +399,7 @@ impl DirectorRuntime {
         }))?;
         let mut connection = self.connection()?;
         let transaction = connection
-            .transaction()
+            .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| DirectorError::StateUnavailable)?;
         if let Some(outcome) = duplicate_time_outcome(&transaction, operation_id, &fingerprint)? {
             return Ok(outcome);
@@ -494,7 +498,7 @@ impl DirectorRuntime {
         }))?;
         let mut connection = self.connection()?;
         let transaction = connection
-            .transaction()
+            .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| DirectorError::StateUnavailable)?;
         if let Some(outcome) = duplicate_time_outcome(&transaction, operation_id, &fingerprint)? {
             return Ok(outcome);
@@ -656,7 +660,7 @@ impl DirectorRuntime {
         let fingerprint = canonical_digest(cue)?;
         let mut connection = self.connection()?;
         let transaction = connection
-            .transaction()
+            .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| DirectorError::StateUnavailable)?;
         if let Some((stored_fingerprint, stored_json)) = transaction
             .query_row(
@@ -713,7 +717,7 @@ impl DirectorRuntime {
         let requested_at = format_time(now)?;
         let mut connection = self.connection()?;
         let transaction = connection
-            .transaction()
+            .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| DirectorError::StateUnavailable)?;
         let existing: Option<String> = transaction
             .query_row(
@@ -824,7 +828,7 @@ impl DirectorRuntime {
         }
         let mut connection = self.connection()?;
         let transaction = connection
-            .transaction()
+            .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|_| DirectorError::StateUnavailable)?;
         let session = read_session(&transaction, &outcome.session_id)?;
         if session.revision != outcome.session_revision || session.state != ScenarioState::Running {
@@ -1726,6 +1730,62 @@ mod tests {
                 "duplicate-content-conflict"
             ))
         ));
+    }
+
+    #[test]
+    fn brief_outbox_writer_overlap_waits_before_director_mutation() {
+        let (_directory, runtime) = runtime();
+        let now = OffsetDateTime::parse("2026-08-27T12:00:00Z", &Rfc3339).expect("time");
+        admit_test_package(&runtime, now);
+        let session_id = "session:writer-overlap:001";
+        runtime
+            .apply_lifecycle(
+                &lifecycle_command(
+                    "operation:create:writer-overlap",
+                    session_id,
+                    ScenarioLifecycleAction::Create,
+                    None,
+                    0,
+                ),
+                now,
+            )
+            .expect("create");
+
+        let blocker = Connection::open(&runtime.database_path).expect("outbox connection");
+        blocker
+            .execute_batch(
+                "BEGIN IMMEDIATE;
+                 UPDATE outbox SET published_at='2026-08-27T12:00:01Z'
+                 WHERE sequence=(SELECT MIN(sequence) FROM outbox);",
+            )
+            .expect("hold outbox writer");
+
+        let worker = runtime.clone();
+        let (started_sender, started_receiver) = std::sync::mpsc::channel();
+        let (result_sender, result_receiver) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            started_sender.send(()).expect("signal worker");
+            let result = worker.set_initial_logical_time(
+                "operation:set:writer-overlap",
+                session_id,
+                1,
+                "2030-01-01T09:00:00Z",
+                now,
+            );
+            result_sender.send(result).expect("return worker result");
+        });
+        started_receiver.recv().expect("worker started");
+        assert!(matches!(
+            result_receiver.recv_timeout(std::time::Duration::from_millis(200)),
+            Err(std::sync::mpsc::RecvTimeoutError::Timeout)
+        ));
+
+        blocker.execute_batch("COMMIT;").expect("release writer");
+        let outcome = result_receiver
+            .recv_timeout(std::time::Duration::from_secs(2))
+            .expect("worker completed")
+            .expect("logical time accepted after writer overlap");
+        assert_eq!(outcome.session_revision, 2);
     }
 
     #[test]
