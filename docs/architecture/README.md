@@ -20,6 +20,13 @@ composition. Acceptance establishes an implementation baseline, not an
 implemented or qualified capability. The first implementation and its open
 closure gates are recorded in the
 [M3.3 evidence record](evidence/m3-3-runtime-walking-skeleton.md).
+The accepted
+[M3.4 identity and resilience baseline](m3-4-identity-and-resilience-baseline.md)
+extends that composition with external-human application sessions,
+backend-only synthetic sign-in, target-owned replay safety and a managed-hosted
+adapter. Local implementation exists; hosted evidence and milestone closure
+remain pending. The bounded local result is recorded in the
+[M3.4 evidence record](evidence/m3-4-local-identity-and-resilience.md).
 
 The [framework security model](security/framework-security-model.md),
 [M1 threat model](security/m1-threat-model.md) and
@@ -34,9 +41,11 @@ evidenced separately; its presentation, application and managed-trust controls
 remain unimplemented and unqualified.
 The accepted
 [M3.3 runtime-binding threat extension](security/m3-3-runtime-binding-threat-extension.md)
-covers the package, state, time/reset/fault and deployable bindings; executable
-native and Minikube evidence now exists, while exact-image container and private
-hosted evidence remains pending.
+covers the package, state, time/reset/fault and deployable bindings; its bounded
+native, container, Minikube and private hosted evidence is recorded.
+The
+[M3.4 identity and resilience threat extension](security/m3-4-identity-and-resilience-threat-extension.md)
+records the implemented local controls and the remaining managed-hosted gates.
 Bounded results and remaining acceptance gates are recorded separately under
 [architecture implementation evidence](evidence/README.md).
 

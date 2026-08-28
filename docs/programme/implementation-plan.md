@@ -2,7 +2,7 @@
 
 Status: Working draft
 
-Last reviewed: 27 August 2026
+Last reviewed: 28 August 2026
 
 Decision authority: Public Purpose Lab founders
 
@@ -41,20 +41,25 @@ The repository currently provides:
   an in-development `INT-01` local assurance path;
 - an accepted `AUT-01` externalisable authorisation boundary with its
   bounded in-process reference adapter and accepted `AZ-001` contract;
-- the accepted M3.1 `CTL-01`, `D-001` to `D-004` and Scenario Director threat
-  baseline, with implementation and presentation bindings still pending;
+- the accepted and implemented M3.1 to M3.3 Director, presentation, event and
+  runtime walking-skeleton baselines at their recorded development maturity;
+- the accepted M3.4 identity/resilience baseline and ADR-0021 to ADR-0023,
+  with a local implementation of durable application sessions, a separate
+  Identity Broker, backend-only multi-surface synthetic sign-in and managed
+  OIDC/Cloud KMS adapters awaiting hosted evidence;
 - accepted local-synthetic and managed trust profiles, with managed trust
   required for hosted, shared, production-like or non-synthetic-data use; and
 - CI evidence for source checks, tests, builds, Kubernetes rendering and the
   two container images at their stated maturities.
 
 The baseline provides bounded local-synthetic identity and session assurance,
-but not external-human identity, managed trust, browser login, an event broker
-or external API, workflow, business persistence, retrieval, reporting,
-analytics or cREXX execution. The M1 and M2 local journals are limited security
-and delivery evidence, not general persistence capabilities. A source package,
-working contract or container is not evidence beyond its stated maturity and
-conformance profile.
+plus in-development external-human, managed-trust, browser-session, event and
+HTTP/SSE adapters for M3.4. Live managed OIDC/KMS and shared hosted operation
+remain unqualified. Workflow, business persistence, retrieval, reporting,
+analytics and cREXX execution are not implemented. The M1 and M2 local journals
+are limited security and delivery evidence, not general persistence
+capabilities. A source package, working contract or container is not evidence
+beyond its stated maturity and conformance profile.
 
 ## Delivery principles
 
@@ -333,7 +338,7 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 ### M3 — Scenario Director and presentation control
 
 Status: In progress — M3.1 to M3.3 complete at their stated maturity; M3.4 is
-the next delivery slice
+implemented locally and remains open for managed-hosted evidence and review
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -439,11 +444,19 @@ Delivery sequence:
    ingress-free Google Cloud activation passed liveness, contract/package and
    fail-closed checks before explicit teardown. Cost actuals remain a delayed
    operational read-back, recorded as pending rather than zero.
-4. **M3.4 — identity and resilience:** integrate M2 synthetic sign-in,
+4. **M3.4 — identity and resilience — implementation complete; qualification in progress:** integrate M2 synthetic sign-in,
    reconnect, duplicate, expiry, restart, reset and safe-failure cases. Before
    any shared hosted demonstration, add the narrow managed-root, presenter,
    workload, protected-state and authorised-activation binding required by
-   ADR-0007 and ADR-0012.
+   ADR-0007 and ADR-0012. The accepted
+   [M3.4 identity and resilience baseline](../architecture/m3-4-identity-and-resilience-baseline.md)
+   and ADR-0021 to ADR-0023 define the current implementation slice. The
+   three-workload local path, durable external application sessions,
+   multi-surface synthetic bindings, Google OIDC adapter, Cloud KMS signing
+   adapter and portable managed-hosted overlay are implemented. Native and
+   Minikube two-actor/restart evidence passes. Publication/hosted OCI CI and
+   live Google, KMS, ingress, automatic-expiry and teardown evidence remain
+   pending.
 5. **M3.5 — demonstration evidence:** run the repeatable local and Minikube
    scenario and one scheduled, automatically expiring hosted preview; record
    limitations, gross usage, credits, net cost and teardown evidence for
@@ -456,7 +469,7 @@ controlled-time/reset/fault and deployable bindings. Founder acceptance permits
 implementation against this baseline. The repository now contains that
 implementation plus native, independent OCI Compose, Minikube and exact-image
 private Google Cloud evidence. The accepted gates are conclusive for the
-synthetic-only, in-development M3.3 claim; M3.4 remains the next authority and
+synthetic-only, in-development M3.3 claim; M3.4 is the active authority and
 security gate.
 
 M3.1 is closed as an accepted logical baseline. M3.2 accepts NATS JetStream,
@@ -473,8 +486,9 @@ federation, pre-apply expiry arming, private-node Autopilot create, explicit
 off, partial-failure recovery and empty residual activation inventory were
 observed. M3.3 additionally evidenced exact-image application deployment,
 expected fail-closed hosted behaviour and conclusive teardown. Managed trust,
-presenter/workload binding and synthetic application sign-in remain M3.4 work;
-automatic-expiry execution remains an M3.5 evidence case.
+managed presenter/workload binding and synthetic application sign-in now have
+portable implementations; their live hosted evidence remains M3.4 work.
+Automatic-expiry execution remains an M3.5 evidence case.
 
 ### Hosted-preview scheduling and cost boundary
 

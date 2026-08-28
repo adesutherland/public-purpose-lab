@@ -1,4 +1,4 @@
-//! NATS `JetStream` physical adapter for the M3.3 D/P contract path.
+//! NATS `JetStream` physical adapter for the M3.4 Director/Identity/Presentation path.
 
 use std::{path::PathBuf, time::Duration};
 
@@ -16,12 +16,17 @@ pub const OUTCOME_SUBJECT: &str = "ppl.m3.to-director.outcome";
 pub const DIRECTOR_EVENT_SUBJECT: &str = "ppl.m3.events.director";
 pub const CONTROL_SUBJECT: &str = "ppl.m3.to-presentation.control";
 pub const CONTROL_OUTCOME_SUBJECT: &str = "ppl.m3.to-director.control-outcome";
+pub const GRANT_REQUEST_SUBJECT: &str = "ppl.m3.to-identity.grant-request";
+pub const SYNTHETIC_GRANT_SUBJECT: &str = "ppl.m3.to-presentation.synthetic-grant";
+pub const IDENTITY_OUTCOME_SUBJECT: &str = "ppl.m3.to-director.identity-outcome";
+pub const SYNTHETIC_TERMINATION_SUBJECT: &str = "ppl.m3.to-presentation.synthetic-termination";
 const PRESENTATION_CONSUMER_FILTER: &str = "ppl.m3.to-presentation.*";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WorkloadMode {
     ScenarioDirector,
     PresentationGateway,
+    IdentityBroker,
 }
 
 #[derive(Clone, Debug)]
@@ -68,6 +73,7 @@ impl Broker {
         let mut options = async_nats::ConnectOptions::new().name(match config.workload_mode {
             WorkloadMode::ScenarioDirector => "ppl-scenario-director",
             WorkloadMode::PresentationGateway => "ppl-presentation-gateway",
+            WorkloadMode::IdentityBroker => "ppl-identity-broker",
         });
         if let Some(credentials) = config.credentials_file {
             options = options
@@ -107,7 +113,7 @@ impl Broker {
     /// Returns a safe error if `JetStream` is unavailable or policy refuses setup.
     pub async fn ensure_stream(&self) -> Result<(), BrokerError> {
         self.context
-            .get_or_create_stream(StreamConfig {
+            .create_or_update_stream(StreamConfig {
                 name: STREAM_NAME.to_owned(),
                 subjects: vec![
                     REGISTRATION_SUBJECT.to_owned(),
@@ -116,6 +122,10 @@ impl Broker {
                     DIRECTOR_EVENT_SUBJECT.to_owned(),
                     CONTROL_SUBJECT.to_owned(),
                     CONTROL_OUTCOME_SUBJECT.to_owned(),
+                    GRANT_REQUEST_SUBJECT.to_owned(),
+                    SYNTHETIC_GRANT_SUBJECT.to_owned(),
+                    IDENTITY_OUTCOME_SUBJECT.to_owned(),
+                    SYNTHETIC_TERMINATION_SUBJECT.to_owned(),
                 ],
                 storage: StorageType::File,
                 max_messages: 10_000,
@@ -144,6 +154,7 @@ impl Broker {
             WorkloadMode::PresentationGateway => {
                 ("presentation-gateway", PRESENTATION_CONSUMER_FILTER)
             }
+            WorkloadMode::IdentityBroker => ("identity-broker", "ppl.m3.to-identity.*"),
         };
         stream
             .get_or_create_consumer(
@@ -151,7 +162,7 @@ impl Broker {
                 pull::Config {
                     durable_name: Some(name.to_owned()),
                     description: Some(
-                        "Public Purpose Lab M3.3 durable contract consumer".to_owned(),
+                        "Public Purpose Lab M3.4 durable contract consumer".to_owned(),
                     ),
                     ack_policy: AckPolicy::Explicit,
                     ack_wait: Duration::from_secs(15),
@@ -199,11 +210,17 @@ fn can_publish(mode: WorkloadMode, subject: &str) -> bool {
             subject == CUE_SUBJECT
                 || subject == CONTROL_SUBJECT
                 || subject == DIRECTOR_EVENT_SUBJECT
+                || subject == GRANT_REQUEST_SUBJECT
+                || subject == SYNTHETIC_TERMINATION_SUBJECT
         }
         WorkloadMode::PresentationGateway => {
             subject == REGISTRATION_SUBJECT
                 || subject == OUTCOME_SUBJECT
                 || subject == CONTROL_OUTCOME_SUBJECT
+                || subject == IDENTITY_OUTCOME_SUBJECT
+        }
+        WorkloadMode::IdentityBroker => {
+            subject == SYNTHETIC_GRANT_SUBJECT || subject == IDENTITY_OUTCOME_SUBJECT
         }
     }
 }
@@ -230,5 +247,10 @@ mod tests {
         assert!(!can_publish(WorkloadMode::PresentationGateway, CUE_SUBJECT));
         assert!(CONTROL_SUBJECT.starts_with("ppl.m3.to-presentation."));
         assert!(CUE_SUBJECT.starts_with("ppl.m3.to-presentation."));
+        assert!(can_publish(
+            WorkloadMode::IdentityBroker,
+            SYNTHETIC_GRANT_SUBJECT
+        ));
+        assert!(!can_publish(WorkloadMode::IdentityBroker, CUE_SUBJECT));
     }
 }

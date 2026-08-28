@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ScenarioState } from "@public-purpose-lab/contracts";
 import { SurfaceShell, surfaceById } from "@public-purpose-lab/ui";
 
@@ -12,10 +12,20 @@ interface SessionSnapshot {
 }
 
 async function requestJson<T>(path: string, body?: object): Promise<T> {
+  const csrf = document.cookie
+    .split(";")
+    .map((value) => value.trim())
+    .find((value) => value.startsWith("PPL_CSRF="))
+    ?.slice("PPL_CSRF=".length);
   const response = await fetch(path, {
     method: body ? "POST" : "GET",
     credentials: "same-origin",
-    headers: body ? { "Content-Type": "application/json" } : undefined,
+    headers: body
+      ? {
+          "Content-Type": "application/json",
+          ...(csrf ? { "X-PPL-CSRF": csrf } : {}),
+        }
+      : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
   const result = (await response.json()) as T & { code?: string };
@@ -25,6 +35,9 @@ async function requestJson<T>(path: string, body?: object): Promise<T> {
 
 export function App() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [loginMode, setLoginMode] = useState<"local-test" | "google-oidc">(
+    "local-test",
+  );
   const [session, setSession] = useState<SessionSnapshot>();
   const [message, setMessage] = useState(
     "Connect the local assurance presenter to begin.",
@@ -47,6 +60,33 @@ export function App() {
     }
   }, []);
 
+  useEffect(() => {
+    void requestJson<{ mode: "local-test" | "google-oidc" }>(
+      "/api/v1/login-mode",
+    )
+      .then((result) => setLoginMode(result.mode))
+      .catch(() => undefined);
+    void requestJson<{ externalPrincipalId: string }>("/api/v1/session-context")
+      .then(async () => {
+        setAuthenticated(true);
+        const restored = window.sessionStorage.getItem(
+          "ppl-current-demonstration-session",
+        );
+        if (restored) {
+          const status = await requestJson<{ session: SessionSnapshot }>(
+            `/api/v1/status/${encodeURIComponent(restored)}`,
+          );
+          setSession(status.session);
+          setMessage(
+            `Restart-safe presenter session restored at revision ${status.session.revision}.`,
+          );
+        } else {
+          setMessage("External presenter session restored.");
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
   const refresh = useCallback(
     async (sessionId = session?.sessionId) => {
       if (!sessionId) return;
@@ -54,6 +94,10 @@ export function App() {
         `/api/v1/status/${encodeURIComponent(sessionId)}`,
       );
       setSession(status.session);
+      window.sessionStorage.setItem(
+        "ppl-current-demonstration-session",
+        status.session.sessionId,
+      );
       setMessage(
         `Current state: ${status.session.state}, revision ${status.session.revision}.`,
       );
@@ -77,6 +121,13 @@ export function App() {
         },
       );
       setSession(result.successor ?? result.session);
+      const next = result.successor ?? result.session;
+      if (next) {
+        window.sessionStorage.setItem(
+          "ppl-current-demonstration-session",
+          next.sessionId,
+        );
+      }
       setMessage(
         result.successor
           ? `Reset created successor ${result.successor.sessionId}.`
@@ -99,6 +150,10 @@ export function App() {
             disabled={authenticated}
             onClick={() =>
               void run(async () => {
+                if (loginMode === "google-oidc") {
+                  window.location.assign("/auth/google/start");
+                  return;
+                }
                 await requestJson("/api/v1/development-session", {});
                 setAuthenticated(true);
                 setMessage(
@@ -107,7 +162,9 @@ export function App() {
               })
             }
           >
-            Connect synthetic presenter
+            {loginMode === "google-oidc"
+              ? "Sign in with Google"
+              : "Connect test presenter"}
           </button>
           <button
             className="ppl-button"
@@ -120,8 +177,12 @@ export function App() {
                   {},
                 );
                 setSession(result.session);
+                window.sessionStorage.setItem(
+                  "ppl-current-demonstration-session",
+                  result.session.sessionId,
+                );
                 setMessage(
-                  "Session created. Copy its ID to a presentation surface.",
+                  "Session created. Bind its ID to an authorised presentation surface.",
                 );
               })
             }
@@ -239,6 +300,27 @@ export function App() {
               </label>
             </div>
             <div className="ppl-button-row">
+              <button
+                className="ppl-button"
+                type="button"
+                disabled={!authenticated || !session}
+                onClick={() =>
+                  void run(async () => {
+                    await requestJson(
+                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/synthetic-sign-in`,
+                      {
+                        actorId: "synthetic-audience-user",
+                        surfaceSlot: "audience-display",
+                      },
+                    );
+                    setMessage(
+                      "Protected synthetic sign-in requested for the registered audience display.",
+                    );
+                  })
+                }
+              >
+                Sign synthetic viewer into display
+              </button>
               <button
                 className="ppl-button ppl-button-secondary"
                 type="button"

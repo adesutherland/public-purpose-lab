@@ -1,20 +1,24 @@
 openapi: 3.1.0
 info:
   title: Public Purpose Lab M3 runtime adapter
-  version: 1.0.0
+  version: 1.1.0
   description: >-
-    In-development, synthetic-only HTTP and SSE adapter for the M3.3 Scenario
-    Director and Presentation Gateway. These paths are physical adapters, not
-    semantic contract identifiers or production interfaces.
+    In-development, synthetic-only HTTP and SSE adapter for the M3.4 Scenario
+    Director, Identity Broker and Presentation Gateway. These paths are
+    physical adapters, not semantic contract identifiers or production
+    interfaces.
 servers:
   - url: http://127.0.0.1:18081
     description: Native Scenario Director
   - url: http://127.0.0.1:18082
     description: Native Presentation Gateway
+  - url: http://127.0.0.1:18083
+    description: Native Identity Broker health surface
 tags:
   - name: assurance
   - name: director
   - name: presentation
+  - name: identity
 paths:
   /health/live:
     get:
@@ -60,13 +64,14 @@ paths:
       tags: [assurance]
       operationId: createDevelopmentAssuranceSession
       description: >-
-        Establishes a short-lived local synthetic session. The adapter is
-        terminally unavailable in the private hosted profile.
+        Establishes a short-lived local test external-human session. The
+        adapter is terminally unavailable in hosted profiles and never creates
+        a synthetic actor session by itself.
       parameters:
         - $ref: "#/components/parameters/Origin"
       responses:
         "200":
-          description: Session established in an HttpOnly SameSite=Strict cookie.
+          description: Application session established in an HttpOnly SameSite=Strict cookie.
           headers:
             Set-Cookie:
               schema:
@@ -77,14 +82,83 @@ paths:
                 $ref: "#/components/schemas/DevelopmentSession"
         "401":
           $ref: "#/components/responses/Refused"
+  /api/v1/login-mode:
+    get:
+      tags: [identity]
+      operationId: getLoginMode
+      responses:
+        "200":
+          description: Declares local-test or Google OIDC without disclosing provider configuration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+  /auth/google/start:
+    get:
+      tags: [identity]
+      operationId: beginGoogleOidc
+      responses:
+        "307":
+          description: Redirect to the configured Google OIDC authorisation endpoint with protected flow state.
+        "401":
+          $ref: "#/components/responses/Refused"
+  /auth/google/callback:
+    get:
+      tags: [identity]
+      operationId: completeGoogleOidc
+      parameters:
+        - name: code
+          in: query
+          schema: { type: string }
+        - name: state
+          in: query
+          schema: { type: string }
+        - name: error
+          in: query
+          schema: { type: string }
+      responses:
+        "303":
+          description: Verified and mapped external identity rotated into a new backend application session.
+        "401":
+          $ref: "#/components/responses/Refused"
+  /api/v1/session-context:
+    get:
+      tags: [identity]
+      operationId: getApplicationSessionContext
+      security:
+        - applicationSession: []
+      responses:
+        "200":
+          description: Privacy-minimised external and optional synthetic application context; no usable session or grant value.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+  /api/v1/logout:
+    post:
+      tags: [identity]
+      operationId: revokeApplicationSession
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
+      responses:
+        "204":
+          description: Application session revoked and cookies expired.
+        "401":
+          $ref: "#/components/responses/Refused"
   /api/v1/sessions:
     post:
       tags: [director]
       operationId: createDemonstrationSession
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -111,9 +185,10 @@ paths:
       tags: [director]
       operationId: getDemonstrationSessionStatus
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/SurfaceSlot"
       responses:
         "200":
           description: Scenario, presentation registration and presentation-checkpoint status.
@@ -130,10 +205,11 @@ paths:
       tags: [director]
       operationId: applyScenarioLifecycle
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/SessionId"
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -156,10 +232,11 @@ paths:
       tags: [director]
       operationId: changeScenarioLogicalTime
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/SessionId"
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -182,10 +259,11 @@ paths:
       tags: [director]
       operationId: activatePresentationCueDelay
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/SessionId"
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -218,10 +296,11 @@ paths:
       tags: [director]
       operationId: issuePresentationCue
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/SessionId"
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -239,14 +318,49 @@ paths:
           $ref: "#/components/responses/Refused"
         "409":
           $ref: "#/components/responses/Refused"
+  /api/v1/sessions/{session_id}/synthetic-sign-in:
+    post:
+      tags: [director, identity]
+      operationId: requestSyntheticApplicationSignIn
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [actorId, surfaceSlot]
+              properties:
+                actorId:
+                  enum: [synthetic-audience-user, synthetic-reviewer]
+                surfaceSlot:
+                  enum: [audience-display, reviewer-workbench]
+      responses:
+        "200":
+          description: I-004 request accepted for backend-only delivery; establishment remains target-owned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
   /api/v1/registrations:
     post:
       tags: [presentation]
       operationId: registerPresentationSurface
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -269,7 +383,7 @@ paths:
       tags: [presentation]
       operationId: streamPresentationCues
       security:
-        - developmentSession: []
+        - applicationSession: []
       responses:
         "200":
           description: SSE stream of P-003 semantic cues; the browser receives no route or broker credential.
@@ -284,9 +398,10 @@ paths:
       tags: [presentation]
       operationId: recordPresentationCueOutcome
       security:
-        - developmentSession: []
+        - applicationSession: []
       parameters:
         - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
       requestBody:
         required: true
         content:
@@ -306,11 +421,11 @@ paths:
           $ref: "#/components/responses/Refused"
 components:
   securitySchemes:
-    developmentSession:
+    applicationSession:
       type: apiKey
       in: cookie
-      name: PPL_DEV_SESSION
-      description: Local synthetic assurance only; unavailable in hosted profiles.
+      name: PPL_APP_SESSION
+      description: Opaque backend application session; local test or managed OIDC identity is profile-dependent.
   parameters:
     Origin:
       name: Origin
@@ -319,12 +434,25 @@ components:
       schema:
         type: string
       description: Must exactly match the configured local or port-forwarded origin.
+    Csrf:
+      name: X-PPL-CSRF
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Must match the separately stored hash for the current application session.
     SessionId:
       name: session_id
       in: path
       required: true
       schema:
         type: string
+    SurfaceSlot:
+      name: surfaceSlot
+      in: query
+      required: false
+      schema:
+        enum: [audience-display, reviewer-workbench]
   responses:
     Refused:
       description: Request is unauthorised, stale, unsupported or otherwise safely refused.
@@ -391,10 +519,23 @@ components:
       type: object
       additionalProperties: false
       required:
-        [status, actor, expiresInSeconds, maturity, informationProfile, warning]
+        [
+          status,
+          principalId,
+          roles,
+          identityKind,
+          expiresInSeconds,
+          maturity,
+          informationProfile,
+          warning,
+        ]
       properties:
         status: { const: established }
-        actor: { type: string }
+        principalId: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+        identityKind: { const: external-human-test-adapter }
         expiresInSeconds: { const: 1800 }
         maturity: { const: in-development }
         informationProfile: { const: synthetic-only }

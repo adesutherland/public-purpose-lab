@@ -24,6 +24,7 @@ use uuid::Uuid;
 
 const MAX_DOCUMENT_BYTES: u64 = 65_536;
 const ASSURANCE_PACKAGE_ID: &str = "presentation-control-assurance";
+const ASSURANCE_PACKAGE_VERSION: &str = "1.1.0";
 
 #[derive(Debug, thiserror::Error)]
 pub enum DirectorError {
@@ -1412,6 +1413,7 @@ fn manifest_matches_scenario(
         && manifest.canonicalisation == "RFC8785"
         && manifest.digest_algorithm == "sha-256"
         && manifest.package_id == ASSURANCE_PACKAGE_ID
+        && manifest.package_version == ASSURANCE_PACKAGE_VERSION
         && manifest.package_id == scenario.package_id
         && manifest.package_version == scenario.package_version
         && manifest.scenario.path == "scenario.json"
@@ -1575,7 +1577,7 @@ mod tests {
             operation_id: operation_id.to_owned(),
             session_id: session_id.to_owned(),
             package_id: ASSURANCE_PACKAGE_ID.to_owned(),
-            package_version: "1.0.0".to_owned(),
+            package_version: ASSURANCE_PACKAGE_VERSION.to_owned(),
             action,
             expected_state,
             expected_revision,
@@ -1670,7 +1672,7 @@ mod tests {
             .expect("package admission");
         assert_eq!(
             admission.package_digest,
-            "b956e12c341283d683269c3dcabfa99f7297196814132d584bb673de4d8b9198"
+            "566ab18f473016e8415a1664ed2c7e882508f2683429a685fd9afea190307289"
         );
     }
 
@@ -1693,7 +1695,7 @@ mod tests {
             operation_id: "op:create:test".to_owned(),
             session_id: "session:test:001".to_owned(),
             package_id: ASSURANCE_PACKAGE_ID.to_owned(),
-            package_version: "1.0.0".to_owned(),
+            package_version: ASSURANCE_PACKAGE_VERSION.to_owned(),
             action: ScenarioLifecycleAction::Create,
             expected_state: None,
             expected_revision: 0,

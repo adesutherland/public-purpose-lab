@@ -37,6 +37,13 @@ spec:
               value: http://127.0.0.1:18081
             - name: PPL_STATE_PATH
               value: /var/lib/public-purpose-lab/ctl-01.sqlite
+            - name: PPL_SECURITY_STATE_PATH
+              value: /var/lib/public-purpose-lab/director-security.sqlite
+            - name: PPL_ENVIRONMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-environment
+                  key: environmentId
             - name: PPL_STATIC_DIRECTORY
               value: /opt/public-purpose-lab/frontend/director
             - name: PPL_SOURCE_REVISION
