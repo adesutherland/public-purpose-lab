@@ -53,17 +53,15 @@ jobs:
             /tmp/public-purpose-lab-m3-managed.yaml)" -eq 2
           test "$(grep -Ec '^  namespace: public-purpose-lab$' \
             /tmp/public-purpose-lab-m3-managed.yaml)" -ge 9
-          kubectl create --dry-run=client \
-            -f /tmp/public-purpose-lab-m3-managed.yaml -o json \
-            > /tmp/public-purpose-lab-m3-managed.jsons
           for service_account in \
             m3-identity-broker m3-presentation-gateway m3-scenario-director; do
-            jq --slurp --exit-status --arg name "${service_account}" \
-              'any(.[];
-                .kind == "ServiceAccount" and
-                .metadata.name == $name and
-                .metadata.namespace == "public-purpose-lab")' \
-              /tmp/public-purpose-lab-m3-managed.jsons >/dev/null
+            awk -v expected="${service_account}" '
+              BEGIN { RS="---" }
+              $0 ~ /kind: ServiceAccount/ &&
+              $0 ~ ("  name: " expected "(\\n|$)") &&
+              $0 ~ /  namespace: public-purpose-lab(\n|$)/ { found=1 }
+              END { exit found ? 0 : 1 }
+            ' /tmp/public-purpose-lab-m3-managed.yaml
           done
 
       - name: Build framework-host container
