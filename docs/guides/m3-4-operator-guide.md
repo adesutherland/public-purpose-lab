@@ -134,6 +134,12 @@ Never place OIDC secrets, subject identifiers, NKey seeds, KMS project/key
 configuration, raw cloud evidence or provider credentials in this public
 repository.
 
+The first managed-hosted cycle is recorded in the
+[M3.4 managed-hosted evidence](../architecture/evidence/m3-4-managed-hosted-identity-and-resilience.md).
+Its temporary endpoints and activation infrastructure are off. The record is a
+repeatable assurance baseline, not authority to leave a shared environment
+running or to introduce real information.
+
 ## Safe failure
 
 - `identity-binding-unavailable` means the OIDC or public synthetic-trust

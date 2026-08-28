@@ -10,3 +10,4 @@ working baseline into production or compliance assurance.
 - [M3.2 Google Cloud hosted-lifecycle spike](m3-2-google-cloud-hosted-lifecycle-spike.md)
 - [M3.3 runtime walking skeleton](m3-3-runtime-walking-skeleton.md)
 - [M3.4 local identity and resilience](m3-4-local-identity-and-resilience.md)
+- [M3.4 managed-hosted identity and resilience](m3-4-managed-hosted-identity-and-resilience.md)

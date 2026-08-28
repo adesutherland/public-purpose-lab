@@ -1,6 +1,6 @@
 # M3.4 local identity and resilience implementation evidence
 
-Status: Local implementation evidence complete; milestone remains open
+Status: Local implementation evidence complete; managed-hosted supplement closes M3.4
 
 Evidence date: 28 August 2026
 
@@ -12,10 +12,13 @@ separate Identity Broker, backend-only synthetic grant delivery, two distinct
 actor/surface bindings, restart/reconnect and safe stop/reset behaviour using
 synthetic information.
 
-It does not demonstrate Google authentication, a live Cloud KMS signature,
-shared HTTPS ingress, immutable hosted-image execution, automatic cloud expiry
-or conclusive cloud teardown. It is not production, privacy, legal, regulatory,
-availability or non-synthetic-data assurance.
+This local record does not itself demonstrate Google authentication, a live
+Cloud KMS signature, shared HTTPS ingress, immutable hosted-image execution,
+cloud expiry or conclusive cloud teardown. Those bounded results are recorded
+in the later
+[managed-hosted supplement](m3-4-managed-hosted-identity-and-resilience.md).
+Neither record is production, privacy, legal, regulatory, availability or
+non-synthetic-data assurance.
 
 ## Implemented path
 
@@ -112,7 +115,7 @@ hosted run because no local Docker-compatible runtime was installed.
 
 ## Result
 
-M3.4 is implemented as a reviewable local and managed-hosted source baseline.
-It is not formally closed. Closure requires publication/hosted CI and a
-separately approved protected Google Cloud evidence run satisfying the open
-gates above.
+This record completed M3.4's local implementation evidence. The separately
+approved and published managed-hosted evidence run later satisfied the bounded
+Google, KMS, HTTPS, workload, restart and teardown gates. The two records close
+M3.4 only at in-development, synthetic-only maturity.
