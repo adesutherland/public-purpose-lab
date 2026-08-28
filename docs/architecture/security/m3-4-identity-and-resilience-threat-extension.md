@@ -1,6 +1,6 @@
 # M3.4 identity and resilience threat extension
 
-Status: Implemented development baseline; hosted evidence and founder closure pending
+Status: Implemented and evidenced development baseline; M3.4 closed
 
 Version: 0.1.0
 
@@ -20,10 +20,13 @@ sessions, backend-only synthetic sign-in, target-owned replay state, managed
 Cloud KMS signing adapter, three-workload event composition and restart-safe
 local path.
 
-The implementation remains synthetic-only and in development. Local tests do
-not qualify Google, GKE, Cloud KMS, ingress, recovery, availability, legal or
-production controls. The managed-hosted profile remains unavailable unless all
-protected bindings are present and later hosted evidence passes.
+The implementation remains synthetic-only and in development. Local tests did
+not qualify Google, GKE, Cloud KMS or ingress; the bounded
+[managed-hosted evidence](../evidence/m3-4-managed-hosted-identity-and-resilience.md)
+later exercised those bindings. Neither result qualifies production recovery,
+availability, legal, regulatory or non-synthetic-data controls. A future
+managed-hosted activation remains unavailable unless its protected bindings
+are present and admitted again.
 
 ## Refined trust boundaries
 
@@ -45,12 +48,12 @@ participates in several roles.
 
 | ID        | Threat                                                                                   | Required M3.4 control                                                                                                                                              | Evidence or residual risk                                                                                              |
 | --------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `T-M3-61` | OIDC response is replayed, redirected or substituted                                     | Exact HTTPS callback, state/nonce, PKCE, single-use durable flow, issuer/audience/signature/time validation and no redirect following during discovery/token calls | Live Google negative cases remain hosted evidence                                                                      |
+| `T-M3-61` | OIDC response is replayed, redirected or substituted                                     | Exact HTTPS callback, state/nonce, PKCE, single-use durable flow, issuer/audience/signature/time validation and no redirect following during discovery/token calls | Live Google login passed; state/replay negatives remain in focused conformance tests                                   |
 | `T-M3-62` | Authentication is mistaken for Lab authority                                             | Exact protected issuer/subject mapping, required role and audience, mapping version rechecked on each protected use                                                | Allow-list administration remains deliberately small                                                                   |
 | `T-M3-63` | Session fixation or stolen browser state creates authority                               | New random session after login, hashes only at rest, HttpOnly/Secure/SameSite cookie, CSRF, exact origin, expiry, logout and role-version revocation               | Multi-node session storage is not selected                                                                             |
-| `T-M3-64` | Provider token, code, cookie or grant reaches frontend, event evidence or logs           | Provider material ends at backend; browser receives only privacy-minimised context; disclosure scan covers bundles, events and output                              | Support access to host memory remains administrative capability                                                        |
+| `T-M3-64` | Provider token, code, cookie or grant reaches frontend, event evidence or logs           | Provider material ends at backend; browser receives only privacy-minimised context; disclosure scan covers bundles, events and output                              | Hosted disclosure scan passed; support access to host memory remains administrative capability                         |
 | `T-M3-65` | Synthetic grant is issued for an unapproved actor, role, application or purpose          | Actor registry, relationship/consent assertions, `AZ-001`, mandatory obligations and canonical plan persisted before signing                                       | External policy product remains replaceable and not selected here                                                      |
-| `T-M3-66` | KMS becomes a general signing oracle or wrong key/project is used                        | No signing endpoint, canonical prepared-plan API, exact project-scoped key version, response name/protection/checksum verification and pinned public key           | A fully compromised Identity Broker can still invoke its allowed key and requires ordinary runtime containment/audit   |
+| `T-M3-66` | KMS becomes a general signing oracle or wrong key/project is used                        | No signing endpoint, canonical prepared-plan API, exact project-scoped key version, response name/protection/checksum verification and pinned public key           | Exact workload/key and Data Access audit passed; a compromised broker still requires ordinary containment              |
 | `T-M3-67` | Grant is replayed or established in another application, surface, session or environment | Signed bindings plus independent target replay store, live surface claim and conflict-safe establishment operation                                                 | Store loss fails availability and does not recreate authority                                                          |
 | `T-M3-68` | Restart or browser refresh silently recreates expired authority                          | Durable component-owned state, operational-time validation, no URL/cursor authority and current mapping check                                                      | First binding is single-instance, not HA                                                                               |
 | `T-M3-69` | Stop, reset or supersession leaves a synthetic actor active                              | `I-005` termination event and component-local clearing for every binding in the Demonstration Session                                                              | Broker loss can delay termination, so affected interaction must stop safely                                            |
@@ -69,6 +72,10 @@ key refusal, HTTPS/SSE behaviour, immutable image, automatic expiry, cost and
 conclusive teardown evidence.
 
 ## Residual risk and review point
+
+The required local and managed-hosted evidence passed at development maturity.
+Automatic-expiry callback execution remains an M3.5 case; M3.4 proved arming
+before creation and reconciliation by normal off.
 
 The current design is intentionally one replica per workload and one
 file-backed broker. It has no general identity administration, refresh tokens,

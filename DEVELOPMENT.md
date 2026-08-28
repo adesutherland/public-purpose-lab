@@ -14,8 +14,9 @@ establish bounded synthetic session state, but it is not a browser login,
 external identity provider, managed issuer, production identity service or
 distributed session store. M3.4 adds loopback or port-forwarded HTTP/SSE,
 component-local sessions, a separate Identity Broker and a TLS/NKey NATS
-JetStream development-assurance path. A managed OIDC/Cloud KMS adapter and
-Kubernetes contract exist but require protected hosted evidence before use.
+JetStream development-assurance path. The managed OIDC/Cloud KMS adapter and
+Kubernetes contract have bounded, synthetic-only hosted evidence; each future
+activation still requires its protected configuration and admission checks.
 The repository does not yet provide workflow, business persistence, retrieval,
 reporting, analytics or cREXX execution.
 
