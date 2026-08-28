@@ -43,11 +43,10 @@ services:
     volumes:
       - director-state:/var/lib/public-purpose-lab
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
     secrets:
       - source: director-nkey
         target: /run/secrets/director-nkey
-      - source: environment-id
-        target: /run/environment/environment-id
     read_only: true
     tmpfs:
       - /tmp
@@ -78,11 +77,10 @@ services:
       - presentation-state:/var/lib/public-purpose-lab
       - identity-public:/run/trust/ppl-identity:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
     secrets:
       - source: presentation-nkey
         target: /run/secrets/presentation-nkey
-      - source: environment-id
-        target: /run/environment/environment-id
     read_only: true
     tmpfs:
       - /tmp
@@ -111,11 +109,10 @@ services:
       - identity-state:/var/lib/public-purpose-lab
       - identity-public:/run/trust/ppl-identity
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
     secrets:
       - source: identity-nkey
         target: /run/secrets/identity-nkey
-      - source: environment-id
-        target: /run/environment/environment-id
     read_only: true
     tmpfs:
       - /tmp
@@ -129,8 +126,6 @@ secrets:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/presentation.seed
   identity-nkey:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/identity.seed
-  environment-id:
-    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id
   nats-server-key:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/nats-server.key
 

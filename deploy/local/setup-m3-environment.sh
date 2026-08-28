@@ -114,6 +114,7 @@ chmod 600 "$environment_directory"/*.key "$environment_directory"/*.seed \
   "$environment_directory/nats-server.conf"
 chmod 644 "$environment_directory"/*.crt
 chmod 644 "$environment_directory"/*.nkey
+chmod 644 "$environment_directory/environment-id"
 if [ "$layout" = portable ]; then
   # Compose file-backed secrets preserve host ownership and may ignore declared
   # uid/gid/mode. The parent directory remains owner-only, and only these
