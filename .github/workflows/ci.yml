@@ -51,6 +51,20 @@ jobs:
           fi
           test "$(grep -Ec 'key: (directorOrigin|presentationOrigin)' \
             /tmp/public-purpose-lab-m3-managed.yaml)" -eq 2
+          test "$(grep -Ec '^  namespace: public-purpose-lab$' \
+            /tmp/public-purpose-lab-m3-managed.yaml)" -ge 9
+          kubectl create --dry-run=client \
+            -f /tmp/public-purpose-lab-m3-managed.yaml -o json \
+            > /tmp/public-purpose-lab-m3-managed.jsons
+          for service_account in \
+            m3-identity-broker m3-presentation-gateway m3-scenario-director; do
+            jq --slurp --exit-status --arg name "${service_account}" \
+              'any(.[];
+                .kind == "ServiceAccount" and
+                .metadata.name == $name and
+                .metadata.namespace == "public-purpose-lab")' \
+              /tmp/public-purpose-lab-m3-managed.jsons >/dev/null
+          done
 
       - name: Build framework-host container
         run: docker build --file deploy/containers/framework-host.Containerfile --tag ppl-framework-host:test .
