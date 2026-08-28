@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - service-accounts.yaml
+patches:
+  - path: director-patch.yaml
+  - path: presentation-patch.yaml
+  - path: identity-patch.yaml
+  - path: delete-local-identity-public-pvc.yaml
+labels:
+  - pairs:
+      ppl.public-purpose-lab.org/runtime-profile: managed-hosted
+      ppl.public-purpose-lab.org/trust-profile: managed

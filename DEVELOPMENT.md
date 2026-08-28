@@ -3,18 +3,21 @@
 ## Current status
 
 This repository contains a buildable framework with M1 common-interaction, M2
-local-synthetic identity and M3.3 scenario/presentation reference paths in
-development. It proves common packaging, presentation surfaces, architecture
-catalogues, strict contracts, safe command outcomes, environment-scoped
-demonstration trust and local idempotency/restart behaviour.
+local-synthetic identity and M3.4 scenario, identity and presentation reference
+paths in development. It proves common packaging, presentation surfaces,
+architecture catalogues, strict contracts, safe command outcomes,
+environment-scoped demonstration trust, durable application sessions,
+backend-only synthetic sign-in and local idempotency/restart behaviour.
 
 The M1/M2 adapters are local assurance profiles with no network listener. M2 can
 establish bounded synthetic session state, but it is not a browser login,
 external identity provider, managed issuer, production identity service or
-distributed session store. M3.3 adds loopback or port-forwarded HTTP/SSE and a
-TLS/NKey NATS JetStream development-assurance path. It does not add managed
-identity or business authority. The repository does not yet provide workflow,
-business persistence, retrieval, reporting, analytics or cREXX execution.
+distributed session store. M3.4 adds loopback or port-forwarded HTTP/SSE,
+component-local sessions, a separate Identity Broker and a TLS/NKey NATS
+JetStream development-assurance path. A managed OIDC/Cloud KMS adapter and
+Kubernetes contract exist but require protected hosted evidence before use.
+The repository does not yet provide workflow, business persistence, retrieval,
+reporting, analytics or cREXX execution.
 
 ## Prerequisites
 
@@ -88,9 +91,9 @@ production-like, production or authorised for non-synthetic information. Run
 `pnpm check:m2-runtime` for the complete temporary-environment conformance path;
 it does not expose a reusable grant in terminal output.
 
-## Exercise the M3.3 walking skeleton
+## Exercise the M3.4 identity and presentation path
 
-M3.3 requires the web bundles and `ppl-m3-runtime` binary, plus NATS tools for
+M3.4 requires the web bundles and `ppl-m3-runtime` binary, plus NATS tools for
 the native path:
 
 ```sh
@@ -105,7 +108,7 @@ deploy/local/stop-m3-native.sh .local/m3-environment
 Use a fresh environment-directory name when new synthetic trust is required;
 setup refuses silent key rotation. For Minikube, OCI Compose and manual browser
 exploration, follow the
-[M3.3 operator guide](docs/guides/m3-3-operator-guide.md).
+[M3.4 operator guide](docs/guides/m3-4-operator-guide.md).
 
 ## Repository layout
 
@@ -126,8 +129,9 @@ packages without asserting that every logical component is a service.
 NATS JetStream is the accepted first M3 event binding and SQLite is the
 accepted M3 single-instance component-state binding. Neither is a production,
 multi-replica or long-term evidence-store qualification. No infrastructure
-product is selected yet for workflow, external or managed identity, retrieval,
-analytics or general observability. The M1 and M2 journals remain single-host
+product is selected yet for workflow, retrieval, analytics or general
+observability. Managed identity has a narrow M3.4 adapter, not a generally
+qualified product. The M1 and M2 journals remain single-host
 assurance bindings. The same source is intended to build on macOS, Linux and
 Windows; evidence from one host does not qualify another. Containers provide
 the common hosted form.

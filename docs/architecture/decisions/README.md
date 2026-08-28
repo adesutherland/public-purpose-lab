@@ -58,3 +58,6 @@ What evidence will validate or cause reconsideration of the decision?
 - [ADR-0018: Use component-owned SQLite state for the M3 single-instance runtime](0018-use-component-owned-sqlite-state-for-the-m3-single-instance-runtime.md)
 - [ADR-0019: Bind M3 controlled time, reset and faults to bounded runtime adapters](0019-bind-m3-controlled-time-reset-and-faults-to-bounded-runtime-adapters.md)
 - [ADR-0020: Use one application image with separate Director and presentation workloads](0020-use-one-application-image-with-separate-director-and-presentation-workloads.md)
+- [ADR-0021: Bind M3.4 identity to durable application sessions](0021-bind-m3-4-identity-to-durable-application-sessions.md)
+- [ADR-0022: Use backend-only delivery for synthetic sign-in](0022-use-backend-only-delivery-for-synthetic-sign-in.md)
+- [ADR-0023: Retain single-server JetStream for M3.4](0023-retain-single-server-jetstream-for-m3-4.md)

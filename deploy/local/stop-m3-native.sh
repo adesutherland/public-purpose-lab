@@ -3,7 +3,7 @@ set -eu
 
 environment_directory=${1:-.local/m3-environment}
 
-for process_name in director presentation nats; do
+for process_name in director presentation identity nats; do
   pid_file="$environment_directory/run/$process_name.pid"
   if [ -f "$pid_file" ]; then
     pid=$(sed -n '1p' "$pid_file")
@@ -14,4 +14,4 @@ for process_name in director presentation nats; do
   fi
 done
 
-printf '%s\n' 'M3.3 native processes stopped; component and broker state was retained.'
+printf '%s\n' 'M3.4 native processes stopped; component, identity and broker state was retained.'

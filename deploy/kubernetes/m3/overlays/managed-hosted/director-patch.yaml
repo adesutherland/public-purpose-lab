@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m3-scenario-director
+spec:
+  template:
+    spec:
+      serviceAccountName: m3-scenario-director
+      automountServiceAccountToken: false
+      containers:
+        - name: runtime
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PPL_RUNTIME_PROFILE
+              value: managed-hosted
+            - name: PPL_ALLOWED_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-managed-environment
+                  key: directorOrigin
+            - name: PPL_ENVIRONMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-managed-environment
+                  key: environmentId
+            - name: PPL_GOOGLE_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ppl-m3-google-oidc-director
+                  key: clientId
+            - name: PPL_GOOGLE_OIDC_CLIENT_SECRET_FILE
+              value: /run/secrets/ppl-oidc/client-secret
+            - name: PPL_GOOGLE_OIDC_REDIRECT_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-managed-environment
+                  key: directorRedirectUri
+            - name: PPL_OIDC_ROLE_MAPPING_PATH
+              value: /run/secrets/ppl-oidc/role-mapping.json
+          volumeMounts:
+            - name: oidc
+              mountPath: /run/secrets/ppl-oidc
+              readOnly: true
+      volumes:
+        - name: oidc
+          secret:
+            secretName: ppl-m3-google-oidc-director
+            defaultMode: 0440

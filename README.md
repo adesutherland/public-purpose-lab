@@ -75,7 +75,7 @@ portfolio demonstrator has yet been published.
 - [Architecture](docs/architecture/README.md)
 - [Development and repository skeleton](DEVELOPMENT.md)
 - [Deployment baselines](deploy/README.md)
-- [M3.3 operator guide](docs/guides/m3-3-operator-guide.md)
+- [M3.4 operator guide](docs/guides/m3-4-operator-guide.md)
 - [Demonstrator briefs](docs/scenarios/README.md)
 - [Brand foundation](docs/brand/README.md)
 - [Contributing](CONTRIBUTING.md)

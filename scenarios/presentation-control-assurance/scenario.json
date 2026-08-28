@@ -2,13 +2,13 @@
   "contractId": "D-001",
   "contractVersion": "1.0.0",
   "packageId": "presentation-control-assurance",
-  "packageVersion": "1.0.0",
+  "packageVersion": "1.1.0",
   "title": "Presentation control assurance",
   "purpose": "Demonstrate semantic presentation control and conclusive presentation-progress evidence using synthetic information only.",
   "publisher": "public-purpose-lab",
-  "releasedAt": "2026-08-27T12:00:00Z",
+  "releasedAt": "2026-08-28T16:00:00Z",
   "informationProfile": "synthetic-only",
-  "permittedProfiles": ["native-development", "local-containers", "minikube", "private-hosted-smoke"],
+  "permittedProfiles": ["native-development", "local-containers", "minikube", "private-hosted-smoke", "managed-hosted"],
   "surfaceSlots": [
     {
       "slotId": "audience-display",
@@ -45,6 +45,7 @@
   "limitations": [
     "Synthetic development assurance only.",
     "Presentation progress is not business completion or compliance evidence.",
-    "Managed hosted trust and external presenter login are deferred to M3.4."
+    "Managed hosted use requires the reviewed OIDC, workload identity, Cloud KMS, HTTPS, expiry and teardown bindings.",
+    "Hosted operation remains supervised, activation-scoped and synthetic-only."
   ]
 }

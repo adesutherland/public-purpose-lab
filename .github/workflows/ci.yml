@@ -40,7 +40,10 @@ jobs:
         run: pnpm build
 
       - name: Render Kubernetes base
-        run: kubectl kustomize deploy/kubernetes/base > /tmp/public-purpose-lab.yaml
+        run: |
+          kubectl kustomize deploy/kubernetes/base > /tmp/public-purpose-lab.yaml
+          kubectl kustomize deploy/kubernetes/m3/base > /tmp/public-purpose-lab-m3-local.yaml
+          kubectl kustomize deploy/kubernetes/m3/overlays/managed-hosted > /tmp/public-purpose-lab-m3-managed.yaml
 
       - name: Build framework-host container
         run: docker build --file deploy/containers/framework-host.Containerfile --tag ppl-framework-host:test .
@@ -104,7 +107,7 @@ jobs:
       - name: Build web container
         run: docker build --file deploy/containers/web.Containerfile --tag ppl-web:test .
 
-      - name: Build M3.3 runtime container
+      - name: Build M3.4 runtime container
         run: docker build --file deploy/containers/m3-runtime.Containerfile --tag public-purpose-lab/m3-runtime:development .
 
       - name: Install pinned NKey environment tool
@@ -112,7 +115,7 @@ jobs:
           go install github.com/nats-io/nsc/v2@v2.15.0
           echo "$(go env GOPATH)/bin" >>"${GITHUB_PATH}"
 
-      - name: Exercise M3.3 secure Compose path and restart
+      - name: Exercise M3.4 secure Compose path and restart
         env:
           PPL_M3_ENVIRONMENT_DIRECTORY: ${{ github.workspace }}/.local/m3-compose-ci
         run: |
@@ -120,7 +123,7 @@ jobs:
           deploy/local/setup-m3-environment.sh "${PPL_M3_ENVIRONMENT_DIRECTORY}" portable
           trap 'docker compose -f deploy/compose/m3-compose.yaml down --volumes' EXIT
           docker compose -f deploy/compose/m3-compose.yaml up --detach
-          for port in 18081 18082; do
+          for port in 18081 18082 18083; do
             for attempt in $(seq 1 60); do
               if curl -fsS "http://127.0.0.1:${port}/health/ready" >/dev/null; then
                 break
@@ -133,8 +136,8 @@ jobs:
             done
           done
           tools/smoke-m3-native.sh
-          docker compose -f deploy/compose/m3-compose.yaml restart nats scenario-director presentation-gateway
-          for port in 18081 18082; do
+          docker compose -f deploy/compose/m3-compose.yaml restart nats identity-broker scenario-director presentation-gateway
+          for port in 18081 18082 18083; do
             for attempt in $(seq 1 60); do
               if curl -fsS "http://127.0.0.1:${port}/health/ready" >/dev/null; then
                 break

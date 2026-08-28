@@ -1,39 +1,40 @@
-//! M3.3 executable adapter for separate Director and Presentation workloads.
+//! M3.4 executable adapter for the Director, Identity and Presentation workloads.
 
 use std::{
-    collections::{BTreeMap, HashMap},
-    convert::Infallible,
-    env,
-    net::SocketAddr,
-    path::PathBuf,
-    sync::Arc,
-    time::{Duration, Instant},
+    collections::BTreeMap, convert::Infallible, env, net::SocketAddr, path::PathBuf, sync::Arc,
+    time::Duration,
 };
 
 use axum::{
     Json, Router,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::{HeaderMap, HeaderValue, StatusCode, header},
-    response::{IntoResponse, Response, Sse, sse::Event},
+    response::{IntoResponse, Redirect, Response, Sse, sse::Event},
     routing::{get, post},
 };
 use futures_util::StreamExt;
 use ppl_contracts::{
     CommandOutcome, OutcomeStatus, PresentationCapabilityManifest, PresentationCue,
     PresentationCueOutcome, PresentationRegistration, ScenarioControlCommand,
-    ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState,
+    ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState, SyntheticSessionStatus,
 };
 use ppl_ctl_01::{DirectorError, DirectorRuntime};
 use ppl_ctl_02::{PresentationError, PresentationRuntime};
+use ppl_iam_01::{
+    GrantRequest, IamError,
+    application_grants::{ApplicationGrantStore, GrantStoreError},
+    application_sessions::{ApplicationSessionStore, SessionError},
+};
 use ppl_int_01::nats::{
     Broker, BrokerConfig, BrokerError, CONTROL_OUTCOME_SUBJECT, CONTROL_SUBJECT, CUE_SUBJECT,
-    DIRECTOR_EVENT_SUBJECT, OUTCOME_SUBJECT, REGISTRATION_SUBJECT, WorkloadMode,
+    DIRECTOR_EVENT_SUBJECT, GRANT_REQUEST_SUBJECT, IDENTITY_OUTCOME_SUBJECT, OUTCOME_SUBJECT,
+    REGISTRATION_SUBJECT, SYNTHETIC_GRANT_SUBJECT, SYNTHETIC_TERMINATION_SUBJECT, WorkloadMode,
 };
 use serde::Deserialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use tokio::sync::{Mutex, broadcast};
+use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
 use tower_http::{
     services::{ServeDir, ServeFile},
@@ -44,9 +45,21 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 
 const PACKAGE_ID: &str = "presentation-control-assurance";
-const PACKAGE_VERSION: &str = "1.0.0";
+const PACKAGE_VERSION: &str = "1.1.0";
 const MANIFEST_JSON: &str =
     include_str!("../../../../contracts/presentation/examples/p-001-assurance-surface.json");
+
+mod identity;
+mod kms;
+mod oidc;
+
+use identity::{
+    IdentityBroker, LOCAL_MAPPING_VERSION, LocalIdentityBroker, ManagedIdentityBroker,
+    ManagedIdentityRuntimeConfig, SyntheticGrantDeliveryEvent, SyntheticGrantRequestEvent,
+    SyntheticIdentityOutcomeEvent, SyntheticTerminationEvent, load_trust_bundle,
+    local_external_identity,
+};
+use oidc::{OidcAuthenticator, OidcConfig, OidcError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum RuntimeProfile {
@@ -54,6 +67,7 @@ enum RuntimeProfile {
     LocalContainers,
     Minikube,
     PrivateHostedSmoke,
+    ManagedHosted,
 }
 
 impl RuntimeProfile {
@@ -63,6 +77,7 @@ impl RuntimeProfile {
             "local-containers" => Ok(Self::LocalContainers),
             "minikube" => Ok(Self::Minikube),
             "private-hosted-smoke" => Ok(Self::PrivateHostedSmoke),
+            "managed-hosted" => Ok(Self::ManagedHosted),
             _ => Err(AppError::configuration("runtime-profile-invalid")),
         }
     }
@@ -71,17 +86,25 @@ impl RuntimeProfile {
         !matches!(self, Self::PrivateHostedSmoke)
     }
 
+    const fn local_test_identity(self) -> bool {
+        matches!(
+            self,
+            Self::NativeDevelopment | Self::LocalContainers | Self::Minikube
+        )
+    }
+
     const fn name(self) -> &'static str {
         match self {
             Self::NativeDevelopment => "native-development",
             Self::LocalContainers => "local-containers",
             Self::Minikube => "minikube",
             Self::PrivateHostedSmoke => "private-hosted-smoke",
+            Self::ManagedHosted => "managed-hosted",
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct AppConfig {
     mode: WorkloadMode,
     profile: RuntimeProfile,
@@ -94,35 +117,13 @@ struct AppConfig {
     image_digest: String,
     allowed_origin: String,
     broker: Option<BrokerConfig>,
-}
-
-#[derive(Clone)]
-struct LocalSessions {
-    sessions: Arc<Mutex<HashMap<String, Instant>>>,
-}
-
-impl LocalSessions {
-    fn new() -> Self {
-        Self {
-            sessions: Arc::new(Mutex::new(HashMap::new())),
-        }
-    }
-
-    async fn issue(&self) -> String {
-        let token = Uuid::new_v4().to_string();
-        self.sessions
-            .lock()
-            .await
-            .insert(token.clone(), Instant::now() + Duration::from_mins(30));
-        token
-    }
-
-    async fn valid(&self, token: &str) -> bool {
-        let mut sessions = self.sessions.lock().await;
-        let now = Instant::now();
-        sessions.retain(|_, expiry| *expiry > now);
-        sessions.get(token).is_some_and(|expiry| *expiry > now)
-    }
+    environment_id: String,
+    security_state_path: PathBuf,
+    identity_state_root: PathBuf,
+    trust_bundle_path: PathBuf,
+    oidc: Option<OidcConfig>,
+    mapping_version: String,
+    managed_identity: Option<ManagedIdentityRuntimeConfig>,
 }
 
 #[derive(Clone)]
@@ -130,7 +131,8 @@ struct DirectorState {
     config: AppConfig,
     runtime: DirectorRuntime,
     broker: Option<Broker>,
-    sessions: LocalSessions,
+    sessions: ApplicationSessionStore,
+    oidc: Option<Arc<OidcAuthenticator>>,
 }
 
 #[derive(Clone)]
@@ -139,8 +141,17 @@ struct GatewayState {
     runtime: PresentationRuntime,
     broker: Option<Broker>,
     manifest_digest: String,
-    sessions: LocalSessions,
+    sessions: ApplicationSessionStore,
+    oidc: Option<Arc<OidcAuthenticator>>,
+    grants: Arc<std::sync::OnceLock<ApplicationGrantStore>>,
     cue_channel: broadcast::Sender<PresentationCue>,
+}
+
+#[derive(Clone)]
+struct IdentityState {
+    config: AppConfig,
+    identity: Arc<IdentityBroker>,
+    broker: Broker,
 }
 
 #[derive(Debug)]
@@ -208,6 +219,34 @@ impl From<BrokerError> for AppError {
     }
 }
 
+impl From<SessionError> for AppError {
+    fn from(error: SessionError) -> Self {
+        warn!(reason = %error, "application session operation refused");
+        AppError::unauthorised(error.reason_code())
+    }
+}
+
+impl From<IamError> for AppError {
+    fn from(error: IamError) -> Self {
+        error!(reason = %error, "identity broker operation failed safely");
+        AppError::configuration("identity-operation-failed")
+    }
+}
+
+impl From<GrantStoreError> for AppError {
+    fn from(error: GrantStoreError) -> Self {
+        error!(reason = %error, "synthetic establishment state failed safely");
+        AppError::configuration("synthetic-establishment-failed")
+    }
+}
+
+impl From<OidcError> for AppError {
+    fn from(error: OidcError) -> Self {
+        warn!(reason = %error, "external identity operation refused");
+        AppError::unauthorised(error.reason_code())
+    }
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -219,16 +258,20 @@ async fn main() {
         .compact()
         .init();
     if let Err(error) = run().await {
-        error!(code = error.code, "M3.3 runtime stopped safely");
+        error!(code = error.code, "M3.4 runtime stopped safely");
         std::process::exit(1);
     }
 }
 
 async fn run() -> Result<(), AppError> {
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .map_err(|_| AppError::configuration("tls-crypto-provider-conflict"))?;
     let config = load_config()?;
     match config.mode {
         WorkloadMode::ScenarioDirector => run_director(config).await,
         WorkloadMode::PresentationGateway => run_gateway(config).await,
+        WorkloadMode::IdentityBroker => run_identity(config).await,
     }
 }
 
@@ -250,11 +293,17 @@ async fn run_director(config: AppConfig) -> Result<(), AppError> {
         OffsetDateTime::now_utc(),
     )?;
     let broker = connect_broker(&config).await?;
+    let oidc = discover_oidc(&config).await?;
     let state = DirectorState {
         config: config.clone(),
         runtime,
         broker,
-        sessions: LocalSessions::new(),
+        sessions: ApplicationSessionStore::open(
+            &config.security_state_path,
+            &config.environment_id,
+            "scenario-director",
+        )?,
+        oidc,
     };
     if let Some(broker) = state.broker.clone() {
         tokio::spawn(director_consumer(state.clone(), broker.clone()));
@@ -271,19 +320,88 @@ async fn run_gateway(config: AppConfig) -> Result<(), AppError> {
     let manifest_digest = runtime.admit_manifest(&manifest, OffsetDateTime::now_utc())?;
     let broker = connect_broker(&config).await?;
     let (cue_channel, _) = broadcast::channel(32);
+    let oidc = discover_oidc(&config).await?;
     let state = GatewayState {
         config: config.clone(),
         runtime,
         broker,
         manifest_digest,
-        sessions: LocalSessions::new(),
+        sessions: ApplicationSessionStore::open(
+            &config.security_state_path,
+            &config.environment_id,
+            "presentation-gateway",
+        )?,
+        oidc,
+        grants: Arc::new(std::sync::OnceLock::new()),
         cue_channel,
     };
+    if config.profile.interactive() {
+        let _ = gateway_grant_store(&state)?;
+    }
     if let Some(broker) = state.broker.clone() {
         tokio::spawn(gateway_consumer(state.clone(), broker.clone()));
         tokio::spawn(gateway_outbox(state.clone(), broker));
     }
     let router = common_layers(gateway_router(state), &config);
+    serve(router, &config).await
+}
+
+async fn discover_oidc(config: &AppConfig) -> Result<Option<Arc<OidcAuthenticator>>, AppError> {
+    match &config.oidc {
+        Some(oidc) => {
+            let discovered = OidcAuthenticator::discover(oidc.clone()).await?;
+            if discovered.mapping_version() != config.mapping_version {
+                return Err(AppError::configuration("role-mapping-version-mismatch"));
+            }
+            Ok(Some(Arc::new(discovered)))
+        }
+        None => Ok(None),
+    }
+}
+
+async fn run_identity(config: AppConfig) -> Result<(), AppError> {
+    let identity = if config.profile.local_test_identity() {
+        IdentityBroker::Local(Box::new(LocalIdentityBroker::open(
+            &config.identity_state_root,
+            &config.trust_bundle_path,
+            &config.environment_id,
+            OffsetDateTime::now_utc(),
+        )?))
+    } else if config.profile == RuntimeProfile::ManagedHosted {
+        let managed = config
+            .managed_identity
+            .as_ref()
+            .ok_or(AppError::configuration("managed-identity-binding-required"))?;
+        IdentityBroker::Managed(Box::new(
+            ManagedIdentityBroker::open(
+                &config.security_state_path,
+                &config.trust_bundle_path,
+                &managed.configuration_path,
+                &config.environment_id,
+                managed.kms_key_version.clone(),
+                &managed.project_id,
+            )
+            .await?,
+        ))
+    } else {
+        return Err(AppError::configuration("managed-identity-binding-required"));
+    };
+    let identity = Arc::new(identity);
+    let broker = connect_broker(&config)
+        .await?
+        .ok_or(AppError::configuration("interactive-broker-unavailable"))?;
+    let state = IdentityState {
+        config: config.clone(),
+        identity,
+        broker: broker.clone(),
+    };
+    tokio::spawn(identity_consumer(state.clone(), broker));
+    let router = Router::new()
+        .route("/health/live", get(identity_liveness))
+        .route("/health/ready", get(identity_readiness))
+        .route("/health/contracts", get(identity_contracts))
+        .with_state(state)
+        .layer(TraceLayer::new_for_http());
     serve(router, &config).await
 }
 
@@ -295,7 +413,7 @@ async fn serve(router: Router, config: &AppConfig) -> Result<(), AppError> {
         mode = ?config.mode,
         profile = config.profile.name(),
         address = %config.address,
-        "M3.3 runtime listening"
+        "M3.4 runtime listening"
     );
     axum::serve(listener, router)
         .await
@@ -336,16 +454,19 @@ fn common_layers(router: Router, config: &AppConfig) -> Router {
         .layer(TraceLayer::new_for_http())
 }
 
+#[allow(clippy::too_many_lines)]
 fn load_config() -> Result<AppConfig, AppError> {
     let mode = match required_env("PPL_RUNTIME_MODE")?.as_str() {
         "scenario-director" => WorkloadMode::ScenarioDirector,
         "presentation-gateway" => WorkloadMode::PresentationGateway,
+        "identity-broker" => WorkloadMode::IdentityBroker,
         _ => return Err(AppError::configuration("runtime-mode-invalid")),
     };
     let profile = RuntimeProfile::parse(&required_env("PPL_RUNTIME_PROFILE")?)?;
     let default_port = match mode {
         WorkloadMode::ScenarioDirector => 18_081,
         WorkloadMode::PresentationGateway => 18_082,
+        WorkloadMode::IdentityBroker => 18_083,
     };
     let address = env::var("PPL_LISTEN_ADDRESS")
         .unwrap_or_else(|_| format!("127.0.0.1:{default_port}"))
@@ -359,9 +480,10 @@ fn load_config() -> Result<AppConfig, AppError> {
     let mode_name = match mode {
         WorkloadMode::ScenarioDirector => "scenario-director",
         WorkloadMode::PresentationGateway => "presentation-gateway",
+        WorkloadMode::IdentityBroker => "identity-broker",
     };
     let static_name = match mode {
-        WorkloadMode::ScenarioDirector => "director",
+        WorkloadMode::ScenarioDirector | WorkloadMode::IdentityBroker => "director",
         WorkloadMode::PresentationGateway => "presentation",
     };
     let broker = if profile == RuntimeProfile::PrivateHostedSmoke {
@@ -369,6 +491,49 @@ fn load_config() -> Result<AppConfig, AppError> {
     } else {
         Some(load_broker_config(mode)?)
     };
+    let environment_id = load_environment_id()?;
+    let security_state_path = env::var("PPL_SECURITY_STATE_PATH").map_or_else(
+        |_| PathBuf::from(format!("var/m3/{mode_name}-security.sqlite")),
+        PathBuf::from,
+    );
+    let allowed_origin = env::var("PPL_ALLOWED_ORIGIN")
+        .unwrap_or_else(|_| format!("http://127.0.0.1:{default_port}"));
+    let (oidc, mapping_version) =
+        if profile == RuntimeProfile::ManagedHosted && mode != WorkloadMode::IdentityBroker {
+            let role_mapping_path = PathBuf::from(required_env("PPL_OIDC_ROLE_MAPPING_PATH")?);
+            let mapping_version = load_mapping_version(&role_mapping_path)?;
+            let required_role = required_role(mode).to_owned();
+            let redirect_uri = required_env("PPL_GOOGLE_OIDC_REDIRECT_URI")?;
+            validate_managed_web_binding(&allowed_origin, &redirect_uri)?;
+            (
+                Some(OidcConfig {
+                    issuer: "https://accounts.google.com".to_owned(),
+                    client_id: required_env("PPL_GOOGLE_OIDC_CLIENT_ID")?,
+                    client_secret: read_protected_text("PPL_GOOGLE_OIDC_CLIENT_SECRET_FILE")?,
+                    redirect_uri,
+                    environment_id: environment_id.clone(),
+                    audience: mode_name.to_owned(),
+                    required_role,
+                    role_mapping_path,
+                    flow_state_path: security_state_path.with_extension("oidc.sqlite"),
+                }),
+                mapping_version,
+            )
+        } else {
+            (None, LOCAL_MAPPING_VERSION.to_owned())
+        };
+    let managed_identity =
+        if profile == RuntimeProfile::ManagedHosted && mode == WorkloadMode::IdentityBroker {
+            Some(ManagedIdentityRuntimeConfig {
+                configuration_path: PathBuf::from(required_env(
+                    "PPL_MANAGED_IDENTITY_CONFIGURATION_PATH",
+                )?),
+                kms_key_version: required_env("PPL_KMS_ISSUER_KEY_VERSION")?,
+                project_id: required_env("PPL_GCP_PROJECT_ID")?,
+            })
+        } else {
+            None
+        };
     Ok(AppConfig {
         mode,
         profile,
@@ -397,10 +562,114 @@ fn load_config() -> Result<AppConfig, AppError> {
             .unwrap_or_else(|_| "working-tree".to_owned()),
         image_digest: env::var("PPL_IMAGE_DIGEST")
             .unwrap_or_else(|_| "native-development".to_owned()),
-        allowed_origin: env::var("PPL_ALLOWED_ORIGIN")
-            .unwrap_or_else(|_| format!("http://127.0.0.1:{default_port}")),
+        allowed_origin,
         broker,
+        environment_id,
+        security_state_path,
+        identity_state_root: env::var("PPL_IDENTITY_STATE_ROOT")
+            .map_or_else(|_| PathBuf::from("var/m3/identity"), PathBuf::from),
+        trust_bundle_path: env::var("PPL_TRUST_BUNDLE_PATH").map_or_else(
+            |_| PathBuf::from("var/m3/identity-public/trust-bundle.json"),
+            PathBuf::from,
+        ),
+        oidc,
+        mapping_version,
+        managed_identity,
     })
+}
+
+fn validate_managed_web_binding(allowed_origin: &str, redirect_uri: &str) -> Result<(), AppError> {
+    let parsed = url::Url::parse(allowed_origin)
+        .map_err(|_| AppError::configuration("managed-origin-invalid"))?;
+    if parsed.scheme() != "https"
+        || allowed_origin != parsed.origin().ascii_serialization()
+        || redirect_uri != format!("{allowed_origin}/auth/google/callback")
+    {
+        return Err(AppError::configuration("managed-origin-invalid"));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod configuration_tests {
+    use super::validate_managed_web_binding;
+
+    #[test]
+    fn managed_web_binding_requires_exact_https_origin_and_callback() {
+        assert!(
+            validate_managed_web_binding(
+                "https://demo.example.org",
+                "https://demo.example.org/auth/google/callback"
+            )
+            .is_ok()
+        );
+        assert!(
+            validate_managed_web_binding(
+                "http://demo.example.org",
+                "http://demo.example.org/auth/google/callback"
+            )
+            .is_err()
+        );
+        assert!(
+            validate_managed_web_binding(
+                "https://demo.example.org/path",
+                "https://demo.example.org/path/auth/google/callback"
+            )
+            .is_err()
+        );
+        assert!(
+            validate_managed_web_binding(
+                "https://demo.example.org",
+                "https://other.example.org/auth/google/callback"
+            )
+            .is_err()
+        );
+    }
+}
+
+fn read_protected_text(variable: &'static str) -> Result<String, AppError> {
+    let path = required_env(variable)?;
+    let value = std::fs::read_to_string(path)
+        .map_err(|_| AppError::configuration("protected-configuration-unavailable"))?;
+    let value = value.trim().to_owned();
+    if value.is_empty() {
+        Err(AppError::configuration("protected-configuration-invalid"))
+    } else {
+        Ok(value)
+    }
+}
+
+fn load_mapping_version(path: &std::path::Path) -> Result<String, AppError> {
+    let value: Value = serde_json::from_slice(
+        &std::fs::read(path).map_err(|_| AppError::configuration("role-mapping-unavailable"))?,
+    )
+    .map_err(|_| AppError::configuration("role-mapping-invalid"))?;
+    value
+        .get("mappingVersion")
+        .and_then(Value::as_str)
+        .filter(|version| !version.is_empty())
+        .map(str::to_owned)
+        .ok_or(AppError::configuration("role-mapping-invalid"))
+}
+
+fn load_environment_id() -> Result<String, AppError> {
+    let value = if let Ok(value) = env::var("PPL_ENVIRONMENT_ID") {
+        value
+    } else {
+        let path = required_env("PPL_ENVIRONMENT_ID_FILE")?;
+        std::fs::read_to_string(path)
+            .map_err(|_| AppError::configuration("environment-id-unavailable"))?
+    };
+    let value = value.trim().to_owned();
+    if value.len() < 8
+        || value.len() > 128
+        || !value.chars().all(|character| {
+            character.is_ascii_alphanumeric() || matches!(character, '-' | ':' | '_')
+        })
+    {
+        return Err(AppError::configuration("environment-id-invalid"));
+    }
+    Ok(value)
 }
 
 fn load_broker_config(mode: WorkloadMode) -> Result<BrokerConfig, AppError> {
@@ -436,6 +705,11 @@ fn director_router(state: DirectorState) -> Router {
         .route("/health/ready", get(director_readiness))
         .route("/health/contracts", get(director_contracts))
         .route("/api/v1/development-session", post(director_login))
+        .route("/api/v1/login-mode", get(director_login_mode))
+        .route("/auth/google/start", get(director_oidc_start))
+        .route("/auth/google/callback", get(director_oidc_callback))
+        .route("/api/v1/session-context", get(director_session_context))
+        .route("/api/v1/logout", post(director_logout))
         .route("/api/v1/status/{session_id}", get(director_status))
         .route("/api/v1/sessions", post(create_session))
         .route(
@@ -451,6 +725,10 @@ fn director_router(state: DirectorState) -> Router {
             "/api/v1/sessions/{session_id}/cue-delay",
             post(request_cue_delay),
         )
+        .route(
+            "/api/v1/sessions/{session_id}/synthetic-sign-in",
+            post(request_synthetic_sign_in),
+        )
         .with_state(state)
 }
 
@@ -460,7 +738,12 @@ fn gateway_router(state: GatewayState) -> Router {
         .route("/health/ready", get(gateway_readiness))
         .route("/health/contracts", get(gateway_contracts))
         .route("/api/v1/development-session", post(gateway_login))
+        .route("/api/v1/login-mode", get(gateway_login_mode))
+        .route("/auth/google/start", get(gateway_oidc_start))
+        .route("/auth/google/callback", get(gateway_oidc_callback))
+        .route("/api/v1/logout", post(gateway_logout))
         .route("/api/v1/registrations", post(register_surface))
+        .route("/api/v1/session-context", get(gateway_session_context))
         .route("/api/v1/cues", get(cue_events))
         .route("/api/v1/outcomes", post(record_outcome))
         .with_state(state)
@@ -474,6 +757,41 @@ async fn gateway_liveness(State(state): State<GatewayState>) -> Json<Value> {
     Json(liveness_json(&state.config))
 }
 
+async fn identity_liveness(State(state): State<IdentityState>) -> Json<Value> {
+    Json(liveness_json(&state.config))
+}
+
+async fn identity_readiness(State(state): State<IdentityState>) -> Response {
+    let trust = state.identity.trust();
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "softwareStatus": "healthy",
+            "identityReady": true,
+            "environmentId": trust.record.environment_id,
+            "trustDomain": trust.record.trust_domain,
+            "trustEpoch": trust.record.trust_epoch,
+            "trustProfile": trust.record.trust_profile,
+            "keyCustodyClass": trust.record.key_custody_class,
+            "componentChannelAuthorised": state.broker.can_publish(SYNTHETIC_GRANT_SUBJECT),
+            "brokerAvailabilityProfile": "single-server-development-assurance",
+            "maturity": "in-development",
+            "informationProfile": "synthetic-only"
+        })),
+    )
+        .into_response()
+}
+
+async fn identity_contracts(State(state): State<IdentityState>) -> Json<Value> {
+    Json(serde_json::json!({
+        "selfTest": "passed",
+        "contracts": ["I-001", "I-002", "I-003", "I-004", "I-005", "AZ-001"],
+        "environmentId": state.config.environment_id,
+        "maturity": "in-development",
+        "informationProfile": "synthetic-only"
+    }))
+}
+
 async fn director_contracts(State(state): State<DirectorState>) -> Result<Json<Value>, AppError> {
     let package = state
         .runtime
@@ -481,6 +799,7 @@ async fn director_contracts(State(state): State<DirectorState>) -> Result<Json<V
     Ok(Json(serde_json::json!({
         "selfTest": "passed",
         "contracts": ["D-001", "D-002", "D-003", "D-004", "P-001", "P-002", "P-003", "P-004"],
+        "identityContracts": ["I-001", "I-004", "I-005"],
         "packageId": package.package_id,
         "packageVersion": package.package_version,
         "packageDigest": package.package_digest,
@@ -496,6 +815,7 @@ async fn gateway_contracts(State(state): State<GatewayState>) -> Json<Value> {
     Json(serde_json::json!({
         "selfTest": "passed",
         "contracts": ["P-001", "P-002", "P-003", "P-004"],
+        "identityContracts": ["I-001", "I-004", "I-005"],
         "manifestId": "assurance-presentation-surface",
         "manifestVersion": "1.0.0",
         "manifestDigest": state.manifest_digest,
@@ -517,27 +837,42 @@ fn liveness_json(config: &AppConfig) -> Value {
 }
 
 async fn director_readiness(State(state): State<DirectorState>) -> Response {
-    readiness_response(&state.config, state.broker.is_some())
+    let identity_ready =
+        state.config.profile != RuntimeProfile::ManagedHosted || state.oidc.is_some();
+    readiness_response(&state.config, state.broker.is_some(), identity_ready)
 }
 
 async fn gateway_readiness(State(state): State<GatewayState>) -> Response {
-    readiness_response(&state.config, state.broker.is_some())
+    let identity_ready = (state.config.profile != RuntimeProfile::ManagedHosted
+        || state.oidc.is_some())
+        && gateway_grant_store(&state).is_ok();
+    readiness_response(&state.config, state.broker.is_some(), identity_ready)
 }
 
-fn readiness_response(config: &AppConfig, broker_ready: bool) -> Response {
-    let interactive_ready = config.profile.interactive() && broker_ready;
+fn readiness_response(config: &AppConfig, broker_ready: bool, identity_ready: bool) -> Response {
+    let interactive_ready = config.profile.interactive() && broker_ready && identity_ready;
     let status = if interactive_ready {
         StatusCode::OK
     } else {
         StatusCode::SERVICE_UNAVAILABLE
+    };
+    let reason_code = if interactive_ready {
+        Value::Null
+    } else if !config.profile.interactive() {
+        Value::String("interactive-profile-disabled".to_owned())
+    } else if !broker_ready {
+        Value::String("event-broker-unavailable".to_owned())
+    } else {
+        Value::String("identity-binding-unavailable".to_owned())
     };
     (
         status,
         Json(serde_json::json!({
             "softwareStatus": "healthy",
             "interactiveReady": interactive_ready,
-            "trustProfile": if config.profile == RuntimeProfile::PrivateHostedSmoke { "managed" } else { "development-assurance" },
-            "reasonCode": if interactive_ready { Value::Null } else { Value::String("managed-trust-binding-absent".to_owned()) },
+            "trustProfile": if matches!(config.profile, RuntimeProfile::PrivateHostedSmoke | RuntimeProfile::ManagedHosted) { "managed" } else { "development-assurance" },
+            "reasonCode": reason_code,
+            "brokerAvailabilityProfile": "single-server-development-assurance",
             "maturity": "in-development",
             "informationProfile": "synthetic-only"
         })),
@@ -553,9 +888,10 @@ async fn director_login(
         &state.config,
         &state.sessions,
         &headers,
-        "synthetic-presenter",
+        "local-presenter",
+        "presenter",
+        "scenario-director",
     )
-    .await
 }
 
 async fn gateway_login(
@@ -566,46 +902,200 @@ async fn gateway_login(
         &state.config,
         &state.sessions,
         &headers,
-        "synthetic-surface-operator",
+        "local-surface-operator",
+        "surface-operator",
+        "presentation-gateway",
+    )
+}
+
+async fn director_login_mode(State(state): State<DirectorState>) -> Json<Value> {
+    Json(login_mode_json(&state.config))
+}
+
+async fn gateway_login_mode(State(state): State<GatewayState>) -> Json<Value> {
+    Json(login_mode_json(&state.config))
+}
+
+fn login_mode_json(config: &AppConfig) -> Value {
+    serde_json::json!({
+        "mode": if config.profile.local_test_identity() { "local-test" } else { "google-oidc" },
+        "maturity": "in-development",
+        "informationProfile": "synthetic-only"
+    })
+}
+
+async fn director_oidc_start(State(state): State<DirectorState>) -> Result<Response, AppError> {
+    oidc_start(state.oidc.as_deref())
+}
+
+async fn gateway_oidc_start(State(state): State<GatewayState>) -> Result<Response, AppError> {
+    oidc_start(state.oidc.as_deref())
+}
+
+fn oidc_start(oidc: Option<&OidcAuthenticator>) -> Result<Response, AppError> {
+    let oidc = oidc.ok_or(AppError::unauthorised("google-oidc-unavailable"))?;
+    let start = oidc.begin(OffsetDateTime::now_utc())?;
+    let mut response = Redirect::temporary(&start.authorisation_url).into_response();
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&format!(
+            "PPL_OIDC_FLOW={}; HttpOnly; Secure; SameSite=Lax; Path=/auth/google/callback; Max-Age=600",
+            start.flow_cookie
+        ))
+        .map_err(|_| AppError::configuration("session-cookie-invalid"))?,
+    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    Ok(response)
+}
+
+#[derive(Deserialize)]
+struct OidcCallbackQuery {
+    code: Option<String>,
+    state: Option<String>,
+    error: Option<String>,
+}
+
+async fn director_oidc_callback(
+    State(state): State<DirectorState>,
+    headers: HeaderMap,
+    Query(query): Query<OidcCallbackQuery>,
+) -> Result<Response, AppError> {
+    oidc_callback(
+        &state.config,
+        &state.sessions,
+        state.oidc.as_deref(),
+        &headers,
+        query,
     )
     .await
 }
 
-async fn development_login(
-    config: &AppConfig,
-    sessions: &LocalSessions,
-    headers: &HeaderMap,
-    actor: &str,
+async fn gateway_oidc_callback(
+    State(state): State<GatewayState>,
+    headers: HeaderMap,
+    Query(query): Query<OidcCallbackQuery>,
 ) -> Result<Response, AppError> {
-    if !config.profile.interactive() {
+    oidc_callback(
+        &state.config,
+        &state.sessions,
+        state.oidc.as_deref(),
+        &headers,
+        query,
+    )
+    .await
+}
+
+async fn oidc_callback(
+    config: &AppConfig,
+    sessions: &ApplicationSessionStore,
+    oidc: Option<&OidcAuthenticator>,
+    headers: &HeaderMap,
+    query: OidcCallbackQuery,
+) -> Result<Response, AppError> {
+    if config.profile != RuntimeProfile::ManagedHosted {
+        return Err(AppError::configuration("oidc-profile-mismatch"));
+    }
+    let oidc = oidc.ok_or(AppError::unauthorised("google-oidc-unavailable"))?;
+    if query.error.is_some() {
+        return Err(AppError::unauthorised("oidc-provider-refused"));
+    }
+    let flow_cookie = cookie_value(headers, "PPL_OIDC_FLOW")
+        .ok_or(AppError::unauthorised("oidc-flow-state-refused"))?;
+    let identity = oidc
+        .complete(
+            flow_cookie,
+            query
+                .state
+                .as_deref()
+                .ok_or(AppError::unauthorised("oidc-flow-state-refused"))?,
+            query
+                .code
+                .as_deref()
+                .ok_or(AppError::unauthorised("oidc-provider-refused"))?,
+            OffsetDateTime::now_utc(),
+        )
+        .await?;
+    let credentials = sessions.establish(&identity, OffsetDateTime::now_utc())?;
+    let mut response = Redirect::to("/").into_response();
+    set_application_cookies(&mut response, &credentials, true)?;
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        HeaderValue::from_static(
+            "PPL_OIDC_FLOW=; HttpOnly; Secure; SameSite=Lax; Path=/auth/google/callback; Max-Age=0",
+        ),
+    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    Ok(response)
+}
+
+fn development_login(
+    config: &AppConfig,
+    sessions: &ApplicationSessionStore,
+    headers: &HeaderMap,
+    principal_id: &str,
+    role: &str,
+    audience: &str,
+) -> Result<Response, AppError> {
+    if !config.profile.local_test_identity() {
         return Err(AppError::unauthorised(
             "development-assurance-adapter-unavailable",
         ));
     }
     require_origin(config, headers)?;
-    let token = sessions.issue().await;
+    let now = OffsetDateTime::now_utc();
+    let identity =
+        local_external_identity(&config.environment_id, audience, principal_id, role, now)?;
+    let credentials = sessions.establish(&identity, now)?;
     let mut response = Json(serde_json::json!({
         "status": "established",
-        "actor": actor,
+        "principalId": principal_id,
+        "roles": [role],
+        "identityKind": "external-human-test-adapter",
         "expiresInSeconds": 1800,
         "maturity": "in-development",
         "informationProfile": "synthetic-only",
         "warning": "Synthetic development assurance only"
     }))
     .into_response();
-    response.headers_mut().insert(
-        header::SET_COOKIE,
-        HeaderValue::from_str(&format!(
-            "PPL_DEV_SESSION={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800"
-        ))
-        .map_err(|_| AppError::configuration("session-cookie-invalid"))?,
-    );
+    set_application_cookies(&mut response, &credentials, false)?;
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     Ok(response)
 }
 
-async fn authorise(
+fn set_application_cookies(
+    response: &mut Response,
+    credentials: &ppl_iam_01::application_sessions::SessionCredentials,
+    secure: bool,
+) -> Result<(), AppError> {
+    let secure_attribute = if secure { "; Secure" } else { "" };
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&format!(
+            "PPL_APP_SESSION={}; HttpOnly{secure_attribute}; SameSite=Strict; Path=/; Max-Age=1800",
+            credentials.token
+        ))
+        .map_err(|_| AppError::configuration("session-cookie-invalid"))?,
+    );
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&format!(
+            "PPL_CSRF={}{secure_attribute}; SameSite=Strict; Path=/; Max-Age=1800",
+            credentials.csrf_token
+        ))
+        .map_err(|_| AppError::configuration("session-cookie-invalid"))?,
+    );
+    Ok(())
+}
+
+fn authorise(
     config: &AppConfig,
-    sessions: &LocalSessions,
+    sessions: &ApplicationSessionStore,
     headers: &HeaderMap,
 ) -> Result<(), AppError> {
     if !config.profile.interactive() {
@@ -614,13 +1104,22 @@ async fn authorise(
         ));
     }
     require_origin(config, headers)?;
-    let token = cookie_value(headers, "PPL_DEV_SESSION")
-        .ok_or(AppError::unauthorised("development-session-required"))?;
-    if sessions.valid(token).await {
-        Ok(())
-    } else {
-        Err(AppError::unauthorised("development-session-expired"))
-    }
+    let token = cookie_value(headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let csrf = headers
+        .get("x-ppl-csrf")
+        .and_then(|value| value.to_str().ok())
+        .ok_or(AppError::unauthorised("csrf-required"))?;
+    let role = required_role(config.mode);
+    let mapping_version = current_mapping_version(config)?;
+    sessions.authorise_write(
+        token,
+        csrf,
+        role,
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    Ok(())
 }
 
 fn require_origin(config: &AppConfig, headers: &HeaderMap) -> Result<(), AppError> {
@@ -645,9 +1144,9 @@ fn cookie_value<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
         .find_map(|pair| pair.strip_prefix(&format!("{name}=")))
 }
 
-async fn authorise_read(
+fn authorise_read(
     config: &AppConfig,
-    sessions: &LocalSessions,
+    sessions: &ApplicationSessionStore,
     headers: &HeaderMap,
 ) -> Result<(), AppError> {
     if !config.profile.interactive() {
@@ -655,25 +1154,109 @@ async fn authorise_read(
             "development-assurance-adapter-unavailable",
         ));
     }
-    let token = cookie_value(headers, "PPL_DEV_SESSION")
-        .ok_or(AppError::unauthorised("development-session-required"))?;
-    if sessions.valid(token).await {
-        Ok(())
-    } else {
-        Err(AppError::unauthorised("development-session-expired"))
+    let token = cookie_value(headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let mapping_version = current_mapping_version(config)?;
+    sessions.authorise_read(
+        token,
+        required_role(config.mode),
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    Ok(())
+}
+
+fn current_mapping_version(config: &AppConfig) -> Result<String, AppError> {
+    match &config.oidc {
+        Some(oidc) => load_mapping_version(&oidc.role_mapping_path),
+        None => Ok(config.mapping_version.clone()),
     }
+}
+
+const fn required_role(mode: WorkloadMode) -> &'static str {
+    match mode {
+        WorkloadMode::ScenarioDirector => "presenter",
+        WorkloadMode::PresentationGateway => "surface-operator",
+        WorkloadMode::IdentityBroker => "identity-broker-workload",
+    }
+}
+
+async fn director_logout(
+    State(state): State<DirectorState>,
+    headers: HeaderMap,
+) -> Result<Response, AppError> {
+    logout(&state.config, &state.sessions, &headers)
+}
+
+async fn gateway_logout(
+    State(state): State<GatewayState>,
+    headers: HeaderMap,
+) -> Result<Response, AppError> {
+    logout(&state.config, &state.sessions, &headers)
+}
+
+fn logout(
+    config: &AppConfig,
+    sessions: &ApplicationSessionStore,
+    headers: &HeaderMap,
+) -> Result<Response, AppError> {
+    require_origin(config, headers)?;
+    if let Some(token) = cookie_value(headers, "PPL_APP_SESSION") {
+        let csrf = headers
+            .get("x-ppl-csrf")
+            .and_then(|value| value.to_str().ok())
+            .ok_or(AppError::unauthorised("csrf-required"))?;
+        let mapping_version = current_mapping_version(config)?;
+        sessions.authorise_write(
+            token,
+            csrf,
+            required_role(config.mode),
+            &mapping_version,
+            OffsetDateTime::now_utc(),
+        )?;
+        sessions.revoke(token, "external-user-logout", OffsetDateTime::now_utc())?;
+    }
+    let mut response = StatusCode::NO_CONTENT.into_response();
+    let secure_attribute = if config.profile == RuntimeProfile::ManagedHosted {
+        "; Secure"
+    } else {
+        ""
+    };
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&format!(
+            "PPL_APP_SESSION=; HttpOnly{secure_attribute}; SameSite=Strict; Path=/; Max-Age=0"
+        ))
+        .map_err(|_| AppError::configuration("session-cookie-invalid"))?,
+    );
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&format!(
+            "PPL_CSRF={secure_attribute}; SameSite=Strict; Path=/; Max-Age=0"
+        ))
+        .map_err(|_| AppError::configuration("session-cookie-invalid"))?,
+    );
+    Ok(response)
+}
+
+#[derive(Default, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct DirectorStatusQuery {
+    surface_slot: Option<String>,
 }
 
 async fn director_status(
     State(state): State<DirectorState>,
     Path(session_id): Path<String>,
+    Query(query): Query<DirectorStatusQuery>,
     headers: HeaderMap,
 ) -> Result<Json<Value>, AppError> {
-    authorise_read(&state.config, &state.sessions, &headers).await?;
+    authorise_read(&state.config, &state.sessions, &headers)?;
     let session = state.runtime.session(&session_id)?;
+    let surface_slot = query.surface_slot.as_deref().unwrap_or("audience-display");
     let registration = state
         .runtime
-        .current_registration(&session_id, "audience-display")
+        .current_registration(&session_id, surface_slot)
         .ok();
     let checkpoint = state.runtime.presentation_checkpoint(&session_id)?;
     Ok(Json(serde_json::json!({
@@ -683,6 +1266,28 @@ async fn director_status(
         "maturity": "in-development",
         "informationProfile": "synthetic-only",
         "warning": "Synthetic development assurance only"
+    })))
+}
+
+async fn director_session_context(
+    State(state): State<DirectorState>,
+    headers: HeaderMap,
+) -> Result<Json<Value>, AppError> {
+    let token = cookie_value(&headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let mapping_version = current_mapping_version(&state.config)?;
+    let authorised = state.sessions.authorise_read(
+        token,
+        "presenter",
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    Ok(Json(serde_json::json!({
+        "externalPrincipalId": authorised.external_identity.principal_id,
+        "roles": authorised.external_identity.roles,
+        "expiresAt": authorised.expires_at,
+        "maturity": "in-development",
+        "informationProfile": "synthetic-only"
     })))
 }
 
@@ -697,7 +1302,7 @@ async fn create_session(
     headers: HeaderMap,
     Json(request): Json<CreateSessionRequest>,
 ) -> Result<Json<Value>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
     let session_id = request
         .session_id
         .unwrap_or_else(|| format!("session:{}", Uuid::new_v4()));
@@ -705,7 +1310,7 @@ async fn create_session(
         contract_id: "D-002".to_owned(),
         contract_version: "1.0.0".to_owned(),
         operation_id: format!("operation:{}", Uuid::new_v4()),
-        session_id,
+        session_id: session_id.clone(),
         package_id: PACKAGE_ID.to_owned(),
         package_version: PACKAGE_VERSION.to_owned(),
         action: ScenarioLifecycleAction::Create,
@@ -737,7 +1342,7 @@ async fn apply_lifecycle(
     headers: HeaderMap,
     Json(request): Json<LifecycleRequest>,
 ) -> Result<Json<Value>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
     if request.action == ScenarioLifecycleAction::Reset {
         let current = state.runtime.session(&session_id)?;
         if current.revision != request.expected_revision
@@ -771,7 +1376,7 @@ async fn apply_lifecycle(
         contract_id: "D-002".to_owned(),
         contract_version: "1.0.0".to_owned(),
         operation_id: format!("operation:{}", Uuid::new_v4()),
-        session_id,
+        session_id: session_id.clone(),
         package_id: PACKAGE_ID.to_owned(),
         package_version: PACKAGE_VERSION.to_owned(),
         action: request.action,
@@ -783,9 +1388,122 @@ async fn apply_lifecycle(
     let outcome = state
         .runtime
         .apply_lifecycle(&command, OffsetDateTime::now_utc())?;
+    if matches!(
+        request.action,
+        ScenarioLifecycleAction::Stop | ScenarioLifecycleAction::Reset
+    ) {
+        publish_synthetic_termination(&state, &session_id, request.action).await?;
+    }
     Ok(Json(serde_json::to_value(outcome).map_err(|_| {
         AppError::configuration("response-invalid")
     })?))
+}
+
+async fn publish_synthetic_termination(
+    state: &DirectorState,
+    demonstration_session_id: &str,
+    action: ScenarioLifecycleAction,
+) -> Result<(), AppError> {
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::refused("interactive-broker-unavailable"))?;
+    broker
+        .publish(
+            SYNTHETIC_TERMINATION_SUBJECT,
+            &SyntheticTerminationEvent {
+                contract_id: "I-005".to_owned(),
+                contract_version: "1.0.0".to_owned(),
+                operation_id: format!("terminate:{}", Uuid::new_v4()),
+                demonstration_session_id: demonstration_session_id.to_owned(),
+                reason: format!("scenario-{}", lifecycle_action_name(action)),
+                requested_at: now_string()?,
+            },
+        )
+        .await?;
+    Ok(())
+}
+
+const fn lifecycle_action_name(action: ScenarioLifecycleAction) -> &'static str {
+    match action {
+        ScenarioLifecycleAction::Create => "create",
+        ScenarioLifecycleAction::Prepare => "prepare",
+        ScenarioLifecycleAction::Start => "start",
+        ScenarioLifecycleAction::Pause => "pause",
+        ScenarioLifecycleAction::Resume => "resume",
+        ScenarioLifecycleAction::Complete => "complete",
+        ScenarioLifecycleAction::Stop => "stop",
+        ScenarioLifecycleAction::Reset => "reset",
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct SyntheticSignInRequest {
+    actor_id: String,
+    surface_slot: String,
+}
+
+async fn request_synthetic_sign_in(
+    State(state): State<DirectorState>,
+    Path(session_id): Path<String>,
+    headers: HeaderMap,
+    Json(request): Json<SyntheticSignInRequest>,
+) -> Result<Json<Value>, AppError> {
+    authorise(&state.config, &state.sessions, &headers)?;
+    let synthetic_role = match (request.actor_id.as_str(), request.surface_slot.as_str()) {
+        ("synthetic-audience-user", "audience-display") => "portal-viewer",
+        ("synthetic-reviewer", "reviewer-workbench") => "workbench-reviewer",
+        _ => return Err(AppError::refused("synthetic-actor-or-surface-unsupported")),
+    };
+    let session = state.runtime.session(&session_id)?;
+    if !matches!(
+        session.state,
+        ScenarioState::Preparing
+            | ScenarioState::Ready
+            | ScenarioState::Running
+            | ScenarioState::Paused
+    ) {
+        return Err(AppError::refused("synthetic-sign-in-session-not-active"));
+    }
+    state
+        .runtime
+        .current_registration(&session_id, &request.surface_slot)?;
+    let request_id = format!("grant-request:{}", Uuid::new_v4());
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::refused("interactive-broker-unavailable"))?;
+    broker
+        .publish(
+            GRANT_REQUEST_SUBJECT,
+            &SyntheticGrantRequestEvent {
+                contract_id: "I-004".to_owned(),
+                contract_version: "1.0.0".to_owned(),
+                request_id: request_id.clone(),
+                requested_at: now_string()?,
+                request: GrantRequest {
+                    workload_id: "scenario-director".to_owned(),
+                    actor_id: request.actor_id.clone(),
+                    application_id: "presentation-gateway".to_owned(),
+                    audience: "presentation-gateway".to_owned(),
+                    surface_id: request.surface_slot,
+                    demonstration_session_id: session_id,
+                    roles: vec![synthetic_role.to_owned()],
+                    purpose: "demonstrate-presentation".to_owned(),
+                    synthetic_realm: format!("synthetic-realm-{}", state.config.environment_id),
+                },
+            },
+        )
+        .await?;
+    Ok(Json(serde_json::json!({
+        "status": "requested",
+        "requestId": request_id,
+        "actorId": request.actor_id,
+        "applicationId": "presentation-gateway",
+        "maturity": "in-development",
+        "informationProfile": "synthetic-only"
+    })))
 }
 
 #[derive(Deserialize)]
@@ -804,7 +1522,7 @@ async fn issue_cue(
     headers: HeaderMap,
     Json(request): Json<CueRequest>,
 ) -> Result<Json<PresentationCue>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
     let session = state.runtime.session(&session_id)?;
     let registration = state
         .runtime
@@ -867,7 +1585,7 @@ async fn advance_time(
     headers: HeaderMap,
     Json(request): Json<AdvanceTimeRequest>,
 ) -> Result<Json<Value>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
     let operation_id = format!("operation:{}", Uuid::new_v4());
     let now = OffsetDateTime::now_utc();
     let outcome = match request.operation.as_str() {
@@ -910,7 +1628,7 @@ async fn request_cue_delay(
     headers: HeaderMap,
     Json(request): Json<CueDelayRequest>,
 ) -> Result<Json<CommandOutcome>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
     let session = state.runtime.session(&session_id)?;
     if session.revision != request.expected_revision || session.state != ScenarioState::Running {
         return Err(AppError::refused("session-revision-stale"));
@@ -978,7 +1696,7 @@ async fn register_surface(
     headers: HeaderMap,
     Json(request): Json<RegistrationRequest>,
 ) -> Result<Json<PresentationRegistration>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
     if !matches!(
         request.surface_role.as_str(),
         "audience-display" | "reviewer-workbench"
@@ -1005,6 +1723,14 @@ async fn register_surface(
         )?,
     };
     let outcome = state.runtime.register(&registration, now)?;
+    let token = cookie_value(&headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    state.sessions.bind_surface(
+        token,
+        &outcome.registration.surface_slot,
+        &outcome.registration.session_id,
+        now,
+    )?;
     Ok(Json(outcome.registration))
 }
 
@@ -1012,7 +1738,7 @@ async fn cue_events(
     State(state): State<GatewayState>,
     headers: HeaderMap,
 ) -> Result<Sse<impl futures_util::Stream<Item = Result<Event, Infallible>>>, AppError> {
-    authorise_read(&state.config, &state.sessions, &headers).await?;
+    require_synthetic_surface(&state, &headers)?;
     let receiver = state.cue_channel.subscribe();
     let stream = BroadcastStream::new(receiver).filter_map(|item| async move {
         match item {
@@ -1029,17 +1755,89 @@ async fn cue_events(
     ))
 }
 
+async fn gateway_session_context(
+    State(state): State<GatewayState>,
+    headers: HeaderMap,
+) -> Result<Json<Value>, AppError> {
+    let token = cookie_value(&headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let mapping_version = current_mapping_version(&state.config)?;
+    let authorised = state.sessions.authorise_read(
+        token,
+        "surface-operator",
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    let registration = match (
+        authorised.bound_demonstration_session_id.as_deref(),
+        authorised.bound_surface_id.as_deref(),
+    ) {
+        (Some(session_id), Some(surface_id)) => state
+            .runtime
+            .current_registration(session_id, surface_id)
+            .ok(),
+        _ => None,
+    };
+    Ok(Json(
+        if let Some(synthetic) = authorised.synthetic_identity {
+            serde_json::json!({
+                "externalPrincipalId": authorised.external_identity.principal_id,
+                "syntheticStatus": "established",
+                "syntheticActorId": synthetic.actor_id,
+                "syntheticRoles": synthetic.roles,
+                "applicationId": synthetic.application_id,
+                "surfaceId": synthetic.surface_id,
+                "demonstrationSessionId": synthetic.demonstration_session_id,
+                "maximumValidUntil": synthetic.maximum_valid_until,
+                "registration": registration,
+                "maturity": "in-development",
+                "informationProfile": "synthetic-only"
+            })
+        } else {
+            serde_json::json!({
+                "externalPrincipalId": authorised.external_identity.principal_id,
+                "syntheticStatus": "not-established",
+                "registration": registration,
+                "maturity": "in-development",
+                "informationProfile": "synthetic-only"
+            })
+        },
+    ))
+}
+
 async fn record_outcome(
     State(state): State<GatewayState>,
     headers: HeaderMap,
     Json(outcome): Json<PresentationCueOutcome>,
 ) -> Result<Json<PresentationCueOutcome>, AppError> {
-    authorise(&state.config, &state.sessions, &headers).await?;
+    authorise(&state.config, &state.sessions, &headers)?;
+    require_synthetic_surface(&state, &headers)?;
     Ok(Json(
         state
             .runtime
             .record_outcome(&outcome, OffsetDateTime::now_utc())?,
     ))
+}
+
+fn require_synthetic_surface(state: &GatewayState, headers: &HeaderMap) -> Result<(), AppError> {
+    let token = cookie_value(headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let mapping_version = current_mapping_version(&state.config)?;
+    let authorised = state.sessions.authorise_read(
+        token,
+        "surface-operator",
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    let synthetic = authorised.synthetic_identity.ok_or(AppError::unauthorised(
+        "synthetic-application-session-required",
+    ))?;
+    if synthetic.status != SyntheticSessionStatus::Established {
+        return Err(AppError::unauthorised(
+            "synthetic-application-session-required",
+        ));
+    }
+    Ok(())
 }
 
 async fn director_consumer(state: DirectorState, broker: Broker) {
@@ -1090,6 +1888,17 @@ async fn director_consumer(state: DirectorState, broker: Broker) {
                         .observe_control_outcome(&outcome)
                         .map_err(|_| ())
                 })
+        } else if message.subject.as_str() == IDENTITY_OUTCOME_SUBJECT {
+            serde_json::from_slice::<SyntheticIdentityOutcomeEvent>(&message.payload)
+                .map(|outcome| {
+                    info!(
+                        request_id = %outcome.request_id,
+                        status = %outcome.status,
+                        code = %outcome.code,
+                        "synthetic identity operation concluded"
+                    );
+                })
+                .map_err(|_| ())
         } else {
             Err(())
         };
@@ -1123,9 +1932,6 @@ async fn gateway_consumer(state: GatewayState, broker: Broker) {
             warn!("presentation message delivery failed");
             continue;
         };
-        if message.subject.as_str() != CUE_SUBJECT && message.subject.as_str() != CONTROL_SUBJECT {
-            continue;
-        }
         let result = if message.subject.as_str() == CUE_SUBJECT {
             match serde_json::from_slice::<PresentationCue>(&message.payload) {
                 Ok(cue) => match state.runtime.accept_cue(&cue, OffsetDateTime::now_utc()) {
@@ -1146,7 +1952,7 @@ async fn gateway_consumer(state: GatewayState, broker: Broker) {
                 },
                 Err(_) => Err(()),
             }
-        } else {
+        } else if message.subject.as_str() == CONTROL_SUBJECT {
             match serde_json::from_slice::<ScenarioControlCommand>(&message.payload) {
                 Ok(control) => state
                     .runtime
@@ -1157,11 +1963,201 @@ async fn gateway_consumer(state: GatewayState, broker: Broker) {
                     }),
                 Err(_) => Err(()),
             }
+        } else if message.subject.as_str() == SYNTHETIC_GRANT_SUBJECT {
+            process_synthetic_grant(&state, &broker, &message.payload).await
+        } else if message.subject.as_str() == SYNTHETIC_TERMINATION_SUBJECT {
+            process_synthetic_termination(&state, &message.payload)
+        } else {
+            Err(())
         };
         if result.is_ok()
             && let Err(error) = message.ack().await
         {
             warn!(reason = %error, "presentation message acknowledgement failed");
+        }
+    }
+}
+
+async fn process_synthetic_grant(
+    state: &GatewayState,
+    broker: &Broker,
+    payload: &[u8],
+) -> Result<(), ()> {
+    let delivery =
+        serde_json::from_slice::<SyntheticGrantDeliveryEvent>(payload).map_err(|_| ())?;
+    let store = gateway_grant_store(state).map_err(|error| {
+        warn!(reason = error.code, "presentation trust bundle unavailable");
+    })?;
+    let now = OffsetDateTime::now_utc();
+    let outcome = store
+        .establish(
+            &delivery.grant,
+            &delivery.grant.claims.surface_id,
+            &delivery.grant.claims.demonstration_session_id,
+            now,
+        )
+        .map_err(|error| {
+            warn!(reason = %error, "synthetic grant establishment failed safely");
+        })?;
+    if outcome.status == SyntheticSessionStatus::Established {
+        let mut binding = outcome.clone();
+        binding.original_outcome_id = None;
+        state
+            .sessions
+            .bind_synthetic_to_surface(&binding, now)
+            .map_err(|error| {
+                warn!(reason = %error, "synthetic session had no authorised surface binding");
+            })?;
+    }
+    broker
+        .publish(
+            IDENTITY_OUTCOME_SUBJECT,
+            &SyntheticIdentityOutcomeEvent {
+                contract_id: "I-005".to_owned(),
+                contract_version: "1.0.0".to_owned(),
+                request_id: delivery.request_id,
+                status: match outcome.status {
+                    SyntheticSessionStatus::Established => "established",
+                    SyntheticSessionStatus::Expired => "expired",
+                    _ => "refused",
+                }
+                .to_owned(),
+                code: outcome
+                    .reason_code
+                    .clone()
+                    .unwrap_or_else(|| "synthetic-session-established".to_owned()),
+                occurred_at: now_string().map_err(|_| ())?,
+                synthetic_session: Some(outcome),
+            },
+        )
+        .await
+        .map_err(|error| {
+            warn!(reason = %error, "synthetic outcome publication failed");
+        })?;
+    Ok(())
+}
+
+fn process_synthetic_termination(state: &GatewayState, payload: &[u8]) -> Result<(), ()> {
+    let termination =
+        serde_json::from_slice::<SyntheticTerminationEvent>(payload).map_err(|_| ())?;
+    let now = OffsetDateTime::now_utc();
+    state
+        .sessions
+        .clear_synthetic_bindings(&termination.demonstration_session_id, now)
+        .map_err(|error| {
+            warn!(reason = %error, "application synthetic binding termination failed");
+        })?;
+    if let Ok(store) = gateway_grant_store(state) {
+        store
+            .terminate_demonstration_session(
+                &termination.demonstration_session_id,
+                &termination.reason,
+                now,
+            )
+            .map_err(|error| {
+                warn!(reason = %error, "synthetic establishment termination failed");
+            })?;
+    }
+    Ok(())
+}
+
+fn gateway_grant_store(state: &GatewayState) -> Result<&ApplicationGrantStore, AppError> {
+    if let Some(store) = state.grants.get() {
+        return Ok(store);
+    }
+    let trust = load_trust_bundle(&state.config.trust_bundle_path)?;
+    let store = ApplicationGrantStore::open(
+        state
+            .config
+            .security_state_path
+            .with_extension("grants.sqlite"),
+        trust,
+        "presentation-gateway",
+        "presentation-gateway",
+    )?;
+    let _ = state.grants.set(store);
+    state
+        .grants
+        .get()
+        .ok_or(AppError::configuration("synthetic-establishment-failed"))
+}
+
+async fn identity_consumer(state: IdentityState, broker: Broker) {
+    let consumer = match broker.consumer().await {
+        Ok(consumer) => consumer,
+        Err(error) => {
+            error!(reason = %error, "identity consumer unavailable");
+            return;
+        }
+    };
+    let mut messages = match consumer.messages().await {
+        Ok(messages) => messages,
+        Err(error) => {
+            error!(reason = %error, "identity message stream unavailable");
+            return;
+        }
+    };
+    while let Some(message) = messages.next().await {
+        let Ok(message) = message else {
+            warn!("identity message delivery failed");
+            continue;
+        };
+        if message.subject.as_str() != GRANT_REQUEST_SUBJECT {
+            continue;
+        }
+        let Ok(event) = serde_json::from_slice::<SyntheticGrantRequestEvent>(&message.payload)
+        else {
+            warn!("identity broker refused malformed request");
+            continue;
+        };
+        let now = OffsetDateTime::now_utc();
+        let issued = state
+            .identity
+            .issue_grant(&event.request_id, &event.request, now)
+            .await;
+        let published = match issued {
+            Ok(grant) => {
+                let delivery = SyntheticGrantDeliveryEvent {
+                    contract_id: "I-004".to_owned(),
+                    contract_version: "1.0.0".to_owned(),
+                    request_id: event.request_id.clone(),
+                    delivered_at: match now_string() {
+                        Ok(value) => value,
+                        Err(_) => continue,
+                    },
+                    grant,
+                };
+                broker
+                    .publish(SYNTHETIC_GRANT_SUBJECT, &delivery)
+                    .await
+                    .is_ok()
+            }
+            Err(error) => {
+                warn!(
+                    reason_code = error.code,
+                    request_id = %event.request_id,
+                    "synthetic grant refused"
+                );
+                let outcome = SyntheticIdentityOutcomeEvent {
+                    contract_id: "I-004".to_owned(),
+                    contract_version: "1.0.0".to_owned(),
+                    request_id: event.request_id,
+                    status: "refused".to_owned(),
+                    code: "synthetic-grant-refused".to_owned(),
+                    occurred_at: match now_string() {
+                        Ok(value) => value,
+                        Err(_) => continue,
+                    },
+                    synthetic_session: None,
+                };
+                broker
+                    .publish(IDENTITY_OUTCOME_SUBJECT, &outcome)
+                    .await
+                    .is_ok()
+            }
+        };
+        if published && let Err(error) = message.ack().await {
+            warn!(reason = %error, "identity message acknowledgement failed");
         }
     }
 }

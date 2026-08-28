@@ -5,11 +5,13 @@ resources:
   - namespace.yaml
   - director-pvc.yaml
   - presentation-pvc.yaml
+  - identity-pvc.yaml
+  - identity.yaml
   - director.yaml
   - presentation.yaml
 labels:
   - pairs:
       app.kubernetes.io/part-of: public-purpose-lab
-      app.kubernetes.io/version: m3-3-development
+      app.kubernetes.io/version: m3-4-development
       ppl.public-purpose-lab.org/information-profile: synthetic-only
       ppl.public-purpose-lab.org/maturity: in-development

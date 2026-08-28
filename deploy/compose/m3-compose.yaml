@@ -25,13 +25,15 @@ services:
       dockerfile: deploy/containers/m3-runtime.Containerfile
     image: public-purpose-lab/m3-runtime:development
     restart: on-failure
-    depends_on: ["nats"]
+    depends_on: ["nats", "identity-broker"]
     environment:
       PPL_RUNTIME_MODE: scenario-director
       PPL_RUNTIME_PROFILE: local-containers
       PPL_LISTEN_ADDRESS: 0.0.0.0:8080
       PPL_ALLOWED_ORIGIN: http://127.0.0.1:18081
       PPL_STATE_PATH: /var/lib/public-purpose-lab/ctl-01.sqlite
+      PPL_SECURITY_STATE_PATH: /var/lib/public-purpose-lab/director-security.sqlite
+      PPL_ENVIRONMENT_ID_FILE: /run/environment/environment-id
       PPL_STATIC_DIRECTORY: /opt/public-purpose-lab/frontend/director
       PPL_NATS_URL: tls://nats:4222
       PPL_NATS_NKEY_SEED_FILE: /run/secrets/director-nkey
@@ -44,6 +46,8 @@ services:
     secrets:
       - source: director-nkey
         target: /run/secrets/director-nkey
+      - source: environment-id
+        target: /run/environment/environment-id
     read_only: true
     tmpfs:
       - /tmp
@@ -53,13 +57,16 @@ services:
   presentation-gateway:
     image: public-purpose-lab/m3-runtime:development
     restart: on-failure
-    depends_on: ["nats"]
+    depends_on: ["nats", "identity-broker"]
     environment:
       PPL_RUNTIME_MODE: presentation-gateway
       PPL_RUNTIME_PROFILE: local-containers
       PPL_LISTEN_ADDRESS: 0.0.0.0:8080
       PPL_ALLOWED_ORIGIN: http://127.0.0.1:18082
       PPL_STATE_PATH: /var/lib/public-purpose-lab/ctl-02.sqlite
+      PPL_SECURITY_STATE_PATH: /var/lib/public-purpose-lab/presentation-security.sqlite
+      PPL_TRUST_BUNDLE_PATH: /run/trust/ppl-identity/trust-bundle.json
+      PPL_ENVIRONMENT_ID_FILE: /run/environment/environment-id
       PPL_STATIC_DIRECTORY: /opt/public-purpose-lab/frontend/presentation
       PPL_WORKBENCH_DIRECTORY: /opt/public-purpose-lab/frontend/workbench
       PPL_NATS_URL: tls://nats:4222
@@ -69,10 +76,46 @@ services:
       - 127.0.0.1:18082:8080
     volumes:
       - presentation-state:/var/lib/public-purpose-lab
+      - identity-public:/run/trust/ppl-identity:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
     secrets:
       - source: presentation-nkey
         target: /run/secrets/presentation-nkey
+      - source: environment-id
+        target: /run/environment/environment-id
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+  identity-broker:
+    image: public-purpose-lab/m3-runtime:development
+    restart: on-failure
+    depends_on: ["nats"]
+    environment:
+      PPL_RUNTIME_MODE: identity-broker
+      PPL_RUNTIME_PROFILE: local-containers
+      PPL_LISTEN_ADDRESS: 0.0.0.0:8080
+      PPL_ALLOWED_ORIGIN: http://127.0.0.1:18083
+      PPL_STATE_PATH: /var/lib/public-purpose-lab/identity-runtime.sqlite
+      PPL_IDENTITY_STATE_ROOT: /var/lib/public-purpose-lab/identity
+      PPL_TRUST_BUNDLE_PATH: /run/trust/ppl-identity/trust-bundle.json
+      PPL_ENVIRONMENT_ID_FILE: /run/environment/environment-id
+      PPL_NATS_URL: tls://nats:4222
+      PPL_NATS_NKEY_SEED_FILE: /run/secrets/identity-nkey
+      PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+    ports:
+      - 127.0.0.1:18083:8080
+    volumes:
+      - identity-state:/var/lib/public-purpose-lab
+      - identity-public:/run/trust/ppl-identity
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+    secrets:
+      - source: identity-nkey
+        target: /run/secrets/identity-nkey
+      - source: environment-id
+        target: /run/environment/environment-id
     read_only: true
     tmpfs:
       - /tmp
@@ -84,10 +127,16 @@ secrets:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/director.seed
   presentation-nkey:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/presentation.seed
+  identity-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/identity.seed
+  environment-id:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id
   nats-server-key:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/nats-server.key
 
 volumes:
   director-state:
   presentation-state:
+  identity-state:
+  identity-public:
   nats-state:

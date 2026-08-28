@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: m3-presentation-gateway
+  name: m3-identity-broker
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app.kubernetes.io/name: m3-presentation-gateway
+      app.kubernetes.io/name: m3-identity-broker
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: m3-presentation-gateway
-        app.kubernetes.io/component: presentation-control
+        app.kubernetes.io/name: m3-identity-broker
+        app.kubernetes.io/component: identity-trust
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -28,17 +28,17 @@ spec:
           imagePullPolicy: Never
           env:
             - name: PPL_RUNTIME_MODE
-              value: presentation-gateway
+              value: identity-broker
             - name: PPL_RUNTIME_PROFILE
               value: minikube
             - name: PPL_LISTEN_ADDRESS
               value: 0.0.0.0:8080
             - name: PPL_ALLOWED_ORIGIN
-              value: http://127.0.0.1:18082
+              value: http://127.0.0.1:18083
             - name: PPL_STATE_PATH
-              value: /var/lib/public-purpose-lab/ctl-02.sqlite
-            - name: PPL_SECURITY_STATE_PATH
-              value: /var/lib/public-purpose-lab/presentation-security.sqlite
+              value: /var/lib/public-purpose-lab/identity-runtime.sqlite
+            - name: PPL_IDENTITY_STATE_ROOT
+              value: /var/lib/public-purpose-lab/identity
             - name: PPL_TRUST_BUNDLE_PATH
               value: /run/trust/ppl-identity/trust-bundle.json
             - name: PPL_ENVIRONMENT_ID
@@ -46,10 +46,6 @@ spec:
                 configMapKeyRef:
                   name: ppl-m3-environment
                   key: environmentId
-            - name: PPL_STATIC_DIRECTORY
-              value: /opt/public-purpose-lab/frontend/presentation
-            - name: PPL_WORKBENCH_DIRECTORY
-              value: /opt/public-purpose-lab/frontend/workbench
             - name: PPL_SOURCE_REVISION
               valueFrom:
                 configMapKeyRef:
@@ -63,7 +59,7 @@ spec:
             - name: PPL_NATS_URL
               value: tls://nats:4222
             - name: PPL_NATS_NKEY_SEED_FILE
-              value: /run/secrets/ppl/presentation.seed
+              value: /run/secrets/ppl/identity.seed
             - name: PPL_NATS_ROOT_CERTIFICATE
               value: /run/trust/ppl/ca.crt
           ports:
@@ -98,43 +94,42 @@ spec:
           volumeMounts:
             - name: state
               mountPath: /var/lib/public-purpose-lab
+            - name: identity-public
+              mountPath: /run/trust/ppl-identity
             - name: nkey
               mountPath: /run/secrets/ppl
               readOnly: true
             - name: root-ca
               mountPath: /run/trust/ppl
               readOnly: true
-            - name: identity-public
-              mountPath: /run/trust/ppl-identity
-              readOnly: true
             - name: temporary
               mountPath: /tmp
       volumes:
         - name: state
           persistentVolumeClaim:
-            claimName: m3-presentation-state
+            claimName: m3-identity-state
+        - name: identity-public
+          persistentVolumeClaim:
+            claimName: m3-identity-public
         - name: nkey
           secret:
-            secretName: ppl-m3-presentation-nkey
+            secretName: ppl-m3-identity-nkey
             defaultMode: 0440
         - name: root-ca
           secret:
             secretName: ppl-m3-root-ca
             defaultMode: 0444
-        - name: identity-public
-          persistentVolumeClaim:
-            claimName: m3-identity-public
         - name: temporary
           emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: m3-presentation-gateway
+  name: m3-identity-broker
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: m3-presentation-gateway
+    app.kubernetes.io/name: m3-identity-broker
   ports:
     - name: http
       port: 8080

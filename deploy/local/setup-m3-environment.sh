@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2016 # $JS is a literal NATS JetStream subject prefix.
 set -eu
 
 environment_directory=${1:-.local/m3-environment}
@@ -42,7 +43,12 @@ nsc generate nkey --user >"$pair_file"
 sed -n '1p' "$pair_file" >"$environment_directory/presentation.seed"
 presentation_public=$(sed -n '2p' "$pair_file")
 printf '%s\n' "$presentation_public" >"$environment_directory/presentation.nkey"
+nsc generate nkey --user >"$pair_file"
+sed -n '1p' "$pair_file" >"$environment_directory/identity.seed"
+identity_public=$(sed -n '2p' "$pair_file")
+printf '%s\n' "$identity_public" >"$environment_directory/identity.nkey"
 rm "$pair_file"
+printf 'environment-%s\n' "$(openssl rand -hex 16)" >"$environment_directory/environment-id"
 
 openssl req -x509 -newkey rsa:3072 -sha256 -nodes -days 7 \
   -subj '/CN=Public Purpose Lab local synthetic M3 root' \
@@ -83,7 +89,7 @@ printf '%s\n' \
   '    {' \
   "      nkey: \"${director_public}\"" \
   '      permissions: {' \
-  '        publish: ["ppl.m3.to-presentation.*", "ppl.m3.events.director", "$JS.>"]' \
+  '        publish: ["ppl.m3.to-presentation.*", "ppl.m3.to-identity.*", "ppl.m3.events.director", "$JS.>"]' \
   '        subscribe: ["ppl.m3.to-director.*", "_INBOX.>"]' \
   '      }' \
   '    },' \
@@ -92,6 +98,13 @@ printf '%s\n' \
   '      permissions: {' \
   '        publish: ["ppl.m3.to-director.*", "$JS.>"]' \
   '        subscribe: ["ppl.m3.to-presentation.*", "_INBOX.>"]' \
+  '      }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"${identity_public}\"" \
+  '      permissions: {' \
+  '        publish: ["ppl.m3.to-presentation.synthetic-grant", "ppl.m3.to-director.identity-outcome", "$JS.>"]' \
+  '        subscribe: ["ppl.m3.to-identity.*", "_INBOX.>"]' \
   '      }' \
   '    }' \
   '  ]' \
@@ -108,11 +121,13 @@ if [ "$layout" = portable ]; then
   chmod 644 "$environment_directory/nats-server.key" \
     "$environment_directory/director.seed" \
     "$environment_directory/presentation.seed" \
+    "$environment_directory/identity.seed" \
     "$environment_directory/nats-server.conf"
 fi
 
 printf '%s\n' \
   "Environment generated at $environment_directory" \
+  "Environment ID: $(sed -n '1p' "$environment_directory/environment-id")" \
   "Layout: $layout" \
   "NATS TLS endpoint: tls://127.0.0.1:$nats_port" \
   "The root private key stays inside this environment and is not an application mount."

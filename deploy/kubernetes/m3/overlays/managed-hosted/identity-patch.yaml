@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m3-identity-broker
+spec:
+  template:
+    spec:
+      serviceAccountName: m3-identity-broker
+      automountServiceAccountToken: true
+      containers:
+        - name: runtime
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PPL_RUNTIME_PROFILE
+              value: managed-hosted
+            - name: PPL_ENVIRONMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-managed-environment
+                  key: environmentId
+            - name: PPL_SECURITY_STATE_PATH
+              value: /var/lib/public-purpose-lab/managed-issuer.sqlite
+            - name: PPL_TRUST_BUNDLE_PATH
+              value: /run/trust/ppl-identity/trust-bundle.json
+            - name: PPL_MANAGED_IDENTITY_CONFIGURATION_PATH
+              value: /run/secrets/ppl-identity/identity-configuration.json
+            - name: PPL_KMS_ISSUER_KEY_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-managed-environment
+                  key: kmsIssuerKeyVersion
+            - name: PPL_GCP_PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: ppl-m3-managed-environment
+                  key: projectId
+          volumeMounts:
+            - name: identity-public
+              mountPath: /run/trust/ppl-identity
+              readOnly: true
+            - name: identity-configuration
+              mountPath: /run/secrets/ppl-identity
+              readOnly: true
+      volumes:
+        - $patch: replace
+        - name: state
+          persistentVolumeClaim:
+            claimName: m3-identity-state
+        - name: identity-public
+          secret:
+            secretName: ppl-m3-managed-identity
+            items:
+              - key: trust-bundle.json
+                path: trust-bundle.json
+            defaultMode: 0440
+        - name: identity-configuration
+          secret:
+            secretName: ppl-m3-managed-identity
+            items:
+              - key: identity-configuration.json
+                path: identity-configuration.json
+            defaultMode: 0440
+        - name: nkey
+          secret:
+            secretName: ppl-m3-identity-nkey
+            defaultMode: 0440
+        - name: root-ca
+          secret:
+            secretName: ppl-m3-root-ca
+            defaultMode: 0444
+        - name: temporary
+          emptyDir: {}
