@@ -1,10 +1,10 @@
 # M3.3 runtime-binding threat extension
 
-Status: Accepted M3.3 runtime-binding threat baseline; local implementation evidence recorded, hosted closure pending
+Status: Accepted M3.3 runtime-binding threat baseline; bounded implementation evidence completed
 
-Version: 0.1.0
+Version: 0.2.0
 
-Last reviewed: 27 August 2026
+Last reviewed: 28 August 2026
 
 Extends:
 [M3 Scenario Director threat model](m3-threat-model.md) and
@@ -24,10 +24,11 @@ It also covers the deliberately narrow private Google Cloud application smoke:
 the same image is deployed without ingress and must fail interactive readiness
 while managed trust is absent.
 
-This document does not accept those controls as implemented. It does not
-qualify managed trust, Google presenter login, hosted workload identity,
-synthetic application sessions, shared access, high availability, backup and
-restore, real data or production security. Those remain M3.4 or later gates.
+The linked evidence record closes these controls only for the bounded M3.3
+profiles. It does not qualify managed trust, Google presenter login, hosted
+workload identity, synthetic application sessions, shared access, high
+availability, backup and restore, real data or production security. Those
+remain M3.4 or later gates.
 
 ## New and refined trust boundaries
 
@@ -125,13 +126,15 @@ reconnect/restart cases and a functional hosted event/presentation path.
 
 ## Residual risk and review point
 
-The largest residual risks after this proposal are implementation-specific:
+The largest residual risks after the M3.3 evidence cycle are
+implementation-specific:
 canonicalisation library correctness, database/filesystem crash behaviour,
 profile downgrade, shared-image dependency compromise, browser session
-construction, NATS TLS/NKey generation and hosted managed identity. They remain
-open until executable evidence exists.
+construction, NATS TLS/NKey generation and hosted managed identity. The bounded
+M3.3 cases are evidenced; broader and higher-assurance cases remain open for
+M3.4 or later.
 
-Review this extension after M3.3.1 schemas/package tests and again before the
-private hosted application smoke. Any proposal to expose an endpoint, enable a
-synthetic root in Google Cloud or run an interactive hosted session is a scope
-change and must wait for M3.4 approval.
+This extension was reviewed after the schema/package tests and private hosted
+application smoke. Any proposal to expose an endpoint, enable a synthetic root
+in Google Cloud or run an interactive hosted session is a scope change and must
+wait for M3.4 approval.

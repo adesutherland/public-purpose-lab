@@ -1,10 +1,10 @@
 # M3.3 runtime walking-skeleton baseline
 
-Status: Accepted design; implementation baseline built, final M3.3 evidence pending
+Status: Accepted design; M3.3 implementation and bounded evidence completed
 
-Version: 0.2.0
+Version: 0.3.0
 
-Last reviewed: 27 August 2026
+Last reviewed: 28 August 2026
 
 Decision authority: Public Purpose Lab founders
 
@@ -32,15 +32,16 @@ The founders accepted four implementation-binding decisions on 27 August 2026:
 | [ADR-0019](decisions/0019-bind-m3-controlled-time-reset-and-faults-to-bounded-runtime-adapters.md)        | Non-adjustable operational time, manually advanced scenario time, semantic component-owned reset and one-shot allow-listed faults.                  | Exercises the accepted control boundary without exposing arbitrary clock, database, script or platform administration.                  |
 | [ADR-0020](decisions/0020-use-one-application-image-with-separate-director-and-presentation-workloads.md) | One Rust/frontend application image run in separate Director and Presentation Gateway modes, plus NATS JetStream.                                   | Reuses one artifact while retaining distinct state, broker permissions, failure and restart boundaries.                                 |
 
-This acceptance establishes those choices as the current M3.3 implementation
-baseline. It does not approve code by implication, close M3.3 or permit a
-shared hosted demonstration.
+This acceptance established those choices as the current M3.3 implementation
+baseline. It did not approve code by implication or permit a shared hosted
+demonstration.
 
 The first implementation now exists in the repository. Native, independent OCI
 Compose and Minikube assurance runs exercise the positive path, bounded fault,
-restart and reset behaviour. M3.3 remains open until the reviewed source is
-published as an immutable image and that exact digest completes the private
-hosted gates listed under acceptance evidence.
+restart and reset behaviour. The reviewed source was published as an immutable
+image, and that exact digest completed the ingress-free private-hosted gates
+listed under acceptance evidence on 28 August 2026. This closes M3.3 only at
+its stated synthetic, in-development maturity.
 
 ## Outcome and claim boundary
 
