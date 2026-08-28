@@ -14,6 +14,7 @@ spec:
             - name: PPL_RUNTIME_PROFILE
               value: managed-hosted
             - name: PPL_ALLOWED_ORIGIN
+              value: null
               valueFrom:
                 configMapKeyRef:
                   name: ppl-m3-managed-environment

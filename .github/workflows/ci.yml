@@ -44,6 +44,13 @@ jobs:
           kubectl kustomize deploy/kubernetes/base > /tmp/public-purpose-lab.yaml
           kubectl kustomize deploy/kubernetes/m3/base > /tmp/public-purpose-lab-m3-local.yaml
           kubectl kustomize deploy/kubernetes/m3/overlays/managed-hosted > /tmp/public-purpose-lab-m3-managed.yaml
+          if grep -A1 'name: PPL_ALLOWED_ORIGIN' /tmp/public-purpose-lab-m3-managed.yaml \
+            | grep -Eq 'value: http://127\.0\.0\.1:1808[12]'; then
+            echo 'Managed web origins retained a local development value.' >&2
+            exit 1
+          fi
+          test "$(grep -Ec 'key: (directorOrigin|presentationOrigin)' \
+            /tmp/public-purpose-lab-m3-managed.yaml)" -eq 2
 
       - name: Build framework-host container
         run: docker build --file deploy/containers/framework-host.Containerfile --tag ppl-framework-host:test .
