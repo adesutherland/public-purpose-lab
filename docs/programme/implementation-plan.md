@@ -2,7 +2,7 @@
 
 Status: Working draft
 
-Last reviewed: 28 August 2026
+Last reviewed: 31 August 2026
 
 Decision authority: Public Purpose Lab founders
 
@@ -23,6 +23,14 @@ the best-known current baseline. Normal iterative development is expected to
 refine it. Revisions remain explicit, versioned and evidence-led; the existence
 of a baseline neither freezes a mechanism nor permits an enduring security or
 authority invariant to change silently.
+
+The founders re-baselined the delivery sequence on 31 August 2026 after
+reviewing the balance between enabling foundations and visible business value.
+The next primary milestone is therefore one deliberately narrow
+source-to-report path. It crosses source handling, retrieval, human review and
+reporting rather than completing each logical component in isolation. Further
+foundation work must identify the behaviour, risk or evidence required by that
+path or by a recorded adverse case.
 
 ## Current baseline
 
@@ -61,11 +69,17 @@ are limited security and delivery evidence, not general persistence
 capabilities. A source package, working contract or container is not evidence
 beyond its stated maturity and conformance profile.
 
+This is a useful but foundation-heavy baseline. It does not yet demonstrate the
+Lab's central proposition: turning governed sources into a source-backed,
+human-reviewed output. M4 now supplies that value path before the architecture
+is expanded further.
+
 ## Delivery principles
 
-1. **Prove one complete business path.** Delivery remains anchored to charity
-   systems discovery and reporting, with policy and guidance drift as the
-   second initial demonstration.
+1. **Prove one complete business path.** The next primary delivery path runs
+   from a bounded charity engagement and governed sources through retrieval,
+   human review and one evidence-linked report element. Policy and guidance
+   drift remains the second initial demonstration.
 2. **Stabilise contracts before dependent behaviour.** Documentation and
    implementation may proceed in parallel, but code must not embed an
    unreviewed trust, authority or interoperability decision.
@@ -97,6 +111,9 @@ beyond its stated maturity and conformance profile.
 11. **Return evidence to the blueprint.** Demonstrator findings, limitations
     and operating evidence are fed back to Architecture Portal without
     overstating adoption or maturity.
+12. **Do not complete foundations in isolation.** A new component, contract,
+    service or platform capability must identify the active business-path
+    behaviour or adverse case that needs it. Otherwise it remains deferred.
 
 ## Parallel delivery model
 
@@ -109,10 +126,11 @@ Four coordinated streams run through every milestone:
 | Demonstration and evidence | Extend scenario fixtures, checkpoints, adverse cases, reports and the evidence pack.                                                 |
 | Security and operation     | Provide identity, authority, audit, health, diagnostics, persistence, recovery and supply-chain evidence proportionate to the slice. |
 
-Architecture may run one milestone ahead to reduce idle time. Implementation
-may establish a package boundary or test harness early, but behaviour that
-depends on a material decision waits for its contract and ADR. A milestone is
-complete only when all four streams satisfy its exit gate.
+Architecture may run one contract step ahead within the active business slice
+to reduce idle time; it does not complete a whole future component milestone in
+advance. Implementation may establish a package boundary or test harness early,
+but behaviour that depends on a material decision waits for its contract and
+ADR. A milestone is complete only when all four streams satisfy its exit gate.
 
 ## Foundational security-model gate
 
@@ -337,8 +355,9 @@ fail-closed. `I-001` remains contract-complete but operationally unbound.
 
 ### M3 — Scenario Director and presentation control
 
-Status: In progress — M3.1 to M3.4 complete at their stated maturity; M3.5 is
-the active demonstration-evidence slice
+Status: M3.1 to M3.4 complete at their stated maturity; M3.5 is a bounded
+operational-closure activity that may run in parallel with the active M4 value
+slice
 
 Outcome: A repeatable synthetic scenario controls presentation through semantic
 events and authenticated surface bindings rather than fragile browser routes.
@@ -458,10 +477,13 @@ Delivery sequence:
    [managed-hosted evidence](../architecture/evidence/m3-4-managed-hosted-identity-and-resilience.md)
    passed live Google, exact workload/KMS, HTTPS, role-map refusal,
    restart/successor, expiry-arming and conclusive teardown gates.
-5. **M3.5 — demonstration evidence:** run the repeatable local and Minikube
-   scenario and one scheduled, automatically expiring hosted preview; record
-   limitations, gross usage, credits, net cost and teardown evidence for
-   founder review.
+5. **M3.5 — bounded operational closure:** run the remaining scheduled,
+   automatically expiring hosted-preview case and complete any delayed cost
+   read-back needed to close the M3 evidence record. Existing local, Minikube
+   and hosted evidence is reused where source and runtime inputs are unchanged.
+   This work may proceed in parallel with M4 and does not gate source-to-report
+   delivery unless it exposes a defect in a shared security, identity, event or
+   recovery invariant.
 
 The accepted
 [M3.3 runtime walking-skeleton baseline](../architecture/m3-3-runtime-walking-skeleton-baseline.md)
@@ -471,7 +493,8 @@ implementation against this baseline. The repository now contains that
 implementation plus native, independent OCI Compose, Minikube and exact-image
 private Google Cloud evidence. The accepted gates are conclusive for the
 synthetic-only, in-development M3.3 claim. M3.4 has closed its authority and
-security gate at the same bounded development maturity; M3.5 is active.
+security gate at the same bounded development maturity. M4 is now the primary
+delivery milestone; M3.5 remains a bounded evidence-closure activity.
 
 M3.1 is closed as an accepted logical baseline. M3.2 accepts NATS JetStream,
 Google OIDC, the backend-mediated SSE/POST surface channel and the ephemeral GKE
@@ -489,7 +512,8 @@ observed. M3.3 additionally evidenced exact-image application deployment,
 expected fail-closed hosted behaviour and conclusive teardown. M3.4 then
 evidenced managed trust, managed presenter/workload binding, synthetic
 application sign-in, restart and conclusive teardown in the shared preview.
-Automatic-expiry execution remains an M3.5 evidence case.
+Automatic-expiry execution remains an M3.5 evidence case, not a reason to delay
+the first source-to-report value path.
 
 ### Hosted-preview scheduling and cost boundary
 
@@ -542,88 +566,148 @@ narrow managed root and operator/presenter binding do not qualify those broader
 capabilities. They remain in later milestones or require separately qualified
 bindings.
 
-### M4 — Governed source and evidence workbench
+### M4 — Source-to-Report Value Slice
 
-Status: Planned
+Status: Active — approved by the founders on 31 August 2026
 
-Outcome: A practitioner can establish a synthetic engagement, register or
-acquire sources, stage an approved version and obtain a bounded cited evidence
-packet.
+Outcome: A practitioner can create one bounded synthetic charity engagement,
+govern two controlled source assets, obtain a cited answer that exposes a
+conflict or gap, review one proposed finding and release one evidence-linked
+report element.
 
-Contract and architecture deliverables:
+This is the first user-visible business-value milestone. It deliberately
+crosses engagement, source, knowledge, work and report responsibilities rather
+than treating each as a separately completed foundation. Logical ownership
+remains explicit, but physical services, stores and complete contract families
+are added only where the working path demonstrates a need.
 
-- specify `DOM-01` and approve `E-001` for the minimum engagement record;
-- specify `CNT-01` and approve `A-001` and `A-002`;
-- specify `KNO-01` and approve `K-001` and `K-002`;
-- specify the required `UX-02` Workbench responsibilities;
-- specify the bounded `AIO-01` and `ADP-01` responsibilities used by this slice;
-  and
-- record ADRs for owned metadata, content storage, quarantine, retrieval
-  binding and AI/provider use.
+Business acceptance example:
+
+> Given two controlled synthetic sources describing a charity's systems and
+> reporting flow, show which systems hold information needed for reporting,
+> identify at least one conflict, gap or unknown, allow a named synthetic
+> reviewer to accept, amend or reject a proposed finding, and produce one report
+> element whose sources, processing, limitations and release authority can be
+> inspected.
+
+Minimum contract and architecture work:
+
+- define only the engagement, asset-version, staging, evidence-packet,
+  finding-review and report-element semantics needed by the acceptance example;
+- implement the minimum slices of `DOM-01`, `CNT-01`, `KNO-01`, `WRK-01`,
+  `RPT-01`, `AUD-01`, `UX-02`, `AIO-01` and `ADP-01` required by the path,
+  without claiming their full future scope;
+- map source authority, interpretation authority, action authority and
+  technical evidence at every transition;
+- extend the threat model for untrusted content, malicious instructions,
+  unauthorised staging, evidence loss, generated overclaim and report release;
+- record material storage, retrieval, provider and report-rendering choices as
+  ADRs when the slice selects them; and
+- retain the existing security, identity, event and evidence invariants, while
+  revising their mechanisms when business-path evidence justifies it.
 
 Implementation deliverables:
 
-- bounded engagement, purpose and authority records;
-- source link/upload, acquisition, validation, classification, rights,
-  immutable version and staging state;
-- quarantine and explicit reviewer release into knowledge processing;
-- replaceable knowledge-ingestion and query interfaces;
-- qualification of `crexx-rag` as the preferred first retrieval component,
-  without making it the asset register, system of record or policy authority;
-- cited passages, claims, relationships, conflicts, gaps and uncertainty; and
-- Workbench views for assets, staging, query and evidence review.
+- one bounded engagement with purpose, participants, authority and status;
+- two small versioned synthetic source assets with ownership, rights,
+  provenance, classification and staging state;
+- Workbench views for engagement context, source registration or acquisition,
+  staging, query, proposed finding, human review and report preview;
+- quarantine, validation and explicit reviewer release before knowledge
+  processing;
+- a replaceable knowledge-ingestion and query interface with `crexx-rag` as the
+  first component to qualify, without making it the asset register, system of
+  record, policy authority or report releaser;
+- a bounded source-backed query returning cited passages, provenance,
+  uncertainty and at least one visible conflict, gap or unknown;
+- one proposed finding that remains distinct from source evidence and cannot
+  become accepted without a named authorised review action;
+- one versioned report element with an evidence manifest, limitations and
+  accountable preview/release state;
+- minimum append-oriented evidence covering acquisition, staging, ingestion,
+  query, finding review and report release; and
+- Director checkpoints for business progress plus one contained malicious,
+  malformed, unsupported or insufficient-evidence case.
+
+Delivery sequence:
+
+1. **M4.1 — engagement and governed sources:** make the acceptance engagement
+   and its two sources visible in the Workbench, including provenance,
+   classification, validation and staging decisions.
+2. **M4.2 — ingestion and cited query:** connect the staged sources through the
+   replaceable knowledge interface, qualify the first `crexx-rag` path and
+   return cited evidence with a visible conflict, gap or unknown.
+3. **M4.3 — accountable finding and report element:** add the named human
+   review action and produce a versioned report element with evidence manifest,
+   limitations and explicit release authority.
+4. **M4.4 — replay and adverse evidence:** run the complete path through the
+   Director from deterministic reset, contain one adverse source or evidence
+   case and publish the bounded demonstration evidence pack.
+
+Sub-slices must leave a working increment, but M4 is not complete until the
+report element is inspectable end to end. A contract, ingestion result or UI
+screen alone is not the milestone outcome.
 
 Exit evidence:
 
-- the lifecycle `register → acquire → validate → version → stage → retrieve →
-review` is demonstrated;
-- malformed, unauthorised or unsupported material is contained and explained;
-- retrieval is limited to approved staged versions;
-- every returned claim points to retained source evidence and processing
-  provenance;
-- conflicting or missing evidence remains visible; and
-- provider identity, model/configuration, resource use, failure and abstention
-  are recorded where AI is used.
+- the lifecycle `engage → register → acquire → validate → version → stage →
+retrieve → propose → review → report` is demonstrated locally;
+- retrieval uses only approved staged versions and every returned claim points
+  to retained source evidence and processing provenance;
+- conflicting, missing or insufficient evidence remains visible rather than
+  being normalised into false certainty;
+- the proposed finding cannot become accepted and the report element cannot be
+  released without the authorised human action;
+- the released element states its limitations and can be traced through source,
+  processing, provider and decision evidence;
+- provider identity, model or configuration, resource use, failure and
+  abstention are recorded where AI is used; and
+- the path can be reset and replayed without silently duplicating accepted work
+  or turning presentation progress into business completion.
 
-### M5 — Accountable work, rules and reports
+### M5 — Expand discovery, drift, work and reporting
 
-Status: Planned
+Status: Planned — follows evidence from the M4 value slice
 
-Outcome: Proposed findings move through accountable human work into a versioned,
-evidence-linked report element and guidance-drift report.
+Outcome: Extend the proven source-to-report path into policy and guidance drift,
+richer accountable work, explicit rules and the initial report and
+visualisation set.
 
 Contract and architecture deliverables:
 
-- specify `WRK-01` and approve `W-001`;
-- specify `RUL-01` and approve `R-001`;
-- specify `RPT-01` and approve `RP-001` to `RP-004`;
-- specify `AUD-01` and `ANA-01` and approve `AU-001`, `AN-001` and `AN-002`;
-- complete the `AI-001` and `X-001` bindings required by the slice; and
-- record any cREXX runtime, workflow, report rendering, diagram or analytical
-  representation decisions as ADRs.
+- expand `DOM-01`, `CNT-01`, `KNO-01`, `WRK-01`, `RPT-01`, `AUD-01` and
+  `ANA-01` only where M4 evidence identifies missing responsibilities or
+  interoperability needs;
+- specify `RUL-01` and the additional work, report, audit, analytics, AI and
+  adapter contracts required by the guidance-drift path;
+- decide whether Open BPM, cREXX, diagram rendering or analytical tooling adds
+  demonstrated value before selecting a binding; and
+- record resulting material workflow, rule, report, diagram and projection
+  choices as ADRs.
 
 Implementation deliverables:
 
-- durable work ownership, review, approval, rejection, escalation and history;
-- explicit separation of generated claims, accepted findings and released
-  outputs;
+- two controlled policy or guidance versions with material-change and
+  possible-impact review;
+- durable work ownership, queues, review, approval, rejection, escalation and
+  recoverable history in proportion to the demonstrated path;
 - bounded versioned rule or transformation execution with explanations;
-- cREXX integration where its inspected value justifies it, without delaying a
+- cREXX integration where inspected value justifies it, without delaying a
   simpler first rule path;
-- report preview, accountable release, correction and retraction states;
-- relationship graph, analytical view and declarative diagram artifacts;
+- richer report preview, release, correction and retraction states;
+- relationship graph, analytical view and declarative diagram artifacts where
+  they help answer the scenario question;
 - append-oriented audit reconstruction and reproducible projections; and
-- charity discovery and policy-drift demonstration reports.
+- the charity discovery report and human-reviewed guidance-drift impact report.
 
 Exit evidence:
 
-- a source-backed proposed finding cannot become accepted without authorised
-  human action;
+- the M4 evidence chain remains intact as the scope expands;
 - retrieved prose cannot silently become active policy or operational logic;
 - every report element traces to sources, processing, rules and decisions;
 - repeated, refused, failed and partially completed work remains recoverable;
 - report limitations and authority are visible; and
-- the Demonstration Evidence Pack reconstructs the complete path.
+- the Demonstration Evidence Pack reconstructs the complete expanded path.
 
 ### M6 — Initial-roadmap operational qualification
 
@@ -667,6 +751,7 @@ Exit evidence:
 
 Every milestone records:
 
+- the business question answered and the user-visible output produced;
 - accepted component and contract versions;
 - ADRs and unresolved decisions;
 - executable examples and negative fixtures;
@@ -709,3 +794,7 @@ Component and contract details follow the acceptance process in the logical
 architecture. Implementation maturity is recorded separately from document
 approval so that an accepted design cannot be mistaken for a delivered
 capability.
+
+The founders approved the Source-to-Report re-baseline on 31 August 2026. It
+changes delivery order, not the roadmap's authority, privacy, security or
+compliance boundaries.

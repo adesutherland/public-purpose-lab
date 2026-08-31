@@ -109,6 +109,9 @@ the scheduled expiry callback remains an M3.5 evidence case.
 ## Result
 
 The local and managed-hosted records together close M3.4 at the accepted
-development maturity. M3.5 is the next programme slice: demonstrate the
-repeatable business-facing scenario and its evidence without treating this
-technical assurance result as production, compliance or legal authority.
+development maturity. Following the founder-approved programme re-baseline on
+31 August 2026, M3.5 remains a bounded automatic-expiry and cost-evidence
+closure activity that may run in parallel. The M4 Source-to-Report Value Slice
+is the primary business-facing delivery milestone; neither this technical
+assurance result nor the later business demonstration constitutes production,
+compliance or legal authority.

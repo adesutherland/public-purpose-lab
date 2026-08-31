@@ -14,7 +14,9 @@ architecture and delivery material.
   copy of the agreed roadmap.
 - [Initial implementation plan](implementation-plan.md) - the working,
   milestone-based delivery sequence, dependencies and evidence gates for the
-  initial roadmap. It is not a dated task backlog.
+  initial roadmap. Its active primary milestone is the Source-to-Report Value
+  Slice; bounded M3 operational closure may proceed in parallel. It is not a
+  dated task backlog.
 - [Vision and mission](../../VISION.md) - the enduring purpose and ambition of
   the Lab.
 - [Demonstrator briefs](../scenarios/README.md) - the scenarios through which
