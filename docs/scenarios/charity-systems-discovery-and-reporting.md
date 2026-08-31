@@ -1,6 +1,8 @@
 # Charity systems discovery and reporting
 
-Status: founding demonstrator
+Status: active founding demonstrator
+
+Delivery focus: approved Source-to-Report Value Slice, 31 August 2026
 
 ## Problem
 
@@ -10,10 +12,11 @@ information lives, reconciling inconsistent records, and assembling reports.
 
 ## Demonstration
 
-Using an entirely synthetic organisation and data, show how interview notes,
-system inventories, and sample exports can become a reviewable system map; how
-replaceable adapters can ingest and reconcile records; and how an
-evidence-linked report can be produced under explicit privacy and disclosure
+Using an entirely synthetic organisation and data, show how two controlled,
+partly conflicting sources such as interview notes and a system inventory can
+become a reviewable system map; how replaceable adapters can ingest and
+reconcile evidence without hiding uncertainty; and how an evidence-linked
+report element can be released under explicit privacy, authority and disclosure
 rules.
 
 ## Questions to answer
@@ -27,13 +30,21 @@ rules.
 
 ## Minimum end-to-end slice
 
-1. Load one versioned synthetic source through a replaceable adapter.
-2. Validate and map it without discarding conflicts or provenance.
-3. Apply one explicit privacy, disclosure, or transformation decision.
-4. Emit a correlated domain event and update independently owned state.
-5. Require one meaningful human review or approval.
-6. Produce one report element with an inspectable evidence chain.
-7. Replay the scenario from a deterministic reset.
+1. Establish one bounded engagement with stated purpose, participants and
+   authority.
+2. Register or acquire two small versioned synthetic sources with ownership,
+   rights, provenance and classification.
+3. Validate and stage the approved versions without discarding conflicts or
+   uncertainty.
+4. Ingest the staged sources through a replaceable knowledge interface and ask
+   one bounded source-backed question.
+5. Return cited evidence that exposes at least one conflict, gap or unknown.
+6. Create one proposed finding and require a named synthetic reviewer to accept,
+   amend or reject it.
+7. Produce one versioned report element with an inspectable evidence manifest,
+   limitations and explicit release authority.
+8. Replay the scenario from deterministic reset and contain one adverse source
+   or insufficient-evidence case.
 
 ## Adversarial cases
 
