@@ -1,6 +1,6 @@
 # Gate A component mesh
 
-Status: Implemented; founder acceptance and publication pending
+Status: Accepted and closed on 1 September 2026
 
 Date: 1 September 2026
 

@@ -399,7 +399,7 @@ def render(source: Path, output: Path) -> None:
         bottomMargin=bottom,
         title="Gate A component mesh - progress and show-and-tell",
         author="Public Purpose Lab",
-        subject="Synthetic development evidence; founder acceptance pending",
+        subject="Synthetic development evidence and show-and-tell",
     )
 
     def decorate(canvas, doc):

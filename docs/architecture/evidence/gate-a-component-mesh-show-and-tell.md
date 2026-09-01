@@ -4,7 +4,7 @@
 
 | Evidence field        | Recorded value                                                            |
 | --------------------- | ------------------------------------------------------------------------- |
-| Status                | Implemented; founder acceptance and publication pending                   |
+| Status                | Closed; founder accepted and authorised publication on 1 September 2026   |
 | Walkthrough           | 1 September 2026, local synthetic Minikube environment                    |
 | Source revision       | `82d5ff3f27f61a04ad045899c838f20e2d9e258e`                                |
 | Image digest          | `sha256:b71786a0ad7fb59186ef9c58d53915a1cb5178de69b277fb9f445d1dd4b66639` |
@@ -13,7 +13,7 @@
 | Trust profile         | Environment-local synthetic root; synthetic data only                     |
 | Canonical requirement | `docs/scenarios/demonstration-scenarios-and-functional-requirements.md`   |
 
-> Gate A is implemented and ready for founder review. This report does not close the gate, make a production claim or establish legal, regulatory, clinical or compliance assurance.
+> Gate A was accepted and closed by the founder on 1 September 2026. Closure accepts the bounded component-mesh evidence; it does not make a production claim or establish legal, regulatory, clinical or compliance assurance.
 
 ## Outcome at a glance
 
@@ -34,7 +34,7 @@ The approved Gate A objective was to deploy all required skeleton instances, aut
 | Broker and component restart recover safely               | NATS and all nine component hosts were restarted; post-restart smoke passed             | Achieved            |
 | Existing surfaces remain usable                           | Director, Presentation and Workbench were opened from the same image                    | Achieved            |
 | Screenshot-backed report and verified PDF                 | This canonical report, its six screenshots and its rendered PDF                         | Achieved for review |
-| Founder accepts the implemented flow                      | Explicit review decision has not yet been recorded                                      | Pending             |
+| Founder accepts the implemented flow                      | Founder accepted closure and publication on 1 September 2026                            | Achieved            |
 
 ## What existed before Gate A
 
@@ -190,14 +190,14 @@ This is positive fail-closed security evidence, but it also exposes an operator-
 - `O-001` v0.1.0 is a working binding and may change when later flows supply better evidence.
 - Missing and stale states are implemented, but the founder walkthrough concentrated on ready, outcome and restart recovery rather than a screenshot of every adverse display state.
 - Gate A was exercised in a dedicated local Minikube profile. Compose is represented in CI but was not run through a local Docker daemon, and the Gate A extension was not deployed to Google Cloud.
-- The branch and evidence are local. Hosted CI, pull-request review and publication remain pending founder approval.
+- Publication was authorised after founder review. Hosted CI and pull-request evidence belong to the repository publication record rather than this local system-test walkthrough.
 - No real or confidential data was used. The evidence does not establish production fitness, privacy compliance or accountable business authority.
 
 ## What Gate A establishes
 
 Gate A establishes a concrete, observable platform shape on which real scenarios can now be built: all named components exist as separately authenticated workloads; they can exchange bounded events; the Operations Console reports what was actually observed; and the inherited presentation-control skeleton remains available.
 
-It does not establish the value path the founders ultimately want. There is still no real scenario catalogue, no visible placement of a synthetic reviewer into Workbench, no source upload, no processing, no cited query, no human review and no report. Gate A should therefore be accepted as a mesh gate, not as business-value completion.
+It does not establish the value path the founders ultimately want. There is still no real scenario catalogue, no visible placement of a synthetic reviewer into Workbench, no source upload, no processing, no cited query, no human review and no report. Gate A was accepted as a mesh gate, not as business-value completion.
 
 <!-- topspace -->
 
