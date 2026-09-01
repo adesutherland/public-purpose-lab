@@ -573,16 +573,19 @@ bindings.
 
 ### M4 — Source-to-Report Value Slice
 
-Status: Gate A accepted and closed; Gate B active — detailed functional
-baseline approved by the founders on 1 September 2026
+Status: Gate A accepted and closed; Gate B implementation complete with visual
+closure evidence and founder acceptance pending — detailed functional baseline
+approved by the founders on 1 September 2026
 
 The founders approved the six-scenario catalogue direction on 31 August 2026
 and its detailed functional baseline on 1 September 2026. The
 [demonstration scenarios and functional requirements](../scenarios/demonstration-scenarios-and-functional-requirements.md)
 defines the screens, user actions, deployed component mesh, event behaviour and
-acceptance evidence. Gate A now establishes the deployed, authenticated and
-observable component mesh; later functional behaviour remains gated by the
-approved sequence.
+acceptance evidence. Gate A establishes the deployed, authenticated and
+observable component mesh. Gate B now implements DS-01 and DS-02 as a review
+candidate; it remains open until its exact-build visual evidence, PDF and
+founder acceptance are complete. Later functional behaviour remains gated by
+the approved sequence.
 
 Outcome: A practitioner can create one bounded synthetic charity engagement,
 govern two controlled source assets, obtain a cited answer that exposes a

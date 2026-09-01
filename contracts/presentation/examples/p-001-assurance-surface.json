@@ -2,17 +2,32 @@
   "contractId": "P-001",
   "contractVersion": "1.0.0",
   "manifestId": "assurance-presentation-surface",
-  "manifestVersion": "1.0.0",
+  "manifestVersion": "1.2.0",
   "applicationId": "presentation-gateway",
-  "applicationRelease": "0.1.0",
+  "applicationRelease": "0.2.1",
   "surfaceRoles": ["audience-display", "reviewer-workbench"],
   "views": [
     {
-      "viewId": "assurance-welcome",
+      "viewId": "pres-intro",
+      "viewVersion": "1.0.0",
+      "contextKeys": ["heading", "message", "synthetic-reference"]
+    },
+    {
+      "viewId": "pres-progress",
+      "viewVersion": "1.0.0",
+      "contextKeys": ["heading", "message", "synthetic-reference"]
+    },
+    {
+      "viewId": "wb-engagement",
+      "viewVersion": "1.0.0",
+      "contextKeys": ["heading", "message", "synthetic-reference"]
+    },
+    {
+      "viewId": "wb-source-intake",
       "viewVersion": "1.0.0",
       "contextKeys": ["heading", "message", "synthetic-reference"]
     }
   ],
   "informationProfiles": ["synthetic-only"],
-  "releasedAt": "2026-08-27T12:00:00Z"
+  "releasedAt": "2026-09-01T11:00:00Z"
 }

@@ -15,8 +15,9 @@ use axum::{
 use futures_util::StreamExt;
 use ppl_contracts::{
     CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus, PresentationCapabilityManifest,
-    PresentationCue, PresentationCueOutcome, PresentationRegistration, ScenarioControlCommand,
-    ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState, SyntheticSessionStatus,
+    PresentationCue, PresentationCueOutcome, PresentationOutcomeResult, PresentationRegistration,
+    ScenarioControlCommand, ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState,
+    SyntheticSessionStatus,
 };
 use ppl_ctl_01::{DirectorError, DirectorRuntime};
 use ppl_ctl_02::{PresentationError, PresentationRuntime};
@@ -45,7 +46,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 
 const PACKAGE_ID: &str = "presentation-control-assurance";
-const PACKAGE_VERSION: &str = "1.1.0";
+const PACKAGE_VERSION: &str = "1.2.0";
 const MANIFEST_JSON: &str =
     include_str!("../../../../contracts/presentation/examples/p-001-assurance-surface.json");
 
@@ -667,6 +668,67 @@ fn spawn_gate_a_readiness(config: &AppConfig, broker: Broker) {
     });
 }
 
+struct GateBEvent<'a> {
+    event_type: &'a str,
+    status: &'a str,
+    command_name: Option<&'a str>,
+    correlation_id: Option<&'a str>,
+    causation_id: Option<&'a str>,
+    reason_code: Option<&'a str>,
+}
+
+async fn publish_gate_b_event(
+    config: &AppConfig,
+    broker: Option<&Broker>,
+    details: GateBEvent<'_>,
+) {
+    let (Some(broker), Some(instance)) = (broker, config.gate_a_readiness.as_ref()) else {
+        return;
+    };
+    let (component_id, component_name, capability) = match config.mode {
+        WorkloadMode::ScenarioDirector => (
+            "CTL-01",
+            "scenario-director",
+            "scenario lifecycle and presentation orchestration",
+        ),
+        WorkloadMode::PresentationGateway => (
+            "CTL-02",
+            "presentation-gateway",
+            "target-owned semantic presentation",
+        ),
+        WorkloadMode::IdentityBroker => (
+            "IAM-01",
+            "identity-broker",
+            "environment-scoped synthetic identity",
+        ),
+    };
+    let event = OperationalEvent {
+        contract_id: "O-001".to_owned(),
+        contract_version: O001_VERSION.to_owned(),
+        event_id: format!("event:{}", Uuid::new_v4()),
+        event_type: details.event_type.to_owned(),
+        component_id: component_id.to_owned(),
+        component_name: component_name.to_owned(),
+        instance_id: instance.instance_id.clone(),
+        workload_identity: instance.workload_identity.clone(),
+        environment_id: config.environment_id.clone(),
+        status: details.status.to_owned(),
+        capability: capability.to_owned(),
+        source_revision: config.source_revision.clone(),
+        image_digest: config.image_digest.clone(),
+        occurred_at: now_string().unwrap_or_else(|_| "time-unavailable".to_owned()),
+        information_profile: "synthetic-only".to_owned(),
+        command_name: details.command_name.map(str::to_owned),
+        correlation_id: details.correlation_id.map(str::to_owned),
+        causation_id: details.causation_id.map(str::to_owned),
+        idempotency_key: None,
+        reason_code: details.reason_code.map(str::to_owned),
+    };
+    if let Err(error) = broker.publish_operational_event(&event).await {
+        warn!(reason = %error, event_type = details.event_type, "Gate B operational event was not published");
+    }
+}
+
 fn validate_managed_web_binding(allowed_origin: &str, redirect_uri: &str) -> Result<(), AppError> {
     let parsed = url::Url::parse(allowed_origin)
         .map_err(|_| AppError::configuration("managed-origin-invalid"))?;
@@ -795,6 +857,7 @@ fn director_router(state: DirectorState) -> Router {
         .route("/health/contracts", get(director_contracts))
         .route("/api/v1/development-session", post(director_login))
         .route("/api/v1/login-mode", get(director_login_mode))
+        .route("/api/v1/environment", get(director_environment))
         .route("/auth/google/start", get(director_oidc_start))
         .route("/auth/google/callback", get(director_oidc_callback))
         .route("/api/v1/session-context", get(director_session_context))
@@ -906,7 +969,7 @@ async fn gateway_contracts(State(state): State<GatewayState>) -> Json<Value> {
         "contracts": ["P-001", "P-002", "P-003", "P-004"],
         "identityContracts": ["I-001", "I-004", "I-005"],
         "manifestId": "assurance-presentation-surface",
-        "manifestVersion": "1.0.0",
+        "manifestVersion": "1.2.0",
         "manifestDigest": state.manifest_digest,
         "sourceRevision": state.config.source_revision,
         "imageDigest": state.config.image_digest,
@@ -1380,6 +1443,79 @@ async fn director_session_context(
     })))
 }
 
+async fn director_environment(
+    State(state): State<DirectorState>,
+    headers: HeaderMap,
+) -> Result<Json<Value>, AppError> {
+    authorise_read(&state.config, &state.sessions, &headers)?;
+    let control_path = if state.broker.is_some() {
+        "ready"
+    } else {
+        "unavailable"
+    };
+    let (trust_profile, trust_description) = match state.config.profile {
+        RuntimeProfile::NativeDevelopment
+        | RuntimeProfile::LocalContainers
+        | RuntimeProfile::Minikube => (
+            "environment-local-synthetic-root",
+            "Synthetic trust is generated for and valid only inside this environment.",
+        ),
+        RuntimeProfile::PrivateHostedSmoke | RuntimeProfile::ManagedHosted => (
+            "managed-real-root",
+            "Hosted trust uses the environment's managed non-synthetic root binding.",
+        ),
+    };
+    let surface_url = |variable: &str, default: &str| {
+        env::var(variable).ok().or_else(|| {
+            state
+                .config
+                .profile
+                .local_test_identity()
+                .then(|| default.to_owned())
+        })
+    };
+    Ok(Json(serde_json::json!({
+        "environmentId": state.config.environment_id,
+        "runtimeProfile": state.config.profile.name(),
+        "trustProfile": trust_profile,
+        "trustDescription": trust_description,
+        "eventInfrastructure": control_path,
+        "presentationSurfaceUrl": surface_url(
+            "PPL_PRESENTATION_SURFACE_URL",
+            "http://127.0.0.1:18082/"
+        ),
+        "workbenchSurfaceUrl": surface_url(
+            "PPL_WORKBENCH_SURFACE_URL",
+            "http://127.0.0.1:18082/workbench/"
+        ),
+        "componentReadinessUrl": surface_url(
+            "PPL_OPERATIONS_SURFACE_URL",
+            "http://127.0.0.1:18084/"
+        ),
+        "catalogue": [{
+            "scenarioId": "governed-source-assurance",
+            "title": "Governed source assurance",
+            "purpose": "Show environment-scoped identity and robust semantic portal orchestration before governed source intake.",
+            "maturity": "Gate B implementation",
+            "estimatedDuration": "8 minutes",
+            "actors": ["external presenter", "synthetic-reviewer"],
+            "requiredComponents": ["CTL-01", "CTL-02", "IAM-01", "OPS-01", "INT-01"],
+            "status": control_path,
+            "reasons": if state.broker.is_some() {
+                Vec::<String>::new()
+            } else {
+                vec!["Authenticated event infrastructure is unavailable.".to_owned()]
+            },
+            "limitations": [
+                "Synthetic information only.",
+                "Gate B changes views but performs no engagement, source, workflow or reporting business operation."
+            ]
+        }],
+        "maturity": "in-development",
+        "informationProfile": "synthetic-only"
+    })))
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct CreateSessionRequest {
@@ -1411,6 +1547,19 @@ async fn create_session(
     let outcome = state
         .runtime
         .apply_lifecycle(&command, OffsetDateTime::now_utc())?;
+    publish_gate_b_event(
+        &state.config,
+        state.broker.as_ref(),
+        GateBEvent {
+            event_type: "scenario.started",
+            status: "accepted",
+            command_name: Some("create-demonstration-session"),
+            correlation_id: Some(&session_id),
+            causation_id: Some(&command.operation_id),
+            reason_code: None,
+        },
+    )
+    .await;
     Ok(Json(serde_json::to_value(outcome).map_err(|_| {
         AppError::configuration("response-invalid")
     })?))
@@ -1483,6 +1632,25 @@ async fn apply_lifecycle(
     ) {
         publish_synthetic_termination(&state, &session_id, request.action).await?;
     }
+    let event_type = match request.action {
+        ScenarioLifecycleAction::Pause => "scenario.paused",
+        ScenarioLifecycleAction::Stop => "scenario.stopped",
+        ScenarioLifecycleAction::Reset => "scenario.reset",
+        _ => "scenario.step.requested",
+    };
+    publish_gate_b_event(
+        &state.config,
+        state.broker.as_ref(),
+        GateBEvent {
+            event_type,
+            status: "accepted",
+            command_name: Some(lifecycle_action_name(request.action)),
+            correlation_id: Some(&session_id),
+            causation_id: Some(&command.operation_id),
+            reason_code: None,
+        },
+    )
+    .await;
     Ok(Json(serde_json::to_value(outcome).map_err(|_| {
         AppError::configuration("response-invalid")
     })?))
@@ -1629,7 +1797,26 @@ async fn issue_cue(
     let mut context = BTreeMap::new();
     context.insert("heading".to_owned(), request.heading);
     context.insert("message".to_owned(), request.message);
-    context.insert("syntheticReference".to_owned(), "welcome-record".to_owned());
+    context.insert(
+        "syntheticReference".to_owned(),
+        if request.surface_slot == "reviewer-workbench" {
+            "engagement-harbour-support-review"
+        } else {
+            "welcome-record"
+        }
+        .to_owned(),
+    );
+    let stage_id = if request.semantic_view == "pres-intro" {
+        "scenario-introduction"
+    } else {
+        "portal-orchestration"
+    };
+    let step_id = match request.semantic_view.as_str() {
+        "pres-intro" => "show-introduction",
+        "wb-engagement" => "open-engagement-context",
+        "wb-source-intake" => "open-source-intake",
+        _ => "unsupported-view-test",
+    };
     let cue = PresentationCue {
         contract_id: "P-003".to_owned(),
         contract_version: "1.0.0".to_owned(),
@@ -1653,10 +1840,43 @@ async fn issue_cue(
             ))
             .ok_or(AppError::refused("cue-expiry-out-of-range"))?,
         )?,
-        stage_id: "assurance-path".to_owned(),
-        step_id: "show-welcome".to_owned(),
+        stage_id: stage_id.to_owned(),
+        step_id: step_id.to_owned(),
     };
-    Ok(Json(state.runtime.issue_cue(&cue, now)?))
+    match state.runtime.issue_cue(&cue, now) {
+        Ok(issued) => {
+            publish_gate_b_event(
+                &state.config,
+                state.broker.as_ref(),
+                GateBEvent {
+                    event_type: "view.requested",
+                    status: "accepted",
+                    command_name: Some(&cue.semantic_view),
+                    correlation_id: Some(&cue.session_id),
+                    causation_id: Some(&cue.cue_id),
+                    reason_code: None,
+                },
+            )
+            .await;
+            Ok(Json(issued))
+        }
+        Err(error) => {
+            publish_gate_b_event(
+                &state.config,
+                state.broker.as_ref(),
+                GateBEvent {
+                    event_type: "view.refused",
+                    status: "refused",
+                    command_name: Some(&cue.semantic_view),
+                    correlation_id: Some(&cue.session_id),
+                    causation_id: Some(&cue.cue_id),
+                    reason_code: Some("semantic-view-unsupported-or-invalid"),
+                },
+            )
+            .await;
+            Err(error.into())
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -1793,6 +2013,13 @@ async fn register_surface(
         return Err(AppError::refused("surface-role-unsupported"));
     }
     let now = OffsetDateTime::now_utc();
+    let supported_views = match request.surface_role.as_str() {
+        "audience-display" => vec!["pres-intro".to_owned(), "pres-progress".to_owned()],
+        "reviewer-workbench" => {
+            vec!["wb-engagement".to_owned(), "wb-source-intake".to_owned()]
+        }
+        _ => unreachable!("surface role was validated above"),
+    };
     let registration = PresentationRegistration {
         contract_id: "P-002".to_owned(),
         contract_version: "1.0.0".to_owned(),
@@ -1801,8 +2028,8 @@ async fn register_surface(
         surface_slot: request.surface_slot,
         surface_role: request.surface_role,
         manifest_id: "assurance-presentation-surface".to_owned(),
-        manifest_version: "1.0.0".to_owned(),
-        supported_views: vec!["assurance-welcome".to_owned()],
+        manifest_version: "1.2.0".to_owned(),
+        supported_views,
         binding_mode: "development-assurance".to_owned(),
         registration_revision: 1,
         connection_generation: 1,
@@ -1820,6 +2047,19 @@ async fn register_surface(
         &outcome.registration.session_id,
         now,
     )?;
+    publish_gate_b_event(
+        &state.config,
+        state.broker.as_ref(),
+        GateBEvent {
+            event_type: "surface.registered",
+            status: "accepted",
+            command_name: Some(&outcome.registration.surface_slot),
+            correlation_id: Some(&outcome.registration.session_id),
+            causation_id: Some(&outcome.registration.registration_id),
+            reason_code: None,
+        },
+    )
+    .await;
     Ok(Json(outcome.registration))
 }
 
@@ -1827,7 +2067,7 @@ async fn cue_events(
     State(state): State<GatewayState>,
     headers: HeaderMap,
 ) -> Result<Sse<impl futures_util::Stream<Item = Result<Event, Infallible>>>, AppError> {
-    require_synthetic_surface(&state, &headers)?;
+    authorise_read(&state.config, &state.sessions, &headers)?;
     let receiver = state.cue_channel.subscribe();
     let stream = BroadcastStream::new(receiver).filter_map(|item| async move {
         match item {
@@ -1879,6 +2119,8 @@ async fn gateway_session_context(
                 "demonstrationSessionId": synthetic.demonstration_session_id,
                 "maximumValidUntil": synthetic.maximum_valid_until,
                 "registration": registration,
+                "environmentId": state.config.environment_id,
+                "trustProfile": trust_profile_name(state.config.profile),
                 "maturity": "in-development",
                 "informationProfile": "synthetic-only"
             })
@@ -1887,6 +2129,8 @@ async fn gateway_session_context(
                 "externalPrincipalId": authorised.external_identity.principal_id,
                 "syntheticStatus": "not-established",
                 "registration": registration,
+                "environmentId": state.config.environment_id,
+                "trustProfile": trust_profile_name(state.config.profile),
                 "maturity": "in-development",
                 "informationProfile": "synthetic-only"
             })
@@ -1900,15 +2144,46 @@ async fn record_outcome(
     Json(outcome): Json<PresentationCueOutcome>,
 ) -> Result<Json<PresentationCueOutcome>, AppError> {
     authorise(&state.config, &state.sessions, &headers)?;
-    require_synthetic_surface(&state, &headers)?;
-    Ok(Json(
-        state
-            .runtime
-            .record_outcome(&outcome, OffsetDateTime::now_utc())?,
-    ))
+    if outcome.surface_slot == "reviewer-workbench" {
+        require_synthetic_surface(
+            &state,
+            &headers,
+            Some(&outcome.session_id),
+            Some(&outcome.surface_slot),
+        )?;
+    } else if outcome.surface_slot != "audience-display" {
+        return Err(AppError::unauthorised("surface-outcome-refused"));
+    }
+    let recorded = state
+        .runtime
+        .record_outcome(&outcome, OffsetDateTime::now_utc())?;
+    let (event_type, status) = if recorded.result == PresentationOutcomeResult::Applied {
+        ("view.applied", "accepted")
+    } else {
+        ("view.refused", "refused")
+    };
+    publish_gate_b_event(
+        &state.config,
+        state.broker.as_ref(),
+        GateBEvent {
+            event_type,
+            status,
+            command_name: Some(&recorded.semantic_view),
+            correlation_id: Some(&recorded.session_id),
+            causation_id: Some(&recorded.cue_id),
+            reason_code: recorded.reason.as_deref(),
+        },
+    )
+    .await;
+    Ok(Json(recorded))
 }
 
-fn require_synthetic_surface(state: &GatewayState, headers: &HeaderMap) -> Result<(), AppError> {
+fn require_synthetic_surface(
+    state: &GatewayState,
+    headers: &HeaderMap,
+    demonstration_session_id: Option<&str>,
+    surface_id: Option<&str>,
+) -> Result<(), AppError> {
     let token = cookie_value(headers, "PPL_APP_SESSION")
         .ok_or(AppError::unauthorised("application-session-required"))?;
     let mapping_version = current_mapping_version(&state.config)?;
@@ -1926,7 +2201,21 @@ fn require_synthetic_surface(state: &GatewayState, headers: &HeaderMap) -> Resul
             "synthetic-application-session-required",
         ));
     }
+    if demonstration_session_id.is_some_and(|value| value != synthetic.demonstration_session_id)
+        || surface_id.is_some_and(|value| value != synthetic.surface_id)
+    {
+        return Err(AppError::unauthorised("synthetic-surface-binding-refused"));
+    }
     Ok(())
+}
+
+const fn trust_profile_name(profile: RuntimeProfile) -> &'static str {
+    match profile {
+        RuntimeProfile::NativeDevelopment
+        | RuntimeProfile::LocalContainers
+        | RuntimeProfile::Minikube => "environment-local-synthetic-root",
+        RuntimeProfile::PrivateHostedSmoke | RuntimeProfile::ManagedHosted => "managed-real-root",
+    }
 }
 
 async fn director_consumer(state: DirectorState, broker: Broker) {
@@ -2055,7 +2344,7 @@ async fn gateway_consumer(state: GatewayState, broker: Broker) {
         } else if message.subject.as_str() == SYNTHETIC_GRANT_SUBJECT {
             process_synthetic_grant(&state, &broker, &message.payload).await
         } else if message.subject.as_str() == SYNTHETIC_TERMINATION_SUBJECT {
-            process_synthetic_termination(&state, &message.payload)
+            process_synthetic_termination(&state, &message.payload).await
         } else {
             Err(())
         };
@@ -2104,7 +2393,7 @@ async fn process_synthetic_grant(
             &SyntheticIdentityOutcomeEvent {
                 contract_id: "I-005".to_owned(),
                 contract_version: "1.0.0".to_owned(),
-                request_id: delivery.request_id,
+                request_id: delivery.request_id.clone(),
                 status: match outcome.status {
                     SyntheticSessionStatus::Established => "established",
                     SyntheticSessionStatus::Expired => "expired",
@@ -2116,17 +2405,38 @@ async fn process_synthetic_grant(
                     .clone()
                     .unwrap_or_else(|| "synthetic-session-established".to_owned()),
                 occurred_at: now_string().map_err(|_| ())?,
-                synthetic_session: Some(outcome),
+                synthetic_session: Some(outcome.clone()),
             },
         )
         .await
         .map_err(|error| {
             warn!(reason = %error, "synthetic outcome publication failed");
         })?;
+    publish_gate_b_event(
+        &state.config,
+        Some(broker),
+        GateBEvent {
+            event_type: if outcome.status == SyntheticSessionStatus::Established {
+                "synthetic-session.established"
+            } else {
+                "synthetic-session.refused"
+            },
+            status: if outcome.status == SyntheticSessionStatus::Established {
+                "accepted"
+            } else {
+                "refused"
+            },
+            command_name: Some("establish-synthetic-application-session"),
+            correlation_id: Some(&delivery.grant.claims.demonstration_session_id),
+            causation_id: Some(&delivery.request_id),
+            reason_code: outcome.reason_code.as_deref(),
+        },
+    )
+    .await;
     Ok(())
 }
 
-fn process_synthetic_termination(state: &GatewayState, payload: &[u8]) -> Result<(), ()> {
+async fn process_synthetic_termination(state: &GatewayState, payload: &[u8]) -> Result<(), ()> {
     let termination =
         serde_json::from_slice::<SyntheticTerminationEvent>(payload).map_err(|_| ())?;
     let now = OffsetDateTime::now_utc();
@@ -2147,6 +2457,19 @@ fn process_synthetic_termination(state: &GatewayState, payload: &[u8]) -> Result
                 warn!(reason = %error, "synthetic establishment termination failed");
             })?;
     }
+    publish_gate_b_event(
+        &state.config,
+        state.broker.as_ref(),
+        GateBEvent {
+            event_type: "synthetic-session.terminated",
+            status: "accepted",
+            command_name: Some("terminate-synthetic-application-session"),
+            correlation_id: Some(&termination.demonstration_session_id),
+            causation_id: Some(&termination.operation_id),
+            reason_code: Some(&termination.reason),
+        },
+    )
+    .await;
     Ok(())
 }
 

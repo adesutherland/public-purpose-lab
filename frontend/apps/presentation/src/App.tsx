@@ -7,7 +7,11 @@ import type {
 import { SurfaceShell, surfaceById } from "@public-purpose-lab/ui";
 
 async function postJson<T>(path: string, body: object): Promise<T> {
-  const csrf = csrfToken();
+  const csrf = document.cookie
+    .split(";")
+    .map((value) => value.trim())
+    .find((value) => value.startsWith("PPL_CSRF="))
+    ?.slice("PPL_CSRF=".length);
   const response = await fetch(path, {
     method: "POST",
     credentials: "same-origin",
@@ -29,12 +33,29 @@ async function getJson<T>(path: string): Promise<T> {
   return result;
 }
 
-function csrfToken(): string | undefined {
-  return document.cookie
-    .split(";")
-    .map((value) => value.trim())
-    .find((value) => value.startsWith("PPL_CSRF="))
-    ?.slice("PPL_CSRF=".length);
+function outcomeFor(
+  cue: PresentationCue,
+  result: PresentationCueOutcome["result"],
+  reason?: string,
+): PresentationCueOutcome {
+  return {
+    contractId: "P-004",
+    contractVersion: "1.0.0",
+    outcomeId: `outcome:${crypto.randomUUID()}`,
+    cueId: cue.cueId,
+    cueDigest: cue.cueDigest,
+    sessionId: cue.sessionId,
+    sessionRevision: cue.sessionRevision,
+    surfaceSlot: cue.surfaceSlot,
+    registrationId: cue.registrationId,
+    registrationRevision: cue.registrationRevision,
+    connectionGeneration: cue.connectionGeneration,
+    semanticView: cue.semanticView,
+    result,
+    reason,
+    concludedAt: new Date().toISOString(),
+    businessCompletionClaimed: false,
+  };
 }
 
 export function App() {
@@ -44,10 +65,9 @@ export function App() {
   );
   const [sessionId, setSessionId] = useState("");
   const [registration, setRegistration] = useState<PresentationRegistration>();
-  const [syntheticActor, setSyntheticActor] = useState<string>();
-  const [cue, setCue] = useState<PresentationCue>();
+  const [activeCue, setActiveCue] = useState<PresentationCue>();
   const [message, setMessage] = useState(
-    "Connect the external surface operator, then bind a synthetic demonstration session.",
+    "Connect this display and register it to the Director's Demonstration Session.",
   );
   const [error, setError] = useState(false);
 
@@ -55,52 +75,76 @@ export function App() {
     void getJson<{ mode: "local-test" | "google-oidc" }>("/api/v1/login-mode")
       .then((result) => setLoginMode(result.mode))
       .catch(() => undefined);
-    void getJson<{
-      externalPrincipalId: string;
-      syntheticStatus: string;
-      syntheticActorId?: string;
-      registration?: PresentationRegistration;
-    }>("/api/v1/session-context")
+    void getJson<{ registration?: PresentationRegistration }>(
+      "/api/v1/session-context",
+    )
       .then((context) => {
         setAuthenticated(true);
-        if (context.registration) {
+        if (context.registration?.surfaceSlot === "audience-display") {
           setRegistration(context.registration);
           setSessionId(context.registration.sessionId);
         }
-        if (context.syntheticStatus === "established") {
-          setSyntheticActor(context.syntheticActorId);
-          setMessage(
-            `Restart-safe session restored for ${context.syntheticActorId ?? "the synthetic actor"}.`,
-          );
-        } else {
-          setMessage("External surface-operator session restored.");
-        }
+        setMessage("External presentation-surface operator session restored.");
       })
       .catch(() => undefined);
   }, []);
 
   useEffect(() => {
-    if (!registration || !syntheticActor) return undefined;
+    if (!registration) return undefined;
     const source = new EventSource("/api/v1/cues", { withCredentials: true });
     const receive = (event: MessageEvent<string>) => {
-      const received = JSON.parse(event.data) as PresentationCue;
+      const cue = JSON.parse(event.data) as PresentationCue;
       if (
-        received.sessionId === registration.sessionId &&
-        received.surfaceSlot === registration.surfaceSlot &&
-        received.registrationId === registration.registrationId &&
-        received.connectionGeneration === registration.connectionGeneration
+        cue.sessionId !== registration.sessionId ||
+        cue.surfaceSlot !== registration.surfaceSlot ||
+        cue.registrationId !== registration.registrationId ||
+        cue.connectionGeneration !== registration.connectionGeneration
       ) {
-        setCue(received);
-        setMessage(
-          `Semantic cue ${received.semanticView} received; application is pending.`,
-        );
+        return;
       }
+      void (async () => {
+        const supported = ["pres-intro", "pres-progress"].includes(
+          cue.semanticView,
+        );
+        const expired = new Date(cue.expiresAt).getTime() <= Date.now();
+        const result = !supported
+          ? "unsupported"
+          : expired
+            ? "expired"
+            : "applied";
+        await postJson(
+          "/api/v1/outcomes",
+          outcomeFor(
+            cue,
+            result,
+            !supported
+              ? "semantic-view-unsupported"
+              : expired
+                ? "operational-expiry-passed"
+                : undefined,
+          ),
+        );
+        if (result === "applied") {
+          setActiveCue(cue);
+          setMessage(
+            `${cue.semanticView} resolved by this surface; presentation progress recorded.`,
+          );
+        } else {
+          setError(true);
+          setMessage(`${cue.semanticView} visibly refused: ${result}.`);
+        }
+      })().catch((caught) => {
+        setError(true);
+        setMessage(
+          caught instanceof Error ? caught.message : "View resolution failed",
+        );
+      });
     };
     source.addEventListener("presentation-cue", receive as EventListener);
     source.onerror = () =>
       setMessage("Cue channel reconnecting; no presentation result inferred.");
     return () => source.close();
-  }, [registration, syntheticActor]);
+  }, [registration]);
 
   const run = async (operation: () => Promise<void>) => {
     try {
@@ -114,53 +158,22 @@ export function App() {
     }
   };
 
-  const conclude = async () => {
-    if (!cue || !registration) return;
-    const expired = new Date(cue.expiresAt).getTime() <= Date.now();
-    const outcome: PresentationCueOutcome = {
-      contractId: "P-004",
-      contractVersion: "1.0.0",
-      outcomeId: `outcome:${crypto.randomUUID()}`,
-      cueId: cue.cueId,
-      cueDigest: cue.cueDigest,
-      sessionId: cue.sessionId,
-      sessionRevision: cue.sessionRevision,
-      surfaceSlot: cue.surfaceSlot,
-      registrationId: cue.registrationId,
-      registrationRevision: cue.registrationRevision,
-      connectionGeneration: cue.connectionGeneration,
-      semanticView: cue.semanticView,
-      result: expired ? "expired" : "applied",
-      reason: expired ? "operational-expiry-passed" : undefined,
-      concludedAt: new Date().toISOString(),
-      businessCompletionClaimed: false,
-    };
-    await postJson("/api/v1/outcomes", outcome);
-    setMessage(
-      expired
-        ? "Cue expired under operational time; no view was applied."
-        : "Semantic view applied and a presentation-progress outcome was recorded.",
-    );
-  };
-
   return (
     <SurfaceShell
       surface={surfaceById("UX-04")}
-      maturityLabel="In-development walking skeleton"
-      notice="Synthetic development assurance only. An applied view proves presentation state, not human attention or business completion."
+      maturityLabel="Gate B · functional demonstration"
+      notice="Synthetic demonstration only. A displayed view proves presentation progress, not human attention, business completion or compliance."
     >
       <article className="ppl-card ppl-live-card">
-        <p className="ppl-card-label">Audience display binding</p>
-        <div className="ppl-controls">
-          <label className="ppl-field">
-            Demonstration session ID
-            <input
-              value={sessionId}
-              placeholder="session:…"
-              onChange={(event) => setSessionId(event.target.value)}
-            />
-          </label>
-        </div>
+        <p className="ppl-card-label">Audience presentation binding</p>
+        <label className="ppl-field">
+          Demonstration Session ID
+          <input
+            value={sessionId}
+            placeholder="session:…"
+            onChange={(event) => setSessionId(event.target.value)}
+          />
+        </label>
         <div className="ppl-button-row">
           <button
             className="ppl-button"
@@ -174,40 +187,13 @@ export function App() {
                 }
                 await postJson("/api/v1/development-session", {});
                 setAuthenticated(true);
-                setMessage(
-                  "Local test surface operator authenticated for 30 minutes.",
-                );
+                setMessage("Local test presentation operator authenticated.");
               })
             }
           >
             {loginMode === "google-oidc"
               ? "Sign in with Google"
-              : "Connect test surface operator"}
-          </button>
-          <button
-            className="ppl-button"
-            type="button"
-            disabled={!registration || Boolean(syntheticActor)}
-            onClick={() =>
-              void run(async () => {
-                const context = await getJson<{
-                  syntheticStatus: string;
-                  syntheticActorId?: string;
-                }>("/api/v1/session-context");
-                if (
-                  context.syntheticStatus !== "established" ||
-                  !context.syntheticActorId
-                ) {
-                  throw new Error("synthetic-session-not-established");
-                }
-                setSyntheticActor(context.syntheticActorId);
-                setMessage(
-                  `Synthetic actor ${context.syntheticActorId} is bound; the semantic cue channel is active.`,
-                );
-              })
-            }
-          >
-            Confirm synthetic sign-in
+              : "Connect test presentation operator"}
           </button>
           <button
             className="ppl-button"
@@ -225,47 +211,86 @@ export function App() {
                 );
                 setRegistration(result);
                 setMessage(
-                  "Audience display registered; waiting for semantic cues.",
+                  "Audience display registered and listening for admitted semantic views.",
                 );
               })
             }
           >
             Register audience display
           </button>
-          <button
-            className="ppl-button ppl-button-secondary"
-            type="button"
-            disabled={!cue}
-            onClick={() => void run(conclude)}
-          >
-            Apply current semantic view
-          </button>
         </div>
-
         {registration && (
-          <div className="ppl-runtime-message">
-            Registration{" "}
-            <strong className="ppl-mono">{registration.registrationId}</strong>
-            <br />
-            Generation {registration.connectionGeneration}; lease ends{" "}
-            {registration.leaseExpiresAt}
+          <div className="ppl-status-grid ppl-runtime-message">
+            <span>
+              Registration
+              <br />
+              <strong className="ppl-mono">
+                {registration.registrationId}
+              </strong>
+            </span>
+            <span>
+              Session
+              <br />
+              <strong className="ppl-mono">{registration.sessionId}</strong>
+            </span>
+            <span>
+              Views
+              <br />
+              <strong>{registration.supportedViews.join(", ")}</strong>
+            </span>
+            <span>
+              Lease ends
+              <br />
+              <strong>{registration.leaseExpiresAt}</strong>
+            </span>
           </div>
         )}
+      </article>
 
-        {syntheticActor && (
-          <div className="ppl-runtime-message">
-            Synthetic application actor <strong>{syntheticActor}</strong>
-          </div>
-        )}
-
-        {cue?.semanticView === "assurance-welcome" && (
+      <article className="ppl-card ppl-live-card">
+        <p className="ppl-card-label">Target-owned semantic view</p>
+        {activeCue?.semanticView === "pres-intro" ? (
           <section className="ppl-semantic-view" aria-live="polite">
-            <p className="ppl-eyebrow">Semantic view: assurance-welcome</p>
-            <h2>{cue.context.heading}</h2>
-            <p className="ppl-purpose">{cue.context.message}</p>
+            <p className="ppl-eyebrow">PRES-INTRO · scenario introduction</p>
+            <h2>{activeCue.context.heading}</h2>
+            <p className="ppl-purpose">{activeCue.context.message}</p>
+            <div className="ppl-status-grid ppl-runtime-message">
+              <span>
+                Synthetic organisation
+                <br />
+                <strong>Harbour Community Support</strong>
+              </span>
+              <span>
+                Actors
+                <br />
+                <strong>Presenter · synthetic reviewer</strong>
+              </span>
+              <span>
+                Desired outcome
+                <br />
+                <strong>Govern a source before deriving guidance</strong>
+              </span>
+              <span>
+                Current stage
+                <br />
+                <strong>Introduction and portal orchestration</strong>
+              </span>
+            </div>
+            <h3>What this demonstration does not claim</h3>
+            <ul>
+              <li>No real person, organisation or protected information.</li>
+              <li>No engagement or source has yet been created.</li>
+              <li>
+                No legal, regulatory or professional responsibility transfers to
+                the Lab.
+              </li>
+            </ul>
           </section>
+        ) : (
+          <p className="ppl-runtime-message">
+            Waiting for the Director to request PRES-INTRO.
+          </p>
         )}
-
         <div
           className="ppl-runtime-message"
           data-status={error ? "error" : "ok"}

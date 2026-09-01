@@ -1,11 +1,12 @@
 openapi: 3.1.0
 info:
   title: Public Purpose Lab M3 runtime adapter
-  version: 1.1.0
+  version: 1.2.0
   description: >-
-    In-development, synthetic-only HTTP and SSE adapter for the M3.4 Scenario
-    Director, Identity Broker and Presentation Gateway. These paths are
-    physical adapters, not semantic contract identifiers or production
+    In-development, synthetic-only HTTP and SSE adapter for the Scenario
+    Director, Identity Broker and Presentation Gateway, including the Gate B
+    environment, identity and semantic portal-orchestration path. These paths
+    are physical adapters, not semantic contract identifiers or production
     interfaces.
 servers:
   - url: http://127.0.0.1:18081
@@ -93,6 +94,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ContractValue"
+  /api/v1/environment:
+    get:
+      tags: [director]
+      operationId: getDemonstrationEnvironment
+      description: >-
+        Returns the authenticated presenter's environment, trust profile,
+        configured surface locations and currently admitted demonstration
+        catalogue. A catalogue readiness result is not a business-completion
+        or compliance claim.
+      security:
+        - applicationSession: []
+      responses:
+        "200":
+          description: Authenticated Gate B environment and catalogue snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvironmentSnapshot"
+        "401":
+          $ref: "#/components/responses/Refused"
   /auth/google/start:
     get:
       tags: [identity]
@@ -540,6 +561,79 @@ components:
         maturity: { const: in-development }
         informationProfile: { const: synthetic-only }
         warning: { type: string }
+    EnvironmentSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          environmentId,
+          runtimeProfile,
+          trustProfile,
+          trustDescription,
+          eventInfrastructure,
+          presentationSurfaceUrl,
+          workbenchSurfaceUrl,
+          componentReadinessUrl,
+          catalogue,
+          maturity,
+          informationProfile,
+        ]
+      properties:
+        environmentId: { type: string }
+        runtimeProfile: { type: string }
+        trustProfile: { type: string }
+        trustDescription: { type: string }
+        eventInfrastructure:
+          enum: [ready, unavailable]
+        presentationSurfaceUrl:
+          type: [string, "null"]
+          format: uri
+        workbenchSurfaceUrl:
+          type: [string, "null"]
+          format: uri
+        componentReadinessUrl:
+          type: [string, "null"]
+          format: uri
+        catalogue:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              [
+                scenarioId,
+                title,
+                purpose,
+                maturity,
+                estimatedDuration,
+                actors,
+                requiredComponents,
+                status,
+                reasons,
+                limitations,
+              ]
+            properties:
+              scenarioId: { type: string }
+              title: { type: string }
+              purpose: { type: string }
+              maturity: { type: string }
+              estimatedDuration: { type: string }
+              actors:
+                type: array
+                items: { type: string }
+              requiredComponents:
+                type: array
+                items: { type: string }
+              status:
+                enum: [ready, degraded, unavailable]
+              reasons:
+                type: array
+                items: { type: string }
+              limitations:
+                type: array
+                items: { type: string }
+        maturity: { const: in-development }
+        informationProfile: { const: synthetic-only }
     Refusal:
       type: object
       additionalProperties: false

@@ -17,12 +17,18 @@ The founder-approved
 [demonstration scenarios and functional requirements](../scenarios/demonstration-scenarios-and-functional-requirements.md)
 is the functional gate for the next architecture and implementation work. It
 defines the required screens, deployed component instances, observable events
-and acceptance scripts. Gate A is active; later M4 bindings follow its approved
-visible-capability sequence.
+and acceptance scripts. Gate A is closed. Gate B is implemented and remains
+open for exact-build visual evidence, its PDF and founder acceptance; later M4
+bindings follow the approved visible-capability sequence.
 
 The [Gate A component-mesh binding](gate-a-component-mesh.md) defines the
 separate workload identities, working operational event shape, live Operations
 projection and bounded acceptance evidence for the first implementation gate.
+
+The [Gate B orchestration binding](gate-b-orchestration.md) defines the
+implemented DS-01/DS-02 environment, external and synthetic session roles,
+semantic Presentation and Workbench views, event path and explicit boundary
+before governed source processing begins.
 
 The accepted
 [M3.3 runtime walking-skeleton baseline](m3-3-runtime-walking-skeleton-baseline.md)

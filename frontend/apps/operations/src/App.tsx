@@ -120,7 +120,7 @@ export function App() {
           </span>
           <span>Public Purpose Lab</span>
         </a>
-        <span className="ppl-maturity">In-development Gate A</span>
+        <span className="ppl-maturity">Gate B · functional demonstration</span>
       </header>
 
       <main>
@@ -128,8 +128,8 @@ export function App() {
           <p className="ppl-eyebrow">Operations console · OPS-COMPONENTS</p>
           <h1>One mesh. Distinct responsibilities.</h1>
           <p className="ppl-purpose">
-            Live readiness and event evidence from twelve separately identified
-            component workloads in this local synthetic environment.
+            Live readiness and correlated scenario, identity and semantic-view
+            events from the component mesh in this synthetic environment.
           </p>
           <div className="ops-summary" role="status">
             <strong>{mesh?.ready ?? 0}</strong>
@@ -246,8 +246,8 @@ export function App() {
           <div className="ops-timeline">
             {filteredEvents.length === 0 && (
               <p className="ops-empty-events">
-                No command outcomes yet. Probe the component mesh to exercise
-                the authenticated event paths.
+                No scenario or command outcomes yet. Run Gate B in the Director
+                or probe the component mesh.
               </p>
             )}
             {filteredEvents.map((event) => (
@@ -268,7 +268,7 @@ export function App() {
       </main>
 
       <footer>
-        <span>OPS-01 · O-001 v0.1.0</span>
+        <span>OPS-01 · O-001 · Gate B</span>
         <span>Synthetic data only · no compliance claim</span>
       </footer>
     </div>

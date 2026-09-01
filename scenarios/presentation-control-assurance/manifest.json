@@ -1,15 +1,15 @@
 {
   "manifestVersion": "1.0.0",
   "packageId": "presentation-control-assurance",
-  "packageVersion": "1.1.0",
+  "packageVersion": "1.2.0",
   "canonicalisation": "RFC8785",
   "digestAlgorithm": "sha-256",
   "scenario": {
     "path": "scenario.json",
     "mediaType": "application/json",
     "schemaId": "urn:public-purpose-lab:contract:D-001:1.0.0",
-    "digest": "88008cb19a26292da8439fde6425f0ff17dee5e24e97d740db745632cd704caf",
-    "sizeBytes": 2592
+    "digest": "d06765e0a4a522aa4d62734a8c7e569594f57595f2979eff69b700766df10b8d",
+    "sizeBytes": 4084
   },
   "fixtures": []
 }
