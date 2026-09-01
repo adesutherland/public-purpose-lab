@@ -22,11 +22,11 @@ profile.
 
 The three surfaces are:
 
-| Surface         | Default local address               | Current capability                                                                                                                                                    |
-| --------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Director        | `http://127.0.0.1:18081/`           | Create and progress a synthetic session, set or advance logical time, arm the bounded cue-delay fault, issue a semantic cue, inspect presentation progress and reset. |
-| Presentation    | `http://127.0.0.1:18082/`           | Register an audience display, receive a semantic cue and return its bounded outcome.                                                                                  |
-| Workbench shell | `http://127.0.0.1:18082/workbench/` | Register the second presentation role and demonstrate the common visual surface; asset, RAG, workflow and reporting capabilities are not implemented.                 |
+| Surface         | Default local address                         | Current capability                                                                                                                                                    |
+| --------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Director        | `http://localhost:18081/`                     | Create and progress a synthetic session, set or advance logical time, arm the bounded cue-delay fault, issue a semantic cue, inspect presentation progress and reset. |
+| Presentation    | `http://presentation.localhost:18082/`        | Register an audience display, receive a semantic cue and return its bounded outcome.                                                                                  |
+| Workbench shell | `http://workbench.localhost:18082/workbench/` | Register the second presentation role and demonstrate the common visual surface; asset, RAG, workflow and reporting capabilities are not implemented.                 |
 
 Start with the Presentation Surface so it can register against the session
 created in the Director. The Director and Presentation pages explain the small
@@ -93,7 +93,10 @@ PPL_M3_ENVIRONMENT_DIRECTORY="$(pwd)/.local/m3-compose"
 export PPL_M3_ENVIRONMENT_DIRECTORY
 deploy/local/setup-m3-environment.sh "$PPL_M3_ENVIRONMENT_DIRECTORY" portable
 docker compose -f deploy/compose/m3-compose.yaml up --build --detach
-tools/smoke-m3-native.sh
+PPL_DIRECTOR_ORIGIN=http://localhost:18081 \
+  PPL_GATEWAY_ORIGIN=http://presentation.localhost:18082 \
+  PPL_WORKBENCH_ORIGIN=http://workbench.localhost:18082 \
+  tools/smoke-m3-native.sh
 ```
 
 The portable setup keeps the environment directory at owner-only mode. Because

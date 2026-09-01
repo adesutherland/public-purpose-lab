@@ -397,7 +397,7 @@ def render(source: Path, output: Path) -> None:
         rightMargin=right,
         topMargin=top,
         bottomMargin=bottom,
-        title="Gate A component mesh - progress and show-and-tell",
+        title="Public Purpose Lab progress and show-and-tell",
         author="Public Purpose Lab",
         subject="Synthetic development evidence and show-and-tell",
     )

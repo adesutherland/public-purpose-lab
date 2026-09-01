@@ -25,7 +25,7 @@ use uuid::Uuid;
 const MAX_DOCUMENT_BYTES: u64 = 65_536;
 const SQLITE_BUSY_TIMEOUT_SECONDS: u64 = 5;
 const ASSURANCE_PACKAGE_ID: &str = "presentation-control-assurance";
-const ASSURANCE_PACKAGE_VERSION: &str = "1.1.0";
+const ASSURANCE_PACKAGE_VERSION: &str = "1.2.1";
 
 #[derive(Debug, thiserror::Error)]
 pub enum DirectorError {
@@ -1676,7 +1676,7 @@ mod tests {
             .expect("package admission");
         assert_eq!(
             admission.package_digest,
-            "566ab18f473016e8415a1664ed2c7e882508f2683429a685fd9afea190307289"
+            "15b78a9bfb7290eeb256e91ea61d24f404fe375e5adb2e0316023fe20b4547d4"
         );
     }
 

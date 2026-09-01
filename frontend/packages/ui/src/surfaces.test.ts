@@ -6,12 +6,12 @@ describe("surface catalogue", () => {
     expect(surfaceIds).toEqual(["UX-02", "UX-03", "UX-04"]);
   });
 
-  it.each(surfaceIds)("describes %s without claiming live capability", (id) => {
+  it.each(surfaceIds)("describes %s as an in-development boundary", (id) => {
     const surface = surfaceById(id);
 
     expect(surface.id).toBe(id);
-    expect(surface.maturity).toBe("repository-skeleton");
-    expect(surface.purpose.toLowerCase()).toContain("future");
+    expect(surface.maturity).toBe("in-development");
+    expect(surface.purpose.toLowerCase()).not.toContain("compliance");
     expect(surface.actions).toHaveLength(3);
     expect(surface.evidence).toHaveLength(3);
   });

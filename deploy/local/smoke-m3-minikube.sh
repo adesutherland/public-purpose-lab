@@ -29,5 +29,9 @@ done
   exit 1
 }
 
-PPL_SSE_CAPTURE=.local/m3-minikube-run/sse.txt tools/smoke-m3-native.sh
+PPL_DIRECTOR_ORIGIN=http://localhost:18081 \
+  PPL_GATEWAY_ORIGIN=http://presentation.localhost:18082 \
+  PPL_WORKBENCH_ORIGIN=http://workbench.localhost:18082 \
+  PPL_SSE_CAPTURE=.local/m3-minikube-run/sse.txt \
+  tools/smoke-m3-native.sh
 tools/smoke-gate-a.sh

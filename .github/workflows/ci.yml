@@ -141,6 +141,9 @@ jobs:
       - name: Exercise M3.4 secure Compose path and restart
         env:
           PPL_M3_ENVIRONMENT_DIRECTORY: ${{ github.workspace }}/.local/m3-compose-ci
+          PPL_DIRECTOR_ORIGIN: http://localhost:18081
+          PPL_GATEWAY_ORIGIN: http://presentation.localhost:18082
+          PPL_WORKBENCH_ORIGIN: http://workbench.localhost:18082
         run: |
           set -euo pipefail
           deploy/local/setup-m3-environment.sh "${PPL_M3_ENVIRONMENT_DIRECTORY}" portable

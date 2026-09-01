@@ -418,8 +418,8 @@ unavailable, an event is duplicated or a scenario is reset.
 ## Implementation gates
 
 The founders approved this detailed document and component baseline on 1
-September 2026. Gate A was accepted and closed on 1 September 2026. Gate B is
-active. Delivery proceeds by visible capability:
+September 2026. Gate A and Gate B were accepted and closed on 1 September 2026. Gate C is authorised as the active delivery gate. Delivery proceeds by
+visible capability:
 
 1. **Gate A — deployed component mesh:** all required skeleton instances run,
    authenticate, publish readiness and appear in the operations views.
@@ -491,6 +491,9 @@ The founders approved on 1 September 2026:
    definitions; and
 7. the mandatory gate progress and show-and-tell evidence report defined above.
 
-Approval authorises Gate A and only the contract and architecture detail needed
-to deploy, authenticate and observe the component mesh. Later evidence may
-revise this baseline through the normal decision and review process.
+Approval initially authorised Gate A and the contract and architecture detail
+needed to deploy, authenticate and observe the component mesh. Following Gate A
+closure, the founders authorised and then accepted Gate B against DS-01 and
+DS-02. Gate C implementation against DS-03 was authorised on 1 September 2026;
+later gates still require their normal approval. Later evidence may revise this
+baseline through the normal decision and review process.

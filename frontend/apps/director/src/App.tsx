@@ -8,7 +8,34 @@ interface SessionSnapshot {
   readonly revision: number;
   readonly logicalTime: string;
   readonly logicalTimeInitialised: boolean;
-  readonly successorSessionId?: string;
+}
+
+interface PresenterContext {
+  readonly externalPrincipalId: string;
+  readonly roles: readonly string[];
+  readonly expiresAt: string;
+}
+
+interface CatalogueEntry {
+  readonly title: string;
+  readonly purpose: string;
+  readonly maturity: string;
+  readonly estimatedDuration: string;
+  readonly actors: readonly string[];
+  readonly requiredComponents: readonly string[];
+  readonly status: "ready" | "degraded" | "unavailable";
+  readonly limitations: readonly string[];
+}
+
+interface EnvironmentSnapshot {
+  readonly environmentId: string;
+  readonly runtimeProfile: string;
+  readonly trustProfile: string;
+  readonly trustDescription: string;
+  readonly presentationSurfaceUrl: string | null;
+  readonly workbenchSurfaceUrl: string | null;
+  readonly componentReadinessUrl: string | null;
+  readonly catalogue: readonly CatalogueEntry[];
 }
 
 async function requestJson<T>(path: string, body?: object): Promise<T> {
@@ -34,19 +61,16 @@ async function requestJson<T>(path: string, body?: object): Promise<T> {
 }
 
 export function App() {
-  const [authenticated, setAuthenticated] = useState(false);
   const [loginMode, setLoginMode] = useState<"local-test" | "google-oidc">(
     "local-test",
   );
+  const [presenter, setPresenter] = useState<PresenterContext>();
+  const [environment, setEnvironment] = useState<EnvironmentSnapshot>();
   const [session, setSession] = useState<SessionSnapshot>();
   const [message, setMessage] = useState(
-    "Connect the local assurance presenter to begin.",
+    "Sign in to inspect the environment and admitted demonstration.",
   );
   const [error, setError] = useState(false);
-  const [cueHeading, setCueHeading] = useState("Assurance demonstration");
-  const [cueMessage, setCueMessage] = useState(
-    "This view was selected by semantic event, using synthetic information only.",
-  );
 
   const run = useCallback(async (operation: () => Promise<void>) => {
     try {
@@ -60,36 +84,43 @@ export function App() {
     }
   }, []);
 
+  const restore = useCallback(async () => {
+    const [nextPresenter, nextEnvironment] = await Promise.all([
+      requestJson<PresenterContext>("/api/v1/session-context"),
+      requestJson<EnvironmentSnapshot>("/api/v1/environment"),
+    ]);
+    setPresenter(nextPresenter);
+    setEnvironment(nextEnvironment);
+    const restored = window.sessionStorage.getItem(
+      "ppl-current-demonstration-session",
+    );
+    if (restored) {
+      const status = await requestJson<{ session: SessionSnapshot }>(
+        `/api/v1/status/${encodeURIComponent(restored)}`,
+      );
+      setSession(status.session);
+      setMessage(
+        `Presenter and demonstration session restored at revision ${status.session.revision}.`,
+      );
+    } else {
+      setMessage(
+        "Environment evaluated. Select the admitted scenario to begin.",
+      );
+    }
+  }, []);
+
   useEffect(() => {
     void requestJson<{ mode: "local-test" | "google-oidc" }>(
       "/api/v1/login-mode",
     )
       .then((result) => setLoginMode(result.mode))
       .catch(() => undefined);
-    void requestJson<{ externalPrincipalId: string }>("/api/v1/session-context")
-      .then(async () => {
-        setAuthenticated(true);
-        const restored = window.sessionStorage.getItem(
-          "ppl-current-demonstration-session",
-        );
-        if (restored) {
-          const status = await requestJson<{ session: SessionSnapshot }>(
-            `/api/v1/status/${encodeURIComponent(restored)}`,
-          );
-          setSession(status.session);
-          setMessage(
-            `Restart-safe presenter session restored at revision ${status.session.revision}.`,
-          );
-        } else {
-          setMessage("External presenter session restored.");
-        }
-      })
-      .catch(() => undefined);
-  }, []);
+    void restore().catch(() => undefined);
+  }, [restore]);
 
   const refresh = useCallback(
     async (sessionId = session?.sessionId) => {
-      if (!sessionId) return;
+      if (!sessionId) return undefined;
       const status = await requestJson<{ session: SessionSnapshot }>(
         `/api/v1/status/${encodeURIComponent(sessionId)}`,
       );
@@ -98,9 +129,7 @@ export function App() {
         "ppl-current-demonstration-session",
         status.session.sessionId,
       );
-      setMessage(
-        `Current state: ${status.session.state}, revision ${status.session.revision}.`,
-      );
+      return status.session;
     },
     [session?.sessionId],
   );
@@ -117,12 +146,12 @@ export function App() {
           action,
           expectedState: session.state,
           expectedRevision: session.revision,
-          reason: `Presenter requested ${action} in the assurance console.`,
+          reason: `Presenter requested ${action} in Gate B.`,
         },
       );
-      setSession(result.successor ?? result.session);
       const next = result.successor ?? result.session;
       if (next) {
+        setSession(next);
         window.sessionStorage.setItem(
           "ppl-current-demonstration-session",
           next.sessionId,
@@ -130,24 +159,83 @@ export function App() {
       }
       setMessage(
         result.successor
-          ? `Reset created successor ${result.successor.sessionId}.`
-          : `Lifecycle action ${action} accepted.`,
+          ? `Reset created successor ${result.successor.sessionId}; the presenter remains signed in.`
+          : `Scenario ${action} accepted and recorded.`,
       );
     });
+
+  const prepare = () =>
+    run(async () => {
+      if (!session) return;
+      let revision = session.revision;
+      if (!session.logicalTimeInitialised) {
+        const time = await requestJson<{
+          sessionRevision: number;
+          logicalTime: string;
+        }>(
+          `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/logical-time`,
+          {
+            operation: "set",
+            expectedRevision: revision,
+            logicalInstant: "2030-01-01T09:00:00Z",
+          },
+        );
+        revision = time.sessionRevision;
+      }
+      await requestJson(
+        `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/lifecycle`,
+        {
+          action: "prepare",
+          expectedState: "preparing",
+          expectedRevision: revision,
+          reason: "Prepare the approved Gate B scenario.",
+        },
+      );
+      const next = await refresh(session.sessionId);
+      setMessage(
+        `Scenario prepared${next ? ` at revision ${next.revision}` : ""}. Register the two target surfaces next.`,
+      );
+    });
+
+  const requestView = (
+    surfaceSlot: "audience-display" | "reviewer-workbench",
+    semanticView: string,
+    heading: string,
+    detail: string,
+  ) =>
+    run(async () => {
+      if (!session) return;
+      await requestJson(
+        `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/cue`,
+        {
+          surfaceSlot,
+          semanticView,
+          heading,
+          message: detail,
+          expiresInSeconds: 90,
+        },
+      );
+      setMessage(
+        `${semanticView} requested by semantic event; the target application owns resolution and outcome.`,
+      );
+    });
+
+  const scenario = environment?.catalogue[0];
+  const running = session?.state === "running";
 
   return (
     <SurfaceShell
       surface={surfaceById("UX-03")}
-      maturityLabel="In-development walking skeleton"
-      notice="Synthetic development assurance only. Presentation progress is not business completion or evidence of compliance."
+      maturityLabel="Gate B · functional demonstration"
+      notice="Synthetic development demonstration only. The Director sequences presentation state; it cannot claim a business action or compliance outcome."
     >
       <article className="ppl-card ppl-live-card">
-        <p className="ppl-card-label">Live demonstration control</p>
+        <p className="ppl-card-label">DIR-ENVIRONMENT · sign-in and trust</p>
         <div className="ppl-button-row">
           <button
             className="ppl-button"
             type="button"
-            disabled={authenticated}
+            disabled={Boolean(presenter)}
             onClick={() =>
               void run(async () => {
                 if (loginMode === "google-oidc") {
@@ -155,21 +243,88 @@ export function App() {
                   return;
                 }
                 await requestJson("/api/v1/development-session", {});
-                setAuthenticated(true);
-                setMessage(
-                  "Local synthetic presenter session established for 30 minutes.",
-                );
+                await restore();
               })
             }
           >
             {loginMode === "google-oidc"
               ? "Sign in with Google"
-              : "Connect test presenter"}
+              : "Connect local test presenter"}
           </button>
+          {environment?.componentReadinessUrl && (
+            <a
+              className="ppl-button ppl-button-secondary"
+              href={environment.componentReadinessUrl}
+            >
+              Open OPS-COMPONENTS
+            </a>
+          )}
+        </div>
+        <div className="ppl-status-grid ppl-runtime-message">
+          <span>
+            Presenter
+            <br />
+            <strong>{presenter?.externalPrincipalId ?? "not signed in"}</strong>
+          </span>
+          <span>
+            Environment
+            <br />
+            <strong className="ppl-mono">
+              {environment?.environmentId ?? "not evaluated"}
+            </strong>
+          </span>
+          <span>
+            Runtime
+            <br />
+            <strong>{environment?.runtimeProfile ?? "—"}</strong>
+          </span>
+          <span>
+            Trust
+            <br />
+            <strong>{environment?.trustProfile ?? "—"}</strong>
+          </span>
+        </div>
+        {environment && (
+          <p className="ppl-runtime-message">{environment.trustDescription}</p>
+        )}
+      </article>
+
+      <article className="ppl-card ppl-live-card">
+        <p className="ppl-card-label">DIR-CATALOGUE · admitted scenario</p>
+        <div className="ppl-status-grid">
+          <div>
+            <h2>{scenario?.title ?? "Catalogue available after sign-in"}</h2>
+            <p>{scenario?.purpose}</p>
+          </div>
+          <div className="ppl-runtime-message">
+            Status <strong>{scenario?.status ?? "not evaluated"}</strong>
+            <br />
+            {scenario?.maturity} · {scenario?.estimatedDuration}
+          </div>
+        </div>
+        {scenario && (
+          <>
+            <p>
+              Actors: {scenario.actors.join(", ")} · Required:{" "}
+              {scenario.requiredComponents.join(", ")}
+            </p>
+            <ul>
+              {scenario.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        <div className="ppl-button-row">
           <button
             className="ppl-button"
             type="button"
-            disabled={!authenticated || Boolean(session)}
+            disabled={
+              !presenter ||
+              !scenario ||
+              scenario.status !== "ready" ||
+              Boolean(session)
+            }
             onClick={() =>
               void run(async () => {
                 const result = await requestJson<{ session: SessionSnapshot }>(
@@ -182,308 +337,215 @@ export function App() {
                   result.session.sessionId,
                 );
                 setMessage(
-                  "Session created. Bind its ID to an authorised presentation surface.",
+                  "Demonstration Session created without a synthetic application session.",
                 );
               })
             }
           >
-            Create session
-          </button>
-          <button
-            className="ppl-button ppl-button-secondary"
-            type="button"
-            disabled={!session}
-            onClick={() => void run(() => refresh())}
-          >
-            Refresh status
+            Create Demonstration Session
           </button>
         </div>
+      </article>
 
-        {session && (
-          <>
-            <div className="ppl-status-grid ppl-runtime-message">
-              <span>
-                Session
-                <br />
-                <strong className="ppl-mono">{session.sessionId}</strong>
-              </span>
-              <span>
-                State
-                <br />
-                <strong>{session.state}</strong>
-              </span>
-              <span>
-                Revision
-                <br />
-                <strong>{session.revision}</strong>
-              </span>
-              <span>
-                Scenario time
-                <br />
-                <strong>{session.logicalTime}</strong>
-              </span>
-            </div>
-            <div className="ppl-button-row" aria-label="Lifecycle controls">
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={session.state !== "preparing"}
-                onClick={() => void lifecycle("prepare")}
-              >
-                Prepare
-              </button>
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={session.state !== "ready"}
-                onClick={() => void lifecycle("start")}
-              >
-                Start
-              </button>
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={session.state !== "running"}
-                onClick={() => void lifecycle("pause")}
-              >
-                Pause
-              </button>
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={session.state !== "paused"}
-                onClick={() => void lifecycle("resume")}
-              >
-                Resume
-              </button>
-              <button
-                className="ppl-button ppl-button-secondary"
-                type="button"
-                disabled={
-                  !(
-                    ["preparing", "ready", "running", "paused"] as string[]
-                  ).includes(session.state)
-                }
-                onClick={() => void lifecycle("stop")}
-              >
-                Stop
-              </button>
-              <button
-                className="ppl-button ppl-button-secondary"
-                type="button"
-                disabled={
-                  !(["stopped", "completed", "failed"] as string[]).includes(
-                    session.state,
-                  )
-                }
-                onClick={() => void lifecycle("reset")}
-              >
-                Reset to successor
-              </button>
-            </div>
+      {session && (
+        <article className="ppl-card ppl-live-card">
+          <p className="ppl-card-label">DIR-RUN · approved Gate B journey</p>
+          <div className="ppl-status-grid ppl-runtime-message">
+            <span>
+              Session
+              <br />
+              <strong className="ppl-mono">{session.sessionId}</strong>
+            </span>
+            <span>
+              State
+              <br />
+              <strong>{session.state}</strong>
+            </span>
+            <span>
+              Revision
+              <br />
+              <strong>{session.revision}</strong>
+            </span>
+            <span>
+              Scenario time
+              <br />
+              <strong>{session.logicalTime}</strong>
+            </span>
+          </div>
 
-            <hr />
-            <div className="ppl-controls">
-              <label className="ppl-field">
-                Cue heading
-                <input
-                  value={cueHeading}
-                  onChange={(event) => setCueHeading(event.target.value)}
-                />
-              </label>
-              <label className="ppl-field">
-                Cue message
-                <input
-                  value={cueMessage}
-                  onChange={(event) => setCueMessage(event.target.value)}
-                />
-              </label>
-            </div>
-            <div className="ppl-button-row">
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={!authenticated || !session}
-                onClick={() =>
-                  void run(async () => {
-                    await requestJson(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/synthetic-sign-in`,
-                      {
-                        actorId: "synthetic-audience-user",
-                        surfaceSlot: "audience-display",
-                      },
-                    );
-                    setMessage(
-                      "Protected synthetic sign-in requested for the registered audience display.",
-                    );
-                  })
-                }
-              >
-                Sign synthetic viewer into display
-              </button>
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={!authenticated || !session}
-                onClick={() =>
-                  void run(async () => {
-                    await requestJson(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/synthetic-sign-in`,
-                      {
-                        actorId: "synthetic-reviewer",
-                        surfaceSlot: "reviewer-workbench",
-                      },
-                    );
-                    setMessage(
-                      "Protected synthetic sign-in requested for the registered reviewer workbench.",
-                    );
-                  })
-                }
-              >
-                Sign synthetic reviewer into workbench
-              </button>
-              <button
+          <h2>1. Prepare identities and surfaces</h2>
+          <div className="ppl-button-row">
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={session.state !== "preparing"}
+              onClick={() => void prepare()}
+            >
+              Prepare scenario
+            </button>
+            {environment?.presentationSurfaceUrl && (
+              <a
                 className="ppl-button ppl-button-secondary"
-                type="button"
-                disabled={
-                  session.logicalTimeInitialised ||
-                  session.state !== "preparing"
-                }
-                onClick={() =>
-                  void run(async () => {
-                    const result = await requestJson<{
-                      sessionRevision: number;
-                      logicalTime: string;
-                    }>(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/logical-time`,
-                      {
-                        operation: "set",
-                        expectedRevision: session.revision,
-                        logicalInstant: "2030-01-01T09:00:00Z",
-                      },
-                    );
-                    setSession({
-                      ...session,
-                      revision: result.sessionRevision,
-                      logicalTime: result.logicalTime,
-                      logicalTimeInitialised: true,
-                    });
-                    setMessage(
-                      "Package-declared initial scenario time established.",
-                    );
-                  })
-                }
+                href={environment.presentationSurfaceUrl}
               >
-                Set initial scenario time
-              </button>
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={
-                  session.state !== "running" || !session.logicalTimeInitialised
-                }
-                onClick={() =>
-                  void run(async () => {
-                    await requestJson(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/cue`,
-                      {
-                        surfaceSlot: "audience-display",
-                        semanticView: "assurance-welcome",
-                        heading: cueHeading,
-                        message: cueMessage,
-                        expiresInSeconds: 60,
-                      },
-                    );
-                    setMessage(
-                      "Semantic cue committed to the Director outbox.",
-                    );
-                  })
-                }
-              >
-                Cue audience display
-              </button>
-              <button
-                className="ppl-button"
-                type="button"
-                disabled={
-                  session.state !== "running" || !session.logicalTimeInitialised
-                }
-                onClick={() =>
-                  void run(async () => {
-                    await requestJson(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/cue`,
-                      {
-                        surfaceSlot: "reviewer-workbench",
-                        semanticView: "assurance-welcome",
-                        heading: cueHeading,
-                        message: cueMessage,
-                        expiresInSeconds: 60,
-                      },
-                    );
-                    setMessage(
-                      "Workbench semantic cue committed to the Director outbox.",
-                    );
-                  })
-                }
-              >
-                Cue reviewer workbench
-              </button>
-              <button
+                Open Presentation
+              </a>
+            )}
+            {environment?.workbenchSurfaceUrl && (
+              <a
                 className="ppl-button ppl-button-secondary"
-                type="button"
-                disabled={
-                  session.state !== "running" || !session.logicalTimeInitialised
-                }
-                onClick={() =>
-                  void run(async () => {
-                    const result = await requestJson<{
-                      sessionRevision: number;
-                      logicalTime: string;
-                    }>(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/logical-time`,
-                      {
-                        operation: "advance",
-                        expectedRevision: session.revision,
-                        advanceSeconds: 300,
-                      },
-                    );
-                    setSession({
-                      ...session,
-                      revision: result.sessionRevision,
-                      logicalTime: result.logicalTime,
-                    });
-                    setMessage(
-                      "Scenario time advanced; operational expiry was unchanged.",
-                    );
-                  })
-                }
+                href={environment.workbenchSurfaceUrl}
               >
-                Advance scenario time
-              </button>
-              <button
-                className="ppl-button ppl-button-secondary"
-                type="button"
-                disabled={session.state !== "running"}
-                onClick={() =>
-                  void run(async () => {
-                    await requestJson(
-                      `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/cue-delay`,
-                      {
-                        expectedRevision: session.revision,
-                        delayMilliseconds: 750,
-                      },
-                    );
-                    setMessage(
-                      "One bounded 750 ms cue delay is armed for this session.",
-                    );
-                  })
-                }
-              >
-                Arm next-cue delay
-              </button>
-            </div>
-          </>
-        )}
+                Open Workbench
+              </a>
+            )}
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={
+                !(["ready", "running", "paused"] as string[]).includes(
+                  session.state,
+                )
+              }
+              onClick={() =>
+                void run(async () => {
+                  await requestJson(
+                    `/api/v1/sessions/${encodeURIComponent(session.sessionId)}/synthetic-sign-in`,
+                    {
+                      actorId: "synthetic-reviewer",
+                      surfaceSlot: "reviewer-workbench",
+                    },
+                  );
+                  setMessage(
+                    "Environment- and session-bound synthetic reviewer requested for the Workbench; no grant entered the browser.",
+                  );
+                })
+              }
+            >
+              Assign synthetic-reviewer
+            </button>
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={session.state !== "ready"}
+              onClick={() => void lifecycle("start")}
+            >
+              Start scenario
+            </button>
+          </div>
+
+          <h2>2. Direct semantic views</h2>
+          <div className="ppl-button-row">
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={!running}
+              onClick={() =>
+                void requestView(
+                  "audience-display",
+                  "pres-intro",
+                  "A governed source, not a magic answer",
+                  "Harbour Community Support is reviewing synthetic policy material through accountable components and human authority.",
+                )
+              }
+            >
+              Show introduction
+            </button>
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={!running}
+              onClick={() =>
+                void requestView(
+                  "reviewer-workbench",
+                  "wb-engagement",
+                  "Harbour support policy review",
+                  "Open the bounded synthetic engagement context for the assigned reviewer.",
+                )
+              }
+            >
+              Open engagement context
+            </button>
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={!running}
+              onClick={() =>
+                void requestView(
+                  "reviewer-workbench",
+                  "wb-source-intake",
+                  "Add a source for governed review",
+                  "Show human-operated upload, paste and link controls; do not submit anything yet.",
+                )
+              }
+            >
+              Open source intake
+            </button>
+            <button
+              className="ppl-button ppl-button-secondary"
+              type="button"
+              disabled={!running}
+              onClick={() =>
+                void requestView(
+                  "reviewer-workbench",
+                  "wb-not-admitted",
+                  "Unsupported view test",
+                  "This request must be refused before delivery.",
+                )
+              }
+            >
+              Test unsupported view refusal
+            </button>
+          </div>
+
+          <h2>3. Pause and close safely</h2>
+          <div className="ppl-button-row">
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={!running}
+              onClick={() => void lifecycle("pause")}
+            >
+              Pause scenario
+            </button>
+            <button
+              className="ppl-button ppl-button-secondary"
+              type="button"
+              disabled={session.state !== "paused"}
+              onClick={() => void lifecycle("resume")}
+            >
+              Resume
+            </button>
+            <button
+              className="ppl-button ppl-button-secondary"
+              type="button"
+              disabled={
+                !(
+                  ["preparing", "ready", "running", "paused"] as string[]
+                ).includes(session.state)
+              }
+              onClick={() => void lifecycle("stop")}
+            >
+              Stop and terminate synthetic sessions
+            </button>
+            <button
+              className="ppl-button ppl-button-secondary"
+              type="button"
+              disabled={
+                !(["stopped", "completed", "failed"] as string[]).includes(
+                  session.state,
+                )
+              }
+              onClick={() => void lifecycle("reset")}
+            >
+              Reset to successor
+            </button>
+          </div>
+        </article>
+      )}
+
+      <article className="ppl-card ppl-live-card">
+        <p className="ppl-card-label">Current system response</p>
         <div
           className="ppl-runtime-message"
           data-status={error ? "error" : "ok"}

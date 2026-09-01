@@ -18,18 +18,17 @@ retained Cloud KMS issuer; it refuses a local signer or development login.
 
 ## Surfaces and identities
 
-| Surface           | Local address                         | Required external role | Synthetic binding                                                 |
-| ----------------- | ------------------------------------- | ---------------------- | ----------------------------------------------------------------- |
-| Director          | `http://127.0.0.1:18081/`             | `presenter`            | Requests configured bindings but never receives a grant           |
-| Audience display  | `http://127.0.0.1:18082/`             | `surface-operator`     | `synthetic-audience-user` on `audience-display`                   |
-| Workbench surface | `http://127.0.0.1:18082/workbench/`   | `surface-operator`     | `synthetic-reviewer` on `reviewer-workbench`                      |
-| Identity health   | `http://127.0.0.1:18083/health/ready` | no browser login       | Reports environment, trust profile, epoch and broker channel only |
+| Surface           | Local address                                 | Required external role | Synthetic binding                                                 |
+| ----------------- | --------------------------------------------- | ---------------------- | ----------------------------------------------------------------- |
+| Director          | `http://localhost:18081/`                     | `presenter`            | Requests configured bindings but never receives a grant           |
+| Audience display  | `http://presentation.localhost:18082/`        | `surface-operator`     | `synthetic-audience-user` on `audience-display`                   |
+| Workbench surface | `http://workbench.localhost:18082/workbench/` | `surface-operator`     | `synthetic-reviewer` on `reviewer-workbench`                      |
+| Identity health   | `http://127.0.0.1:18083/health/ready`         | no browser login       | Reports environment, trust profile, epoch and broker channel only |
 
-The Presentation and Workbench shells currently share one backend origin. Use
-separate browser profiles, private windows or independent cookie jars when
-showing both bindings simultaneously. This exercises two application sessions
-and two surface actors; it does not claim two independently deployed
-application gateways.
+The three local surfaces use distinct host origins while sharing the same
+loopback environment. This preserves independent host-scoped application
+sessions in one ordinary browser profile. It does not claim three independently
+deployed application gateways.
 
 Start the two surface sessions before requesting their synthetic sign-ins.
 The Director sends only an identity request. The Identity Broker signs and
@@ -79,10 +78,16 @@ PPL_M3_ENVIRONMENT_DIRECTORY="$(pwd)/.local/m3-compose"
 export PPL_M3_ENVIRONMENT_DIRECTORY
 deploy/local/setup-m3-environment.sh "$PPL_M3_ENVIRONMENT_DIRECTORY" portable
 docker compose -f deploy/compose/m3-compose.yaml up --build --detach
-tools/smoke-m3-native.sh
+PPL_DIRECTOR_ORIGIN=http://localhost:18081 \
+  PPL_GATEWAY_ORIGIN=http://presentation.localhost:18082 \
+  PPL_WORKBENCH_ORIGIN=http://workbench.localhost:18082 \
+  tools/smoke-m3-native.sh
 docker compose -f deploy/compose/m3-compose.yaml restart \
   nats identity-broker scenario-director presentation-gateway
-tools/smoke-m3-native.sh
+PPL_DIRECTOR_ORIGIN=http://localhost:18081 \
+  PPL_GATEWAY_ORIGIN=http://presentation.localhost:18082 \
+  PPL_WORKBENCH_ORIGIN=http://workbench.localhost:18082 \
+  tools/smoke-m3-native.sh
 docker compose -f deploy/compose/m3-compose.yaml down
 ```
 
