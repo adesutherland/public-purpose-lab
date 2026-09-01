@@ -7,6 +7,7 @@ use async_nats::jetstream::{
     consumer::{AckPolicy, PullConsumer, pull},
     stream::{Config as StreamConfig, StorageType},
 };
+use ppl_contracts::OperationalEvent;
 use serde::Serialize;
 
 const STREAM_NAME: &str = "PPL_M3_PRESENTATION";
@@ -21,6 +22,9 @@ pub const SYNTHETIC_GRANT_SUBJECT: &str = "ppl.m3.to-presentation.synthetic-gran
 pub const IDENTITY_OUTCOME_SUBJECT: &str = "ppl.m3.to-director.identity-outcome";
 pub const SYNTHETIC_TERMINATION_SUBJECT: &str = "ppl.m3.to-presentation.synthetic-termination";
 const PRESENTATION_CONSUMER_FILTER: &str = "ppl.m3.to-presentation.*";
+pub const DIRECTOR_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.CTL-01";
+pub const PRESENTATION_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.CTL-02";
+pub const IDENTITY_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.IAM-01";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WorkloadMode {
@@ -126,6 +130,9 @@ impl Broker {
                     SYNTHETIC_GRANT_SUBJECT.to_owned(),
                     IDENTITY_OUTCOME_SUBJECT.to_owned(),
                     SYNTHETIC_TERMINATION_SUBJECT.to_owned(),
+                    DIRECTOR_OPERATIONAL_SUBJECT.to_owned(),
+                    PRESENTATION_OPERATIONAL_SUBJECT.to_owned(),
+                    IDENTITY_OPERATIONAL_SUBJECT.to_owned(),
                 ],
                 storage: StorageType::File,
                 max_messages: 10_000,
@@ -198,6 +205,30 @@ impl Broker {
         Ok(())
     }
 
+    /// Publishes the current workload's Gate A operational event.
+    ///
+    /// # Errors
+    /// Returns a safe error if the event does not match the connected workload
+    /// or cannot be durably acknowledged by the bounded stream.
+    pub async fn publish_operational_event(
+        &self,
+        event: &OperationalEvent,
+    ) -> Result<(), BrokerError> {
+        let subject = match self.workload_mode {
+            WorkloadMode::ScenarioDirector if event.component_id == "CTL-01" => {
+                DIRECTOR_OPERATIONAL_SUBJECT
+            }
+            WorkloadMode::PresentationGateway if event.component_id == "CTL-02" => {
+                PRESENTATION_OPERATIONAL_SUBJECT
+            }
+            WorkloadMode::IdentityBroker if event.component_id == "IAM-01" => {
+                IDENTITY_OPERATIONAL_SUBJECT
+            }
+            _ => return Err(BrokerError::ActionNotPermitted),
+        };
+        self.publish(subject, event).await
+    }
+
     #[must_use]
     pub fn can_publish(&self, subject: &str) -> bool {
         can_publish(self.workload_mode, subject)
@@ -212,15 +243,19 @@ fn can_publish(mode: WorkloadMode, subject: &str) -> bool {
                 || subject == DIRECTOR_EVENT_SUBJECT
                 || subject == GRANT_REQUEST_SUBJECT
                 || subject == SYNTHETIC_TERMINATION_SUBJECT
+                || subject == DIRECTOR_OPERATIONAL_SUBJECT
         }
         WorkloadMode::PresentationGateway => {
             subject == REGISTRATION_SUBJECT
                 || subject == OUTCOME_SUBJECT
                 || subject == CONTROL_OUTCOME_SUBJECT
                 || subject == IDENTITY_OUTCOME_SUBJECT
+                || subject == PRESENTATION_OPERATIONAL_SUBJECT
         }
         WorkloadMode::IdentityBroker => {
-            subject == SYNTHETIC_GRANT_SUBJECT || subject == IDENTITY_OUTCOME_SUBJECT
+            subject == SYNTHETIC_GRANT_SUBJECT
+                || subject == IDENTITY_OUTCOME_SUBJECT
+                || subject == IDENTITY_OPERATIONAL_SUBJECT
         }
     }
 }
@@ -252,5 +287,13 @@ mod tests {
             SYNTHETIC_GRANT_SUBJECT
         ));
         assert!(!can_publish(WorkloadMode::IdentityBroker, CUE_SUBJECT));
+        assert!(can_publish(
+            WorkloadMode::ScenarioDirector,
+            DIRECTOR_OPERATIONAL_SUBJECT
+        ));
+        assert!(!can_publish(
+            WorkloadMode::PresentationGateway,
+            DIRECTOR_OPERATIONAL_SUBJECT
+        ));
     }
 }

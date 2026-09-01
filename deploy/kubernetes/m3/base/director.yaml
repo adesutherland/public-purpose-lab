@@ -62,6 +62,12 @@ spec:
               value: /run/secrets/ppl/director.seed
             - name: PPL_NATS_ROOT_CERTIFICATE
               value: /run/trust/ppl/ca.crt
+            - name: PPL_GATE_A_READINESS
+              value: "1"
+            - name: PPL_INSTANCE_ID
+              value: scenario-director-1
+            - name: PPL_WORKLOAD_IDENTITY_FILE
+              value: /run/secrets/ppl/workload.nkey
           ports:
             - name: http
               containerPort: 8080

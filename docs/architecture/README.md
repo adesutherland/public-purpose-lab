@@ -20,6 +20,10 @@ defines the required screens, deployed component instances, observable events
 and acceptance scripts. Gate A is active; later M4 bindings follow its approved
 visible-capability sequence.
 
+The [Gate A component-mesh binding](gate-a-component-mesh.md) defines the
+separate workload identities, working operational event shape, live Operations
+projection and bounded acceptance evidence for the first implementation gate.
+
 The accepted
 [M3.3 runtime walking-skeleton baseline](m3-3-runtime-walking-skeleton-baseline.md)
 binds the Director and presentation contracts to a minimal executable

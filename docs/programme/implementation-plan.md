@@ -573,8 +573,8 @@ bindings.
 
 ### M4 — Source-to-Report Value Slice
 
-Status: Gate A active — detailed functional baseline approved by the founders
-on 1 September 2026
+Status: Gate A accepted and closed; Gate B active — detailed functional
+baseline approved by the founders on 1 September 2026
 
 The founders approved the six-scenario catalogue direction on 31 August 2026
 and its detailed functional baseline on 1 September 2026. The

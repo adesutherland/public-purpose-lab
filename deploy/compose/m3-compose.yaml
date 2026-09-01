@@ -63,12 +63,16 @@ services:
       PPL_NATS_URL: tls://nats:4222
       PPL_NATS_NKEY_SEED_FILE: /run/secrets/director-nkey
       PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+      PPL_GATE_A_READINESS: "1"
+      PPL_INSTANCE_ID: scenario-director-1
+      PPL_WORKLOAD_IDENTITY_FILE: /run/identity/workload.nkey
     ports:
       - 127.0.0.1:18081:8080
     volumes:
       - director-state:/var/lib/public-purpose-lab
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/director.nkey:/run/identity/workload.nkey:ro
     secrets:
       - source: director-nkey
         target: /run/secrets/director-nkey
@@ -102,6 +106,9 @@ services:
       PPL_NATS_URL: tls://nats:4222
       PPL_NATS_NKEY_SEED_FILE: /run/secrets/presentation-nkey
       PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+      PPL_GATE_A_READINESS: "1"
+      PPL_INSTANCE_ID: presentation-gateway-1
+      PPL_WORKLOAD_IDENTITY_FILE: /run/identity/workload.nkey
     ports:
       - 127.0.0.1:18082:8080
     volumes:
@@ -109,6 +116,7 @@ services:
       - identity-public:/run/trust/ppl-identity:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/presentation.nkey:/run/identity/workload.nkey:ro
     secrets:
       - source: presentation-nkey
         target: /run/secrets/presentation-nkey
@@ -138,6 +146,9 @@ services:
       PPL_NATS_URL: tls://nats:4222
       PPL_NATS_NKEY_SEED_FILE: /run/secrets/identity-nkey
       PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+      PPL_GATE_A_READINESS: "1"
+      PPL_INSTANCE_ID: identity-broker-1
+      PPL_WORKLOAD_IDENTITY_FILE: /run/identity/workload.nkey
     ports:
       - 127.0.0.1:18083:8080
     volumes:
@@ -145,6 +156,7 @@ services:
       - identity-public:/run/trust/ppl-identity
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/identity.nkey:/run/identity/workload.nkey:ro
     secrets:
       - source: identity-nkey
         target: /run/secrets/identity-nkey
@@ -153,6 +165,152 @@ services:
       - /tmp
     cap_drop: ["ALL"]
     security_opt: ["no-new-privileges:true"]
+
+  authorisation:
+    <<: &component-host
+      image: public-purpose-lab/m3-runtime:development
+      entrypoint: ["ppl-component-host"]
+      restart: on-failure
+      depends_on:
+        nats:
+          condition: service_started
+      read_only: true
+      tmpfs: [/tmp]
+      cap_drop: ["ALL"]
+      security_opt: ["no-new-privileges:true"]
+    environment: &component-environment
+      PPL_LISTEN_ADDRESS: 0.0.0.0:8080
+      PPL_NATS_URL: tls://nats:4222
+      PPL_NATS_ROOT_CERTIFICATE: /etc/public-purpose-lab/root-ca.crt
+      PPL_ENVIRONMENT_ID_FILE: /run/environment/environment-id
+      PPL_SOURCE_REVISION: ${PPL_SOURCE_REVISION:-working-tree}
+      PPL_IMAGE_DIGEST: ${PPL_IMAGE_DIGEST:-local-compose-build}
+      PPL_COMPONENT_ID: AUT-01
+      PPL_INSTANCE_ID: authorisation-1
+      PPL_NATS_NKEY_SEED_FILE: /run/secrets/component-nkey
+      PPL_WORKLOAD_IDENTITY_FILE: /run/identity/workload.nkey
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/authorisation.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: authorisation-nkey
+        target: /run/secrets/component-nkey
+
+  engagement:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: DOM-01
+      PPL_INSTANCE_ID: engagement-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/engagement.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: engagement-nkey
+        target: /run/secrets/component-nkey
+
+  source-governance:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: CNT-01
+      PPL_INSTANCE_ID: source-governance-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/source-governance.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: source-governance-nkey
+        target: /run/secrets/component-nkey
+
+  knowledge-processing:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: KNO-01
+      PPL_INSTANCE_ID: knowledge-processing-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/knowledge-processing.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: knowledge-processing-nkey
+        target: /run/secrets/component-nkey
+
+  review-workflow:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: WRK-01
+      PPL_INSTANCE_ID: review-workflow-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/review-workflow.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: review-workflow-nkey
+        target: /run/secrets/component-nkey
+
+  reporting:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: RPT-01
+      PPL_INSTANCE_ID: reporting-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/reporting.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: reporting-nkey
+        target: /run/secrets/component-nkey
+
+  audit-evidence:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: AUD-01
+      PPL_INSTANCE_ID: audit-evidence-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/audit-evidence.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: audit-evidence-nkey
+        target: /run/secrets/component-nkey
+
+  operations:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: OPS-01
+      PPL_INSTANCE_ID: operations-1
+      PPL_STATIC_DIRECTORY: /opt/public-purpose-lab/frontend/operations
+    ports:
+      - 127.0.0.1:18084:8080
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/operations.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: operations-nkey
+        target: /run/secrets/component-nkey
+
+  event-infrastructure:
+    <<: *component-host
+    environment:
+      <<: *component-environment
+      PPL_COMPONENT_ID: INT-01
+      PPL_INSTANCE_ID: event-infrastructure-1
+    volumes:
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
+      - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/event-infrastructure.nkey:/run/identity/workload.nkey:ro
+    secrets:
+      - source: event-infrastructure-nkey
+        target: /run/secrets/component-nkey
 
 secrets:
   director-nkey:
@@ -163,6 +321,24 @@ secrets:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/identity.seed
   nats-server-key:
     file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/nats-server.key
+  authorisation-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/authorisation.seed
+  engagement-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/engagement.seed
+  source-governance-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/source-governance.seed
+  knowledge-processing-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/knowledge-processing.seed
+  review-workflow-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/review-workflow.seed
+  reporting-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/reporting.seed
+  audit-evidence-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/audit-evidence.seed
+  operations-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/operations.seed
+  event-infrastructure-nkey:
+    file: ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/event-infrastructure.seed
 
 volumes:
   director-state:
