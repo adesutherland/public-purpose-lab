@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Public Purpose Lab M3 runtime adapter
-  version: 1.2.0
+  version: 1.2.1
   description: >-
     In-development, synthetic-only HTTP and SSE adapter for the Scenario
     Director, Identity Broker and Presentation Gateway, including the Gate B

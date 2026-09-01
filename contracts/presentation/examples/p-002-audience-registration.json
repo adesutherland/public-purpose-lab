@@ -6,7 +6,7 @@
   "surfaceSlot": "audience-display",
   "surfaceRole": "audience-display",
   "manifestId": "assurance-presentation-surface",
-  "manifestVersion": "1.2.0",
+  "manifestVersion": "1.2.1",
   "supportedViews": ["pres-intro", "pres-progress"],
   "bindingMode": "development-assurance",
   "registrationRevision": 1,

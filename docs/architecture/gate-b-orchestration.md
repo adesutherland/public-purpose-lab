@@ -84,11 +84,11 @@ environment; presentation control itself never depends on a URL or DOM action.
 
 | Contract             | Gate B use                                                                                                                     |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `D-001`              | Admits package `presentation-control-assurance` v1.2.0 with the two approved stages and four semantic views                    |
+| `D-001`              | Admits package `presentation-control-assurance` v1.2.1 with the two approved stages and four semantic views                    |
 | `D-002`              | Creates and controls a revision-checked Demonstration Session                                                                  |
 | `D-003`              | Sets bounded logical time and retains the existing scoped reset/fault controls                                                 |
 | `D-004`              | Distinguishes presentation checkpoints from business completion                                                                |
-| `P-001`              | Admits Presentation Gateway manifest v1.2.0 and the `pres-*` and `wb-*` view vocabulary                                        |
+| `P-001`              | Admits Presentation Gateway manifest v1.2.1 and the `pres-*` and `wb-*` view vocabulary                                        |
 | `P-002`              | Binds one current, role-specific surface registration to a session and connection generation                                   |
 | `P-003`              | Carries bounded semantic view, text context and opaque correlation—not a route, credential or command to mutate business state |
 | `P-004`              | Records applied, refused, unsupported, expired or failed target-owned outcomes with `businessCompletionClaimed=false`          |

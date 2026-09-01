@@ -2,7 +2,7 @@
   "contractId": "D-001",
   "contractVersion": "1.0.0",
   "packageId": "presentation-control-assurance",
-  "packageVersion": "1.2.0",
+  "packageVersion": "1.2.1",
   "title": "Governed source assurance",
   "purpose": "Demonstrate environment-scoped identity and robust semantic portal orchestration before governed source intake, using synthetic information only.",
   "publisher": "public-purpose-lab",

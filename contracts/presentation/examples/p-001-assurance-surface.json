@@ -2,7 +2,7 @@
   "contractId": "P-001",
   "contractVersion": "1.0.0",
   "manifestId": "assurance-presentation-surface",
-  "manifestVersion": "1.2.0",
+  "manifestVersion": "1.2.1",
   "applicationId": "presentation-gateway",
   "applicationRelease": "0.2.1",
   "surfaceRoles": ["audience-display", "reviewer-workbench"],

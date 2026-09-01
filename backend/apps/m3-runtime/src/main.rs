@@ -46,7 +46,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 
 const PACKAGE_ID: &str = "presentation-control-assurance";
-const PACKAGE_VERSION: &str = "1.2.0";
+const PACKAGE_VERSION: &str = "1.2.1";
 const MANIFEST_JSON: &str =
     include_str!("../../../../contracts/presentation/examples/p-001-assurance-surface.json");
 
@@ -969,7 +969,7 @@ async fn gateway_contracts(State(state): State<GatewayState>) -> Json<Value> {
         "contracts": ["P-001", "P-002", "P-003", "P-004"],
         "identityContracts": ["I-001", "I-004", "I-005"],
         "manifestId": "assurance-presentation-surface",
-        "manifestVersion": "1.2.0",
+        "manifestVersion": "1.2.1",
         "manifestDigest": state.manifest_digest,
         "sourceRevision": state.config.source_revision,
         "imageDigest": state.config.image_digest,
@@ -2028,7 +2028,7 @@ async fn register_surface(
         surface_slot: request.surface_slot,
         surface_role: request.surface_role,
         manifest_id: "assurance-presentation-surface".to_owned(),
-        manifest_version: "1.2.0".to_owned(),
+        manifest_version: "1.2.1".to_owned(),
         supported_views,
         binding_mode: "development-assurance".to_owned(),
         registration_revision: 1,
