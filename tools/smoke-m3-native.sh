@@ -13,6 +13,7 @@ director_url=${PPL_DIRECTOR_URL:-http://127.0.0.1:18081}
 gateway_url=${PPL_GATEWAY_URL:-http://127.0.0.1:18082}
 director_origin=${PPL_DIRECTOR_ORIGIN:-$director_url}
 gateway_origin=${PPL_GATEWAY_ORIGIN:-$gateway_url}
+workbench_origin=${PPL_WORKBENCH_ORIGIN:-$gateway_origin}
 sse_capture=${PPL_SSE_CAPTURE:-.local/m3-native-sse.txt}
 
 require_command() {
@@ -50,7 +51,7 @@ require_command curl
 require_command jq
 login "$director_origin" "$director_url" "$director_cookie_jar"
 login "$gateway_origin" "$gateway_url" "$gateway_cookie_jar"
-login "$gateway_origin" "$gateway_url" "$workbench_cookie_jar"
+login "$workbench_origin" "$gateway_url" "$workbench_cookie_jar"
 director_csrf=$(csrf_token "$director_cookie_jar")
 gateway_csrf=$(csrf_token "$gateway_cookie_jar")
 workbench_csrf=$(csrf_token "$workbench_cookie_jar")
@@ -86,7 +87,7 @@ post_json "$gateway_cookie_jar" "$gateway_csrf" "$gateway_origin" \
 
 body=$(jq -cn --arg session "$session_id" \
   '{sessionId:$session,surfaceSlot:"reviewer-workbench",surfaceRole:"reviewer-workbench"}')
-post_json "$workbench_cookie_jar" "$workbench_csrf" "$gateway_origin" \
+post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
   "$gateway_url/api/v1/registrations" "$body" >/dev/null
 
 attempt=0
@@ -236,7 +237,7 @@ rm -f "$workbench_sse_capture"
 for applied_cue in "$engagement_cue" "$intake_cue"; do
   outcome=$(printf '%s' "$applied_cue" | jq -c \
     '{contractId:"P-004",contractVersion:"1.0.0",outcomeId:("outcome:"+.cueId),cueId:.cueId,cueDigest:.cueDigest,sessionId:.sessionId,sessionRevision:.sessionRevision,surfaceSlot:.surfaceSlot,registrationId:.registrationId,registrationRevision:.registrationRevision,connectionGeneration:.connectionGeneration,semanticView:.semanticView,result:"applied",concludedAt:(now|todateiso8601),businessCompletionClaimed:false}')
-  post_json "$workbench_cookie_jar" "$workbench_csrf" "$gateway_origin" \
+  post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
     "$gateway_url/api/v1/outcomes" "$outcome" >/dev/null
 done
 

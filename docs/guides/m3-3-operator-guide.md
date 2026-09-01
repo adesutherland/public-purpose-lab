@@ -93,7 +93,10 @@ PPL_M3_ENVIRONMENT_DIRECTORY="$(pwd)/.local/m3-compose"
 export PPL_M3_ENVIRONMENT_DIRECTORY
 deploy/local/setup-m3-environment.sh "$PPL_M3_ENVIRONMENT_DIRECTORY" portable
 docker compose -f deploy/compose/m3-compose.yaml up --build --detach
-tools/smoke-m3-native.sh
+PPL_DIRECTOR_ORIGIN=http://localhost:18081 \
+  PPL_GATEWAY_ORIGIN=http://presentation.localhost:18082 \
+  PPL_WORKBENCH_ORIGIN=http://workbench.localhost:18082 \
+  tools/smoke-m3-native.sh
 ```
 
 The portable setup keeps the environment directory at owner-only mode. Because
