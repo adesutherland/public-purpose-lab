@@ -150,13 +150,13 @@ export function App() {
             </a>
             <a
               className="ppl-button ppl-button-secondary"
-              href="http://127.0.0.1:18082/"
+              href="http://presentation.localhost:18082/"
             >
               Open Presentation
             </a>
             <a
               className="ppl-button ppl-button-secondary"
-              href="http://[::1]:18082/workbench/"
+              href="http://workbench.localhost:18082/workbench/"
             >
               Open Workbench
             </a>

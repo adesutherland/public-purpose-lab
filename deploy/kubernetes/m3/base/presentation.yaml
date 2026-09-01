@@ -34,9 +34,9 @@ spec:
             - name: PPL_LISTEN_ADDRESS
               value: 0.0.0.0:8080
             - name: PPL_ALLOWED_ORIGIN
-              value: http://127.0.0.1:18082
+              value: http://presentation.localhost:18082
             - name: PPL_ADDITIONAL_ALLOWED_ORIGINS
-              value: http://[::1]:18082
+              value: http://workbench.localhost:18082
             - name: PPL_STATE_PATH
               value: /var/lib/public-purpose-lab/ctl-02.sqlite
             - name: PPL_SECURITY_STATE_PATH

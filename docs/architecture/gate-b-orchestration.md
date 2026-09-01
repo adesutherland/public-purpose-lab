@@ -130,7 +130,8 @@ change the event-based control contract.
 Director, Presentation and Workbench must have distinct browser origins when
 they hold concurrent application sessions. Browser cookies are host-scoped,
 not port-scoped, so the local binding uses `localhost` for Director,
-`127.0.0.1` for Presentation and `[::1]` for Workbench. Each runtime admits
+`presentation.localhost` for Presentation and `workbench.localhost` for
+Workbench. Each runtime admits
 only its exact configured origins; it does not use a wildcard origin. Managed
 hosted deployments retain one exact HTTPS origin per gateway instance and use
 distinct instances or hostnames for surfaces that require independent
