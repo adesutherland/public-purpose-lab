@@ -1,6 +1,6 @@
 # Gate A component mesh
 
-Status: Implementation baseline
+Status: Implemented; founder acceptance and publication pending
 
 Date: 1 September 2026
 

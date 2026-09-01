@@ -418,7 +418,8 @@ unavailable, an event is duplicated or a scenario is reset.
 ## Implementation gates
 
 The founders approved this detailed document and component baseline on 1
-September 2026. Gate A is active. Delivery proceeds by visible capability:
+September 2026. Gate A is implemented and awaiting founder acceptance.
+Delivery proceeds by visible capability:
 
 1. **Gate A — deployed component mesh:** all required skeleton instances run,
    authenticate, publish readiness and appear in the operations views.
