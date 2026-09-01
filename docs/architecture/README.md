@@ -13,6 +13,13 @@ The [logical architecture overview](logical/README.md) starts the next level of
 design. It identifies every logical component and contract family and defines
 the order in which each will be documented and reviewed.
 
+The founder-approved
+[demonstration scenarios and functional requirements](../scenarios/demonstration-scenarios-and-functional-requirements.md)
+is the functional gate for the next architecture and implementation work. It
+defines the required screens, deployed component instances, observable events
+and acceptance scripts. Gate A is active; later M4 bindings follow its approved
+visible-capability sequence.
+
 The accepted
 [M3.3 runtime walking-skeleton baseline](m3-3-runtime-walking-skeleton-baseline.md)
 binds the Director and presentation contracts to a minimal executable
