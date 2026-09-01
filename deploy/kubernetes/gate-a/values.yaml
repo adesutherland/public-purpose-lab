@@ -21,6 +21,7 @@ components:
     name: source-governance
     instanceId: source-governance-1
     identitySecret: ppl-gate-a-source-governance-nkey
+    sourceState: true
   - id: KNO-01
     name: knowledge-processing
     instanceId: knowledge-processing-1

@@ -27,6 +27,7 @@ shared, production-like, production or non-synthetic-data environments.
   — accepted threats and evidence gates for canonical packages, component
   state, bounded assurance controls and the first executable composition.
 - [M3.4 identity and resilience threat extension](m3-4-identity-and-resilience-threat-extension.md)
+- [Gate C source-intake threat extension](m4-source-intake-threat-extension.md)
   — implemented development controls and remaining hosted gates for external
   identity, application sessions, synthetic sign-in, managed signing and
   restart behaviour.

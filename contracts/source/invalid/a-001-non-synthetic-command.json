@@ -1,0 +1,29 @@
+{
+  "contractId": "A-001",
+  "contractVersion": "0.1.0",
+  "messageType": "source-intake.command",
+  "commandId": "source-command:gate-c-invalid",
+  "action": "submit-to-quarantine",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "engagementId": "engagement:harbour-support-review",
+  "actorId": "synthetic-reviewer",
+  "actorRole": "workbench-reviewer",
+  "authorityReference": "application-session:gate-c-example",
+  "purpose": "governed-source-intake",
+  "correlationId": "session:gate-c-example",
+  "causationId": "user-action:gate-c-invalid",
+  "idempotencyKey": "source-intake:gate-c-invalid",
+  "issuedAt": "2026-09-01T15:00:00Z",
+  "source": {
+    "acquisitionMode": "paste",
+    "mediaType": "text/plain",
+    "sizeBytes": 20,
+    "content": "Unapproved real data",
+    "title": "Unapproved source",
+    "owner": "Unknown",
+    "rights": "Unknown",
+    "provenance": "Unknown",
+    "classification": "personal"
+  }
+}

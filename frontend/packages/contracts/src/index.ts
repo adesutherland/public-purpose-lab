@@ -27,6 +27,48 @@ export const m3ContractVersions = {
   "P-004": "1.0.0",
 } as const;
 
+export const gateCContractVersions = {
+  "A-001": "0.1.0",
+} as const;
+
+export type SourceAcquisitionMode = "upload" | "paste";
+
+export interface SourceVersionSummary {
+  readonly sourceId: string;
+  readonly sourceVersionId: string;
+  readonly version: number;
+  readonly status: "quarantined";
+  readonly digestAlgorithm: "sha-256";
+  readonly digestValue: string;
+  readonly acquisitionMode: SourceAcquisitionMode;
+  readonly originalName?: string;
+  readonly mediaType: "text/plain" | "text/markdown";
+  readonly sizeBytes: number;
+  readonly title: string;
+  readonly owner: string;
+  readonly rights: string;
+  readonly provenance: string;
+  readonly classification: "synthetic";
+}
+
+export interface SourceIntakeOutcome {
+  readonly contractId: "A-001";
+  readonly contractVersion: "0.1.0";
+  readonly messageType: "source-intake.outcome";
+  readonly outcomeId: string;
+  readonly commandId: string;
+  readonly status: "quarantined" | "refused" | "duplicate";
+  readonly code: string;
+  readonly environmentId: string;
+  readonly demonstrationSessionId: string;
+  readonly engagementId: string;
+  readonly actorId: string;
+  readonly correlationId: string;
+  readonly recordedAt: string;
+  readonly sourceVersion?: SourceVersionSummary;
+  readonly eventTypes: readonly string[];
+}
+
 export type ScenarioLifecycleAction =
   | "create"
   | "prepare"

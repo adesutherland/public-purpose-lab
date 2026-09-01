@@ -1,0 +1,24 @@
+{
+  "fixtures": [
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
+      "file": "contracts/source/examples/a-001-paste-command.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
+      "file": "contracts/source/examples/a-001-quarantined-outcome.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
+      "file": "contracts/source/examples/a-001-outcome-query.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
+      "file": "contracts/source/invalid/a-001-non-synthetic-command.json",
+      "valid": false
+    }
+  ]
+}

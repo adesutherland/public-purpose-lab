@@ -3,10 +3,11 @@ import type {
   PresentationCue,
   PresentationCueOutcome,
   PresentationRegistration,
+  SourceIntakeOutcome,
 } from "@public-purpose-lab/contracts";
 import { SurfaceShell, surfaceById } from "@public-purpose-lab/ui";
 
-type WorkbenchView = "wb-engagement" | "wb-source-intake";
+type WorkbenchView = "wb-engagement" | "wb-source-intake" | "wb-source-status";
 
 interface SessionContext {
   readonly externalPrincipalId: string;
@@ -87,6 +88,20 @@ export function App() {
   const [engagementReference, setEngagementReference] = useState(
     "engagement:harbour-support-review",
   );
+  const [sourceMode, setSourceMode] = useState<"upload" | "paste">("paste");
+  const [sourceText, setSourceText] = useState("");
+  const [sourceName, setSourceName] = useState<string>();
+  const [sourceMediaType, setSourceMediaType] = useState("text/plain");
+  const [sourceTitle, setSourceTitle] = useState("Harbour support policy");
+  const [sourceOwner, setSourceOwner] = useState("Harbour Community Support");
+  const [sourceRights, setSourceRights] = useState(
+    "Synthetic demonstration fixture",
+  );
+  const [sourceProvenance, setSourceProvenance] = useState(
+    "Created for the Gate C demonstration",
+  );
+  const [syntheticConfirmed, setSyntheticConfirmed] = useState(false);
+  const [sourceOutcome, setSourceOutcome] = useState<SourceIntakeOutcome>();
   const [message, setMessage] = useState(
     "Connect the Workbench, register it to the demonstration, then ask the Director to assign synthetic-reviewer.",
   );
@@ -150,9 +165,11 @@ export function App() {
         return;
       }
       void (async () => {
-        const supported = ["wb-engagement", "wb-source-intake"].includes(
-          cue.semanticView,
-        );
+        const supported = [
+          "wb-engagement",
+          "wb-source-intake",
+          "wb-source-status",
+        ].includes(cue.semanticView);
         const expired = new Date(cue.expiresAt).getTime() <= Date.now();
         const result = !supported
           ? "unsupported"
@@ -216,8 +233,8 @@ export function App() {
   return (
     <SurfaceShell
       surface={surfaceById("UX-02")}
-      maturityLabel="Gate B · functional demonstration"
-      notice="Synthetic demonstration only. Gate B can select and navigate views; the intake controls below do not yet submit, stage or process a source."
+      maturityLabel="Gate C · source intake in development"
+      notice="Synthetic demonstration only. This Gate C slice can submit text to an immutable quarantine record. It does not yet validate, stage, index, retrieve or answer from that source."
     >
       <article className="ppl-card ppl-live-card">
         <p className="ppl-card-label">Reviewer Workbench binding</p>
@@ -351,6 +368,14 @@ export function App() {
           >
             Source intake
           </button>
+          <button
+            className="ppl-button ppl-button-secondary"
+            type="button"
+            disabled={!syntheticEstablished || !sourceOutcome}
+            onClick={() => setActiveView("wb-source-status")}
+          >
+            Source status
+          </button>
         </div>
 
         {activeView === "wb-engagement" && (
@@ -397,32 +422,207 @@ export function App() {
             <div className="ppl-controls">
               <label className="ppl-field">
                 Upload a small text or Markdown file
-                <input type="file" accept=".txt,.md,text/plain,text/markdown" />
+                <input
+                  type="file"
+                  accept=".txt,.md,text/plain,text/markdown"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    void perform(async () => {
+                      const text = await file.text();
+                      setSourceMode("upload");
+                      setSourceText(text);
+                      setSourceName(file.name);
+                      setSourceMediaType(
+                        file.type === "text/markdown"
+                          ? "text/markdown"
+                          : "text/plain",
+                      );
+                      if (!sourceTitle.trim()) setSourceTitle(file.name);
+                      setMessage(
+                        `${file.name} loaded locally for review; it has not yet been submitted.`,
+                      );
+                    });
+                  }}
+                />
               </label>
               <label className="ppl-field">
-                Link a source
-                <input type="url" placeholder="https://example.org/policy" />
+                Link a source · later Gate C slice
+                <input
+                  type="url"
+                  placeholder="Remote retrieval is deliberately unavailable"
+                  disabled
+                />
               </label>
               <label className="ppl-field">
                 Or paste synthetic text
-                <textarea rows={6} placeholder="Paste synthetic policy text…" />
-              </label>
-              <label className="ppl-field">
-                Rights and provenance note
                 <textarea
                   rows={6}
-                  placeholder="Record why this source may be used…"
+                  value={sourceText}
+                  placeholder="Paste synthetic policy text…"
+                  onChange={(event) => {
+                    setSourceMode("paste");
+                    setSourceName(undefined);
+                    setSourceMediaType("text/plain");
+                    setSourceText(event.target.value);
+                  }}
+                />
+              </label>
+              <label className="ppl-field">
+                Title
+                <input
+                  value={sourceTitle}
+                  onChange={(event) => setSourceTitle(event.target.value)}
+                />
+              </label>
+              <label className="ppl-field">
+                Source owner
+                <input
+                  value={sourceOwner}
+                  onChange={(event) => setSourceOwner(event.target.value)}
+                />
+              </label>
+              <label className="ppl-field">
+                Rights
+                <input
+                  value={sourceRights}
+                  onChange={(event) => setSourceRights(event.target.value)}
+                />
+              </label>
+              <label className="ppl-field">
+                Provenance
+                <textarea
+                  rows={3}
+                  value={sourceProvenance}
+                  onChange={(event) => setSourceProvenance(event.target.value)}
                 />
               </label>
             </div>
+            <div className="ppl-runtime-message">
+              <strong>Submission preview</strong>
+              <br />
+              {sourceName ?? "Pasted text"} · {sourceMediaType} ·{" "}
+              {new Blob([sourceText]).size} bytes
+              <br />
+              {sourceText.slice(0, 180) || "No source text loaded."}
+              {sourceText.length > 180 ? "…" : ""}
+            </div>
+            <label className="ppl-field">
+              <span>
+                <input
+                  type="checkbox"
+                  checked={syntheticConfirmed}
+                  onChange={(event) =>
+                    setSyntheticConfirmed(event.target.checked)
+                  }
+                />{" "}
+                I confirm this source contains synthetic demonstration data
+                only.
+              </span>
+            </label>
             <div className="ppl-button-row">
-              <button className="ppl-button" type="button" disabled>
-                Submit to quarantine · Gate C
+              <button
+                className="ppl-button"
+                type="button"
+                disabled={
+                  !syntheticEstablished ||
+                  !syntheticConfirmed ||
+                  !sourceText.trim() ||
+                  !sourceTitle.trim() ||
+                  !sourceOwner.trim() ||
+                  !sourceRights.trim() ||
+                  !sourceProvenance.trim()
+                }
+                onClick={() =>
+                  void perform(async () => {
+                    const submissionId = crypto.randomUUID();
+                    const outcome = await postJson<SourceIntakeOutcome>(
+                      "/api/v1/source-intake",
+                      {
+                        submissionId,
+                        idempotencyKey: `source-intake:${submissionId}`,
+                        source: {
+                          acquisitionMode: sourceMode,
+                          ...(sourceName ? { originalName: sourceName } : {}),
+                          mediaType: sourceMediaType,
+                          sizeBytes: new Blob([sourceText]).size,
+                          content: sourceText,
+                          title: sourceTitle,
+                          owner: sourceOwner,
+                          rights: sourceRights,
+                          provenance: sourceProvenance,
+                          classification: "synthetic",
+                        },
+                      },
+                    );
+                    setSourceOutcome(outcome);
+                    setActiveView("wb-source-status");
+                    setMessage(
+                      `${outcome.sourceVersion?.sourceVersionId ?? outcome.commandId} recorded as ${outcome.status}.`,
+                    );
+                  })
+                }
+              >
+                Submit to quarantine
               </button>
             </div>
             <p className="ppl-runtime-message">
-              Controls are ready for human input. Gate B does not transmit,
-              persist, quarantine, stage or process their contents.
+              Submission creates a quarantined, immutable first version and
+              metadata-only lifecycle events. It does not approve or process the
+              source.
+            </p>
+          </section>
+        )}
+
+        {activeView === "wb-source-status" && sourceOutcome && (
+          <section className="ppl-semantic-view" aria-live="polite">
+            <p className="ppl-eyebrow">WB-SOURCE-STATUS</p>
+            <h2>Source recorded in quarantine</h2>
+            <p className="ppl-purpose">
+              The source is isolated from knowledge processing until a later
+              validation and staging decision. Human authority is unchanged.
+            </p>
+            <div className="ppl-status-grid ppl-runtime-message">
+              <span>
+                Status
+                <br />
+                <strong>{sourceOutcome.status}</strong>
+              </span>
+              <span>
+                Version
+                <br />
+                <strong>{sourceOutcome.sourceVersion?.version ?? "—"}</strong>
+              </span>
+              <span>
+                Source version
+                <br />
+                <strong className="ppl-mono">
+                  {sourceOutcome.sourceVersion?.sourceVersionId ?? "—"}
+                </strong>
+              </span>
+              <span>
+                Actor
+                <br />
+                <strong>{sourceOutcome.actorId}</strong>
+              </span>
+              <span>
+                Digest
+                <br />
+                <strong className="ppl-mono">
+                  {sourceOutcome.sourceVersion?.digestValue ?? "—"}
+                </strong>
+              </span>
+              <span>
+                Correlation
+                <br />
+                <strong className="ppl-mono">
+                  {sourceOutcome.correlationId}
+                </strong>
+              </span>
+            </div>
+            <p className="ppl-runtime-message">
+              Events: {sourceOutcome.eventTypes.join(", ")}. Source content is
+              intentionally absent from this response and event view.
             </p>
           </section>
         )}

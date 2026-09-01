@@ -11,6 +11,7 @@ use ppl_contracts::OperationalEvent;
 use serde::Serialize;
 
 const STREAM_NAME: &str = "PPL_M3_PRESENTATION";
+const SOURCE_STREAM_NAME: &str = "PPL_GATE_C_SOURCE";
 pub const REGISTRATION_SUBJECT: &str = "ppl.m3.to-director.registration";
 pub const CUE_SUBJECT: &str = "ppl.m3.to-presentation.cue";
 pub const OUTCOME_SUBJECT: &str = "ppl.m3.to-director.outcome";
@@ -25,6 +26,9 @@ const PRESENTATION_CONSUMER_FILTER: &str = "ppl.m3.to-presentation.*";
 pub const DIRECTOR_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.CTL-01";
 pub const PRESENTATION_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.CTL-02";
 pub const IDENTITY_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.IAM-01";
+pub const SOURCE_INTAKE_COMMAND_SUBJECT: &str = "ppl.gate-c.commands.CNT-01";
+pub const SOURCE_INTAKE_QUERY_SUBJECT: &str = "ppl.gate-c.queries.CNT-01";
+pub const SOURCE_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.CNT-01";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WorkloadMode {
@@ -46,6 +50,7 @@ pub struct BrokerConfig {
 
 #[derive(Clone)]
 pub struct Broker {
+    client: async_nats::Client,
     context: jetstream::Context,
     workload_mode: WorkloadMode,
 }
@@ -66,6 +71,8 @@ pub enum BrokerError {
     PayloadInvalid,
     #[error("broker-action-not-permitted")]
     ActionNotPermitted,
+    #[error("broker-request-timed-out")]
+    RequestTimedOut,
 }
 
 impl Broker {
@@ -106,7 +113,8 @@ impl Broker {
             .await
             .map_err(|_| BrokerError::Unavailable)?;
         Ok(Self {
-            context: jetstream::new(client),
+            context: jetstream::new(client.clone()),
+            client,
             workload_mode: config.workload_mode,
         })
     }
@@ -138,6 +146,19 @@ impl Broker {
                 max_messages: 10_000,
                 max_bytes: 16 * 1024 * 1024,
                 max_age: Duration::from_hours(24),
+                num_replicas: 1,
+                ..Default::default()
+            })
+            .await
+            .map_err(|_| BrokerError::StreamUnavailable)?;
+        self.context
+            .create_or_update_stream(StreamConfig {
+                name: SOURCE_STREAM_NAME.to_owned(),
+                subjects: vec![SOURCE_LIFECYCLE_EVENT_SUBJECT.to_owned()],
+                storage: StorageType::File,
+                max_messages: 1_000,
+                max_bytes: 4 * 1024 * 1024,
+                max_age: Duration::from_hours(24 * 7),
                 num_replicas: 1,
                 ..Default::default()
             })
@@ -229,6 +250,36 @@ impl Broker {
         self.publish(subject, event).await
     }
 
+    /// Sends one bounded Gate C request over the authenticated component
+    /// channel and returns the component-owned JSON response.
+    ///
+    /// # Errors
+    /// Only the Presentation Gateway may call the source-intake subjects. The
+    /// operation fails closed when no component response arrives in five seconds.
+    pub async fn request<T: Serialize>(
+        &self,
+        subject: &'static str,
+        payload: &T,
+    ) -> Result<Vec<u8>, BrokerError> {
+        if self.workload_mode != WorkloadMode::PresentationGateway
+            || !matches!(
+                subject,
+                SOURCE_INTAKE_COMMAND_SUBJECT | SOURCE_INTAKE_QUERY_SUBJECT
+            )
+        {
+            return Err(BrokerError::ActionNotPermitted);
+        }
+        let bytes = serde_json::to_vec(payload).map_err(|_| BrokerError::PayloadInvalid)?;
+        let response = tokio::time::timeout(
+            Duration::from_secs(5),
+            self.client.request(subject, bytes.into()),
+        )
+        .await
+        .map_err(|_| BrokerError::RequestTimedOut)?
+        .map_err(|_| BrokerError::Unavailable)?;
+        Ok(response.payload.to_vec())
+    }
+
     #[must_use]
     pub fn can_publish(&self, subject: &str) -> bool {
         can_publish(self.workload_mode, subject)
@@ -251,6 +302,8 @@ fn can_publish(mode: WorkloadMode, subject: &str) -> bool {
                 || subject == CONTROL_OUTCOME_SUBJECT
                 || subject == IDENTITY_OUTCOME_SUBJECT
                 || subject == PRESENTATION_OPERATIONAL_SUBJECT
+                || subject == SOURCE_INTAKE_COMMAND_SUBJECT
+                || subject == SOURCE_INTAKE_QUERY_SUBJECT
         }
         WorkloadMode::IdentityBroker => {
             subject == SYNTHETIC_GRANT_SUBJECT
@@ -280,6 +333,10 @@ mod tests {
             OUTCOME_SUBJECT
         ));
         assert!(!can_publish(WorkloadMode::PresentationGateway, CUE_SUBJECT));
+        assert!(can_publish(
+            WorkloadMode::PresentationGateway,
+            SOURCE_INTAKE_COMMAND_SUBJECT
+        ));
         assert!(CONTROL_SUBJECT.starts_with("ppl.m3.to-presentation."));
         assert!(CUE_SUBJECT.starts_with("ppl.m3.to-presentation."));
         assert!(can_publish(

@@ -1,0 +1,32 @@
+{
+  "contractId": "A-001",
+  "contractVersion": "0.1.0",
+  "messageType": "source-intake.outcome",
+  "outcomeId": "source-outcome:gate-c-example",
+  "commandId": "source-command:gate-c-example",
+  "status": "quarantined",
+  "code": "source-quarantined",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "engagementId": "engagement:harbour-support-review",
+  "actorId": "synthetic-reviewer",
+  "correlationId": "session:gate-c-example",
+  "recordedAt": "2026-09-01T15:00:01Z",
+  "sourceVersion": {
+    "sourceId": "source:gate-c-example",
+    "sourceVersionId": "source-version:gate-c-example",
+    "version": 1,
+    "status": "quarantined",
+    "digestAlgorithm": "sha-256",
+    "digestValue": "38789744afc3f6890306a7533bb9f4e18f13718a21381c0b635d30f4342549e0",
+    "acquisitionMode": "paste",
+    "mediaType": "text/plain",
+    "sizeBytes": 29,
+    "title": "Harbour support policy",
+    "owner": "Harbour Community Support",
+    "rights": "Synthetic demonstration fixture",
+    "provenance": "Created for Gate C system testing",
+    "classification": "synthetic"
+  },
+  "eventTypes": ["source.received", "source.quarantined"]
+}

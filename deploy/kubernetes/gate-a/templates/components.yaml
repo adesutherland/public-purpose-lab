@@ -73,6 +73,10 @@ spec:
             - name: PPL_STATIC_DIRECTORY
               value: /opt/public-purpose-lab/frontend/operations
             {{- end }}
+            {{- if .sourceState }}
+            - name: PPL_SOURCE_STATE_PATH
+              value: /var/lib/public-purpose-lab/source-governance.sqlite
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -111,6 +115,10 @@ spec:
               readOnly: true
             - name: temporary
               mountPath: /tmp
+            {{- if .sourceState }}
+            - name: source-state
+              mountPath: /var/lib/public-purpose-lab
+            {{- end }}
       volumes:
         - name: nkey
           secret:
@@ -122,6 +130,26 @@ spec:
             defaultMode: 0444
         - name: temporary
           emptyDir: {}
+        {{- if .sourceState }}
+        - name: source-state
+          persistentVolumeClaim:
+            claimName: gate-a-source-governance-state
+        {{- end }}
+{{- if .sourceState }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gate-a-source-governance-state
+  labels:
+    app.kubernetes.io/name: gate-a-source-governance
+    app.kubernetes.io/part-of: public-purpose-lab
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 256Mi
+{{- end }}
 {{- if .operationsSurface }}
 ---
 apiVersion: v1

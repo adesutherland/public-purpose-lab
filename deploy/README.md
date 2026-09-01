@@ -1,5 +1,8 @@
 # Deployment baselines
 
+For the current synthetic source-intake increment, see the
+[Gate C governed source-intake guide](../docs/guides/gate-c-source-intake.md).
+
 The deployment baselines prove that the current Rust components and browser
 surfaces can be packaged in containers and arranged in Kubernetes-compatible
 shapes. They are not production topologies or security qualifications.

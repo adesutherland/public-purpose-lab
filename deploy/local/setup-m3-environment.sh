@@ -101,7 +101,7 @@ printf '%s\n' \
   '    {' \
   "      nkey: \"${presentation_public}\"" \
   '      permissions: {' \
-  '        publish: ["ppl.m3.to-director.*", "ppl.gate-a.events.CTL-02", "$JS.>"]' \
+  '        publish: ["ppl.m3.to-director.*", "ppl.gate-a.events.CTL-02", "ppl.gate-c.commands.CNT-01", "ppl.gate-c.queries.CNT-01", "$JS.>"]' \
   '        subscribe: ["ppl.m3.to-presentation.*", "_INBOX.>"]' \
   '      }' \
   '    },' \
@@ -122,7 +122,7 @@ printf '%s\n' \
   '    },' \
   '    {' \
   "      nkey: \"$(sed -n '1p' "$environment_directory/source-governance.nkey")\"" \
-  '      permissions: { publish: ["ppl.gate-a.events.CNT-01"], subscribe: ["ppl.gate-a.commands.CNT-01", "_INBOX.>"] }' \
+  '      permissions: { publish: ["ppl.gate-a.events.CNT-01", "ppl.gate-c.events.CNT-01", "_INBOX.>"], subscribe: ["ppl.gate-a.commands.CNT-01", "ppl.gate-c.commands.CNT-01", "ppl.gate-c.queries.CNT-01", "_INBOX.>"] }' \
   '    },' \
   '    {' \
   "      nkey: \"$(sed -n '1p' "$environment_directory/knowledge-processing.nkey")\"" \

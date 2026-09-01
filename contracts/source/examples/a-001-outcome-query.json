@@ -1,0 +1,9 @@
+{
+  "contractId": "A-001",
+  "contractVersion": "0.1.0",
+  "messageType": "source-intake.query",
+  "queryId": "source-query:gate-c-example",
+  "commandId": "source-command:gate-c-example",
+  "environmentId": "environment-gate-c-example",
+  "requestedAt": "2026-09-01T15:00:02Z"
+}

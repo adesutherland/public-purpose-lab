@@ -62,3 +62,4 @@ What evidence will validate or cause reconsideration of the decision?
 - [ADR-0022: Use backend-only delivery for synthetic sign-in](0022-use-backend-only-delivery-for-synthetic-sign-in.md)
 - [ADR-0023: Retain single-server JetStream for M3.4](0023-retain-single-server-jetstream-for-m3-4.md)
 - [ADR-0024: Use one configurable host for Gate A skeletons](0024-use-one-configurable-host-for-gate-a-skeletons.md)
+- [ADR-0025: Bind Gate C quarantine to component-owned SQLite](0025-bind-gate-c-quarantine-to-component-owned-sqlite.md)

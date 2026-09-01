@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
   title: Public Purpose Lab M3 runtime adapter
-  version: 1.2.1
+  version: 1.3.0
   description: >-
     In-development, synthetic-only HTTP and SSE adapter for the Scenario
     Director, Identity Broker and Presentation Gateway, including the Gate B
-    environment, identity and semantic portal-orchestration path. These paths
-    are physical adapters, not semantic contract identifiers or production
-    interfaces.
+    environment, identity and semantic portal-orchestration path and the first
+    Gate C governed source-intake transaction. These paths are physical
+    adapters, not semantic contract identifiers or production interfaces.
 servers:
   - url: http://127.0.0.1:18081
     description: Native Scenario Director
@@ -20,6 +20,7 @@ tags:
   - name: director
   - name: presentation
   - name: identity
+  - name: source
 paths:
   /health/live:
     get:
@@ -440,6 +441,58 @@ paths:
           $ref: "#/components/responses/Refused"
         "409":
           $ref: "#/components/responses/Refused"
+  /api/v1/source-intake:
+    post:
+      tags: [source]
+      operationId: submitSourceToQuarantine
+      description: >-
+        Accepts browser source fields only after the Presentation Gateway adds
+        the authenticated synthetic reviewer, environment, session, purpose
+        and authority binding. It does not validate, stage or process content.
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SourceSubmission"
+      responses:
+        "201":
+          description: A-001 immutable version 1 recorded in quarantine.
+          content:
+            application/json:
+              schema:
+                $ref: ../source/a-001-source-intake.schema.json
+        "401":
+          $ref: "#/components/responses/Refused"
+        "422":
+          description: A-001 conclusive source refusal.
+          content:
+            application/json:
+              schema:
+                $ref: ../source/a-001-source-intake.schema.json
+  /api/v1/source-intake/{command_id}:
+    get:
+      tags: [source]
+      operationId: getSourceIntakeOutcome
+      description: Returns the recorded metadata-only outcome within the caller's environment and demonstration session.
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/CommandId"
+      responses:
+        "200":
+          description: Previously recorded A-001 outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../source/a-001-source-intake.schema.json
+        "401":
+          $ref: "#/components/responses/Refused"
 components:
   securitySchemes:
     applicationSession:
@@ -474,6 +527,12 @@ components:
       required: false
       schema:
         enum: [audience-display, reviewer-workbench]
+    CommandId:
+      name: command_id
+      in: path
+      required: true
+      schema:
+        type: string
   responses:
     Refused:
       description: Request is unauthorised, stale, unsupported or otherwise safely refused.
@@ -486,6 +545,43 @@ components:
       type: object
       additionalProperties: true
       description: A response validated and emitted as the named repository contract type.
+    SourceSubmission:
+      type: object
+      additionalProperties: false
+      required: [submissionId, idempotencyKey, source]
+      properties:
+        submissionId:
+          type: string
+          minLength: 8
+        idempotencyKey:
+          type: string
+          minLength: 8
+        source:
+          type: object
+          additionalProperties: false
+          required:
+            [
+              acquisitionMode,
+              mediaType,
+              sizeBytes,
+              content,
+              title,
+              owner,
+              rights,
+              provenance,
+              classification,
+            ]
+          properties:
+            acquisitionMode: { enum: [upload, paste] }
+            originalName: { type: string, minLength: 1, maxLength: 240 }
+            mediaType: { enum: [text/plain, text/markdown] }
+            sizeBytes: { type: integer, minimum: 0, maximum: 65536 }
+            content: { type: string, maxLength: 65536 }
+            title: { type: string, minLength: 1, maxLength: 240 }
+            owner: { type: string, minLength: 1, maxLength: 240 }
+            rights: { type: string, minLength: 1, maxLength: 500 }
+            provenance: { type: string, minLength: 1, maxLength: 1000 }
+            classification: { const: synthetic }
     Liveness:
       type: object
       additionalProperties: false

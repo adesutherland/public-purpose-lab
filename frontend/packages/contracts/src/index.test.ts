@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   commonContractVersions,
+  gateCContractVersions,
   isSyntheticSessionOutcome,
   isCommandOutcome,
   m2ContractVersions,
@@ -103,6 +104,10 @@ describe("common contract consumption", () => {
       "I-005",
       "AZ-001",
     ]);
+  });
+
+  it("publishes the bounded Gate C source-intake working version", () => {
+    expect(gateCContractVersions).toEqual({ "A-001": "0.1.0" });
   });
 
   it("narrows synthetic session outcomes without treating an unknown state as established", () => {

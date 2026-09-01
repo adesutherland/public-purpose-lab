@@ -36,6 +36,14 @@ const contractSets = [
     fixtures: "contracts/presentation/fixtures.json",
     compatibility: "contracts/presentation/compatibility.json",
   },
+  {
+    name: "source",
+    ids: ["A-001"],
+    fixtures: "contracts/source/fixtures.json",
+    compatibility: "contracts/source/compatibility.json",
+    status: "working-draft",
+    version: "0.1.0",
+  },
 ];
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 
@@ -67,7 +75,12 @@ for (const set of contractSets) {
     `Expected ${set.ids.length} ${set.name} contracts, found ${contracts.length}`,
   );
   for (const contract of contracts) {
-    assert(contract.status === "agreed", `${contract.id} must be agreed`);
+    const expectedStatus = set.status ?? "agreed";
+    const expectedVersion = set.version ?? "1.0.0";
+    assert(
+      contract.status === expectedStatus,
+      `${contract.id} must be ${expectedStatus}`,
+    );
     assert(
       contract.documentation !== null,
       `${contract.id} has no documentation`,
@@ -79,7 +92,8 @@ for (const set of contractSets) {
     );
     const schema = readJson(contract.schema);
     assert(
-      schema.$id === `urn:public-purpose-lab:contract:${contract.id}:1.0.0`,
+      schema.$id ===
+        `urn:public-purpose-lab:contract:${contract.id}:${expectedVersion}`,
       `${contract.id} has unexpected schema identifier ${schema.$id}`,
     );
     assert(

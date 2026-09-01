@@ -577,6 +577,13 @@ Status: Gate A and Gate B accepted and closed; Gate C authorised as the active
 delivery gate — detailed functional baseline approved by the founders on 1
 September 2026
 
+Current Gate C increment: upload and paste preview, authenticated submission,
+component-owned immutable quarantine, restart-safe idempotency, visible source
+status and correlated metadata-only operational events are in development.
+Validation, reviewer release to staging and knowledge-processing lifecycle
+remain required before Gate C can close. This is a current baseline, not a
+claim that the whole DS-03 flow is complete.
+
 The founders approved the six-scenario catalogue direction on 31 August 2026
 and its detailed functional baseline on 1 September 2026. The
 [demonstration scenarios and functional requirements](../scenarios/demonstration-scenarios-and-functional-requirements.md)
