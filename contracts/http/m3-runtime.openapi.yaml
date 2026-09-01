@@ -534,6 +534,8 @@ components:
           items: { type: string }
         sourceRevision: { type: string }
         imageDigest: { type: string }
+        packageSourceRevision: { type: string }
+        packageImageDigest: { type: string }
         maturity: { const: in-development }
         informationProfile: { const: synthetic-only }
     DevelopmentSession:

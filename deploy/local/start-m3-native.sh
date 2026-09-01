@@ -86,6 +86,7 @@ PPL_RUNTIME_MODE=presentation-gateway \
 PPL_RUNTIME_PROFILE=native-development \
 PPL_LISTEN_ADDRESS=127.0.0.1:18082 \
 PPL_ALLOWED_ORIGIN=http://127.0.0.1:18082 \
+PPL_ADDITIONAL_ALLOWED_ORIGINS=http://localhost:18082 \
 PPL_STATE_PATH="$environment_directory/state/ctl-02.sqlite" \
 PPL_SECURITY_STATE_PATH="$environment_directory/state/presentation-security.sqlite" \
 PPL_TRUST_BUNDLE_PATH="$environment_directory/identity-public/trust-bundle.json" \
@@ -119,4 +120,4 @@ done
 printf '%s\n' \
   'Director: http://127.0.0.1:18081/' \
   'Audience display: http://127.0.0.1:18082/' \
-  'Workbench surface: http://127.0.0.1:18082/workbench/'
+  'Workbench surface: http://localhost:18082/workbench/'

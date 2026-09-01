@@ -26,7 +26,7 @@ The three surfaces are:
 | --------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Director        | `http://127.0.0.1:18081/`           | Create and progress a synthetic session, set or advance logical time, arm the bounded cue-delay fault, issue a semantic cue, inspect presentation progress and reset. |
 | Presentation    | `http://127.0.0.1:18082/`           | Register an audience display, receive a semantic cue and return its bounded outcome.                                                                                  |
-| Workbench shell | `http://127.0.0.1:18082/workbench/` | Register the second presentation role and demonstrate the common visual surface; asset, RAG, workflow and reporting capabilities are not implemented.                 |
+| Workbench shell | `http://localhost:18082/workbench/` | Register the second presentation role and demonstrate the common visual surface; asset, RAG, workflow and reporting capabilities are not implemented.                 |
 
 Start with the Presentation Surface so it can register against the session
 created in the Director. The Director and Presentation pages explain the small

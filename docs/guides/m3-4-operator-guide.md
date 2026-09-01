@@ -22,7 +22,7 @@ retained Cloud KMS issuer; it refuses a local signer or development login.
 | ----------------- | ------------------------------------- | ---------------------- | ----------------------------------------------------------------- |
 | Director          | `http://127.0.0.1:18081/`             | `presenter`            | Requests configured bindings but never receives a grant           |
 | Audience display  | `http://127.0.0.1:18082/`             | `surface-operator`     | `synthetic-audience-user` on `audience-display`                   |
-| Workbench surface | `http://127.0.0.1:18082/workbench/`   | `surface-operator`     | `synthetic-reviewer` on `reviewer-workbench`                      |
+| Workbench surface | `http://localhost:18082/workbench/`   | `surface-operator`     | `synthetic-reviewer` on `reviewer-workbench`                      |
 | Identity health   | `http://127.0.0.1:18083/health/ready` | no browser login       | Reports environment, trust profile, epoch and broker channel only |
 
 The Presentation and Workbench shells currently share one backend origin. Use

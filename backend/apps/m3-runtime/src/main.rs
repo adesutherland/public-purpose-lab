@@ -117,6 +117,7 @@ struct AppConfig {
     source_revision: String,
     image_digest: String,
     allowed_origin: String,
+    additional_allowed_origins: Vec<String>,
     broker: Option<BrokerConfig>,
     environment_id: String,
     security_state_path: PathBuf,
@@ -509,6 +510,18 @@ fn load_config() -> Result<AppConfig, AppError> {
     );
     let allowed_origin = env::var("PPL_ALLOWED_ORIGIN")
         .unwrap_or_else(|_| format!("http://127.0.0.1:{default_port}"));
+    let additional_allowed_origins = env::var("PPL_ADDITIONAL_ALLOWED_ORIGINS")
+        .ok()
+        .map(|value| {
+            value
+                .split(',')
+                .map(str::trim)
+                .filter(|origin| !origin.is_empty())
+                .map(str::to_owned)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    validate_allowed_origins(profile, &allowed_origin, &additional_allowed_origins)?;
     let (oidc, mapping_version) =
         if profile == RuntimeProfile::ManagedHosted && mode != WorkloadMode::IdentityBroker {
             let role_mapping_path = PathBuf::from(required_env("PPL_OIDC_ROLE_MAPPING_PATH")?);
@@ -574,6 +587,7 @@ fn load_config() -> Result<AppConfig, AppError> {
         image_digest: env::var("PPL_IMAGE_DIGEST")
             .unwrap_or_else(|_| "native-development".to_owned()),
         allowed_origin,
+        additional_allowed_origins,
         broker,
         environment_id,
         security_state_path,
@@ -741,9 +755,36 @@ fn validate_managed_web_binding(allowed_origin: &str, redirect_uri: &str) -> Res
     Ok(())
 }
 
+fn validate_allowed_origins(
+    profile: RuntimeProfile,
+    primary: &str,
+    additional: &[String],
+) -> Result<(), AppError> {
+    let exact_origin = |origin: &str| {
+        url::Url::parse(origin).is_ok_and(|parsed| origin == parsed.origin().ascii_serialization())
+    };
+    if !exact_origin(primary)
+        || additional.len() > 4
+        || additional.iter().any(|origin| !exact_origin(origin))
+        || additional.iter().any(|origin| origin == primary)
+        || (!profile.local_test_identity() && !additional.is_empty())
+    {
+        return Err(AppError::configuration("allowed-origin-invalid"));
+    }
+    Ok(())
+}
+
+fn origin_is_allowed(config: &AppConfig, origin: &str) -> bool {
+    origin == config.allowed_origin
+        || config
+            .additional_allowed_origins
+            .iter()
+            .any(|candidate| candidate == origin)
+}
+
 #[cfg(test)]
 mod configuration_tests {
-    use super::validate_managed_web_binding;
+    use super::{RuntimeProfile, validate_allowed_origins, validate_managed_web_binding};
 
     #[test]
     fn managed_web_binding_requires_exact_https_origin_and_callback() {
@@ -774,6 +815,30 @@ mod configuration_tests {
                 "https://other.example.org/auth/google/callback"
             )
             .is_err()
+        );
+    }
+
+    #[test]
+    fn local_surfaces_may_use_distinct_exact_origins() {
+        assert!(
+            validate_allowed_origins(
+                RuntimeProfile::Minikube,
+                "http://127.0.0.1:18082",
+                &["http://localhost:18082".to_owned()]
+            )
+            .is_ok()
+        );
+        assert!(
+            validate_allowed_origins(
+                RuntimeProfile::ManagedHosted,
+                "https://presentation.example.org",
+                &["https://workbench.example.org".to_owned()]
+            )
+            .is_err()
+        );
+        assert!(
+            validate_allowed_origins(RuntimeProfile::Minikube, "http://127.0.0.1:18082/path", &[])
+                .is_err()
         );
     }
 }
@@ -956,8 +1021,10 @@ async fn director_contracts(State(state): State<DirectorState>) -> Result<Json<V
         "packageVersion": package.package_version,
         "packageDigest": package.package_digest,
         "scenarioDigest": package.scenario_digest,
-        "sourceRevision": package.source_revision,
-        "imageDigest": package.image_digest,
+        "sourceRevision": state.config.source_revision,
+        "imageDigest": state.config.image_digest,
+        "packageSourceRevision": package.source_revision,
+        "packageImageDigest": package.image_digest,
         "maturity": "in-development",
         "informationProfile": "synthetic-only"
     })))
@@ -1279,7 +1346,7 @@ fn require_origin(config: &AppConfig, headers: &HeaderMap) -> Result<(), AppErro
         .get(header::ORIGIN)
         .and_then(|value| value.to_str().ok())
         .ok_or(AppError::unauthorised("origin-required"))?;
-    if origin == config.allowed_origin {
+    if origin_is_allowed(config, origin) {
         Ok(())
     } else {
         Err(AppError::unauthorised("origin-refused"))
@@ -1486,7 +1553,7 @@ async fn director_environment(
         ),
         "workbenchSurfaceUrl": surface_url(
             "PPL_WORKBENCH_SURFACE_URL",
-            "http://127.0.0.1:18082/workbench/"
+            "http://localhost:18082/workbench/"
         ),
         "componentReadinessUrl": surface_url(
             "PPL_OPERATIONS_SURFACE_URL",

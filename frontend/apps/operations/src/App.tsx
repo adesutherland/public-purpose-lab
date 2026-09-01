@@ -156,7 +156,7 @@ export function App() {
             </a>
             <a
               className="ppl-button ppl-button-secondary"
-              href="http://127.0.0.1:18082/workbench/"
+              href="http://localhost:18082/workbench/"
             >
               Open Workbench
             </a>
