@@ -161,7 +161,8 @@ Gate B establishes visible DS-01/DS-02 orchestration. It does not establish an
 engagement record, source acquisition, quarantine, validation, staging,
 knowledge processing, durable audit reconstruction, human review or reporting.
 
-Closure requires the automated checks and a real browser walkthrough of the
-approved flow, retained screenshots from the exact build, the visually checked
-show-and-tell PDF and founder acceptance. The following Gate C implements the
-first business-process path: governed source intake and visible processing.
+Gate B closed with founder acceptance on 1 September 2026 after the automated
+checks, a real browser walkthrough of the approved flow, retained screenshots
+from the exact build and a visually checked show-and-tell PDF. Gate C is
+authorised to implement the first business-process path: governed source intake
+and visible processing.

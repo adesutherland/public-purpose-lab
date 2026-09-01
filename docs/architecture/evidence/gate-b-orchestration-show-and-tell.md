@@ -2,22 +2,22 @@
 
 **Progress report, system-test record and show-and-tell**
 
-| Evidence field          | Recorded value                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------- |
-| Status                  | Visual walkthrough complete; founder acceptance and formal Gate B closure pending |
-| Walkthrough             | 1 September 2026, local synthetic Minikube environment                            |
-| Review branch revision  | `dc521eeb2be517557a8083b7e336d304ce99262d`                                        |
-| Runtime source revision | `8b5c0e4089fde20a3c6a28ced9bb6d8b32399276`                                        |
-| Runtime image           | `public-purpose-lab/m3-runtime:gate-b-review-exact-2`                             |
-| Runtime image ID        | `sha256:f00d90dbead3a9de58a1e63b12493b6c8a791e1a85767a2d413fe56838499434`         |
-| Package                 | `presentation-control-assurance` v1.2.1                                           |
-| Package digest          | `15b78a9bfb7290eeb256e91ea61d24f404fe375e5adb2e0316023fe20b4547d4`                |
-| Environment             | `environment-c5ef1307484826d1b598ad73a08d31b6`                                    |
-| Cluster                 | `public-purpose-lab-gate-a`                                                       |
-| Trust profile           | Environment-local synthetic root; synthetic data only                             |
-| Evidence session        | `session:e753a0a7-a0d3-437d-b776-4c5f29e1662f`                                    |
-| Screen-detail pass      | `session:03247293-4eab-4244-9b5d-7077bf763de3`                                    |
-| Final clean successor   | `session:905e83a1-a1a8-49d2-a03b-dbdbe2efb0af`                                    |
+| Evidence field          | Recorded value                                                               |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| Status                  | Founder accepted; Gate B formally closed for publication on 1 September 2026 |
+| Walkthrough             | 1 September 2026, local synthetic Minikube environment                       |
+| Review branch revision  | `dc521eeb2be517557a8083b7e336d304ce99262d`                                   |
+| Runtime source revision | `8b5c0e4089fde20a3c6a28ced9bb6d8b32399276`                                   |
+| Runtime image           | `public-purpose-lab/m3-runtime:gate-b-review-exact-2`                        |
+| Runtime image ID        | `sha256:f00d90dbead3a9de58a1e63b12493b6c8a791e1a85767a2d413fe56838499434`    |
+| Package                 | `presentation-control-assurance` v1.2.1                                      |
+| Package digest          | `15b78a9bfb7290eeb256e91ea61d24f404fe375e5adb2e0316023fe20b4547d4`           |
+| Environment             | `environment-c5ef1307484826d1b598ad73a08d31b6`                               |
+| Cluster                 | `public-purpose-lab-gate-a`                                                  |
+| Trust profile           | Environment-local synthetic root; synthetic data only                        |
+| Evidence session        | `session:e753a0a7-a0d3-437d-b776-4c5f29e1662f`                               |
+| Screen-detail pass      | `session:03247293-4eab-4244-9b5d-7077bf763de3`                               |
+| Final clean successor   | `session:905e83a1-a1a8-49d2-a03b-dbdbe2efb0af`                               |
 
 > This is in-development demonstrator evidence. It does not establish production, legal, regulatory, clinical or compliance assurance, and it does not transfer accountable human authority to the Lab.
 
@@ -37,20 +37,20 @@ process.
 
 ## Acceptance summary
 
-| Approved requirement                                   | Walkthrough evidence                   | Position         |
-| ------------------------------------------------------ | -------------------------------------- | ---------------- |
-| Environment, trust and presenter are visible           | Figure 1                               | Achieved         |
-| Admitted scenario and honest limitations are visible   | Figures 1 and 2                        | Achieved         |
-| Session exists before a synthetic reviewer is assigned | Figure 2 and event evidence            | Achieved         |
-| Signed reviewer is environment- and session-bound      | Figure 3                               | Achieved         |
-| Director controls an admitted running scenario         | Figure 4                               | Achieved         |
-| Presentation owns and resolves `PRES-INTRO`            | Figure 5 and Operations events         | Achieved         |
-| Workbench owns engagement and source-intake views      | Figures 6 to 8 and Operations events   | Achieved         |
-| Ordinary Workbench navigation remains available        | Figure 7                               | Achieved         |
-| Unsupported view is refused explicitly                 | Figure 9 and Operations `view.refused` | Achieved         |
-| Pause, stop, termination and reset are visible         | Figures 10 to 12                       | Achieved         |
-| Twelve components remain deployed and observable       | Figures 13 and 14; Gate A regression   | Achieved         |
-| Founder acceptance and formal publication              | This report and PDF                    | Pending decision |
+| Approved requirement                                   | Walkthrough evidence                   | Position |
+| ------------------------------------------------------ | -------------------------------------- | -------- |
+| Environment, trust and presenter are visible           | Figure 1                               | Achieved |
+| Admitted scenario and honest limitations are visible   | Figures 1 and 2                        | Achieved |
+| Session exists before a synthetic reviewer is assigned | Figure 2 and event evidence            | Achieved |
+| Signed reviewer is environment- and session-bound      | Figure 3                               | Achieved |
+| Director controls an admitted running scenario         | Figure 4                               | Achieved |
+| Presentation owns and resolves `PRES-INTRO`            | Figure 5 and Operations events         | Achieved |
+| Workbench owns engagement and source-intake views      | Figures 6 to 8 and Operations events   | Achieved |
+| Ordinary Workbench navigation remains available        | Figure 7                               | Achieved |
+| Unsupported view is refused explicitly                 | Figure 9 and Operations `view.refused` | Achieved |
+| Pause, stop, termination and reset are visible         | Figures 10 to 12                       | Achieved |
+| Twelve components remain deployed and observable       | Figures 13 and 14; Gate A regression   | Achieved |
+| Founder acceptance and formal publication              | This report and PDF                    | Achieved |
 
 <!-- pagebreak -->
 
@@ -201,8 +201,7 @@ functions.
 
 ## Next gate
 
-Subject to founder acceptance, Gate C should implement DS-03 as the first
-functional business path:
+Gate C is authorised to implement DS-03 as the first functional business path:
 
 | Step | DS-03 next requirement                                           |
 | ---- | ---------------------------------------------------------------- |
