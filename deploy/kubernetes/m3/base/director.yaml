@@ -35,6 +35,14 @@ spec:
               value: 0.0.0.0:8080
             - name: PPL_ALLOWED_ORIGIN
               value: http://127.0.0.1:18081
+            - name: PPL_ADDITIONAL_ALLOWED_ORIGINS
+              value: http://localhost:18081
+            - name: PPL_PRESENTATION_SURFACE_URL
+              value: http://127.0.0.1:18082/
+            - name: PPL_WORKBENCH_SURFACE_URL
+              value: http://[::1]:18082/workbench/
+            - name: PPL_OPERATIONS_SURFACE_URL
+              value: http://127.0.0.1:18084/
             - name: PPL_STATE_PATH
               value: /var/lib/public-purpose-lab/ctl-01.sqlite
             - name: PPL_SECURITY_STATE_PATH

@@ -127,13 +127,14 @@ may provide `PPL_PRESENTATION_SURFACE_URL`, `PPL_WORKBENCH_SURFACE_URL` and
 `PPL_OPERATIONS_SURFACE_URL`; these are navigation bindings only and do not
 change the event-based control contract.
 
-Presentation and Workbench must have distinct browser origins when they hold
-different concurrent application sessions. Browser cookies are host-scoped,
-not port-scoped, so the local binding uses `127.0.0.1` for Presentation and
-`localhost` for Workbench. The gateway admits both exact origins explicitly;
-it does not use a wildcard origin. Managed hosted deployments retain one exact
-HTTPS origin per gateway instance and use distinct instances or hostnames for
-surfaces that require independent application sessions.
+Director, Presentation and Workbench must have distinct browser origins when
+they hold concurrent application sessions. Browser cookies are host-scoped,
+not port-scoped, so the local binding uses `localhost` for Director,
+`127.0.0.1` for Presentation and `[::1]` for Workbench. Each runtime admits
+only its exact configured origins; it does not use a wildcard origin. Managed
+hosted deployments retain one exact HTTPS origin per gateway instance and use
+distinct instances or hostnames for surfaces that require independent
+application sessions.
 
 Local profiles show the environment-local synthetic-root classification.
 Hosted profiles require the managed real-root and OIDC bindings already

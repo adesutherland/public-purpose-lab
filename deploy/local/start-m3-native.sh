@@ -73,6 +73,10 @@ PPL_RUNTIME_MODE=scenario-director \
 PPL_RUNTIME_PROFILE=native-development \
 PPL_LISTEN_ADDRESS=127.0.0.1:18081 \
 PPL_ALLOWED_ORIGIN=http://127.0.0.1:18081 \
+PPL_ADDITIONAL_ALLOWED_ORIGINS=http://localhost:18081 \
+PPL_PRESENTATION_SURFACE_URL=http://127.0.0.1:18082/ \
+PPL_WORKBENCH_SURFACE_URL='http://[::1]:18082/workbench/' \
+PPL_OPERATIONS_SURFACE_URL=http://127.0.0.1:18084/ \
 PPL_STATE_PATH="$environment_directory/state/ctl-01.sqlite" \
 PPL_SECURITY_STATE_PATH="$environment_directory/state/director-security.sqlite" \
 PPL_ENVIRONMENT_ID="$environment_id" \
@@ -86,7 +90,7 @@ PPL_RUNTIME_MODE=presentation-gateway \
 PPL_RUNTIME_PROFILE=native-development \
 PPL_LISTEN_ADDRESS=127.0.0.1:18082 \
 PPL_ALLOWED_ORIGIN=http://127.0.0.1:18082 \
-PPL_ADDITIONAL_ALLOWED_ORIGINS=http://localhost:18082 \
+PPL_ADDITIONAL_ALLOWED_ORIGINS='http://[::1]:18082' \
 PPL_STATE_PATH="$environment_directory/state/ctl-02.sqlite" \
 PPL_SECURITY_STATE_PATH="$environment_directory/state/presentation-security.sqlite" \
 PPL_TRUST_BUNDLE_PATH="$environment_directory/identity-public/trust-bundle.json" \
@@ -118,6 +122,6 @@ for endpoint in \
 done
 
 printf '%s\n' \
-  'Director: http://127.0.0.1:18081/' \
+  'Director: http://localhost:18081/' \
   'Audience display: http://127.0.0.1:18082/' \
-  'Workbench surface: http://localhost:18082/workbench/'
+  'Workbench surface: http://[::1]:18082/workbench/'

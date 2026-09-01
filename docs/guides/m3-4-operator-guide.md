@@ -20,16 +20,15 @@ retained Cloud KMS issuer; it refuses a local signer or development login.
 
 | Surface           | Local address                         | Required external role | Synthetic binding                                                 |
 | ----------------- | ------------------------------------- | ---------------------- | ----------------------------------------------------------------- |
-| Director          | `http://127.0.0.1:18081/`             | `presenter`            | Requests configured bindings but never receives a grant           |
+| Director          | `http://localhost:18081/`             | `presenter`            | Requests configured bindings but never receives a grant           |
 | Audience display  | `http://127.0.0.1:18082/`             | `surface-operator`     | `synthetic-audience-user` on `audience-display`                   |
-| Workbench surface | `http://localhost:18082/workbench/`   | `surface-operator`     | `synthetic-reviewer` on `reviewer-workbench`                      |
+| Workbench surface | `http://[::1]:18082/workbench/`       | `surface-operator`     | `synthetic-reviewer` on `reviewer-workbench`                      |
 | Identity health   | `http://127.0.0.1:18083/health/ready` | no browser login       | Reports environment, trust profile, epoch and broker channel only |
 
-The Presentation and Workbench shells currently share one backend origin. Use
-separate browser profiles, private windows or independent cookie jars when
-showing both bindings simultaneously. This exercises two application sessions
-and two surface actors; it does not claim two independently deployed
-application gateways.
+The three local surfaces use distinct host origins while sharing the same
+loopback environment. This preserves independent host-scoped application
+sessions in one ordinary browser profile. It does not claim three independently
+deployed application gateways.
 
 Start the two surface sessions before requesting their synthetic sign-ins.
 The Director sends only an identity request. The Identity Broker signs and
