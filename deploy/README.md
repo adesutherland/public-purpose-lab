@@ -59,8 +59,9 @@ M3.4 extends the synthetic-only walking-skeleton composition:
 - `deploy/containers/m3-runtime.Containerfile` builds the Director, Identity
   Broker, Presentation Gateway and three browser bundles into one immutable
   image;
-- `deploy/compose/m3-compose.yaml` runs that image in three modes with separate
-  SQLite volumes and workload seeds, plus TLS/NKey NATS JetStream; a
+- `deploy/compose/m3-compose.yaml` runs that image in three M3 modes and nine
+  configurable Gate A component-host modes with separate SQLite volumes and
+  workload seeds, plus TLS/NKey NATS JetStream; a
   network-isolated one-shot initializer gives those empty volumes to the
   image's non-root runtime identity before any application starts;
 - `deploy/kubernetes/m3/base/` supplies ingress-free Kustomize application

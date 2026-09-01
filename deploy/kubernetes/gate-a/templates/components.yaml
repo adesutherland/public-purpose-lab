@@ -1,19 +1,31 @@
+{{- range .Values.components }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: m3-identity-broker
+  name: gate-a-{{ .name }}
+  labels:
+    app.kubernetes.io/name: gate-a-{{ .name }}
+    app.kubernetes.io/component: {{ .name }}
+    app.kubernetes.io/part-of: public-purpose-lab
+    ppl.public-purpose-lab.org/component-id: {{ .id | quote }}
+    ppl.public-purpose-lab.org/information-profile: synthetic-only
+    ppl.public-purpose-lab.org/maturity: in-development
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app.kubernetes.io/name: m3-identity-broker
+      app.kubernetes.io/name: gate-a-{{ .name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: m3-identity-broker
-        app.kubernetes.io/component: identity-trust
+        app.kubernetes.io/name: gate-a-{{ .name }}
+        app.kubernetes.io/component: {{ .name }}
+        app.kubernetes.io/part-of: public-purpose-lab
+        ppl.public-purpose-lab.org/component-id: {{ .id | quote }}
+        ppl.public-purpose-lab.org/information-profile: synthetic-only
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -23,51 +35,44 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: runtime
-          image: public-purpose-lab/m3-runtime:development
-          imagePullPolicy: Never
+        - name: component-host
+          image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          command: ["ppl-component-host"]
           env:
-            - name: PPL_RUNTIME_MODE
-              value: identity-broker
-            - name: PPL_RUNTIME_PROFILE
-              value: minikube
+            - name: PPL_COMPONENT_ID
+              value: {{ .id | quote }}
+            - name: PPL_INSTANCE_ID
+              value: {{ .instanceId | quote }}
             - name: PPL_LISTEN_ADDRESS
               value: 0.0.0.0:8080
-            - name: PPL_ALLOWED_ORIGIN
-              value: http://127.0.0.1:18083
-            - name: PPL_STATE_PATH
-              value: /var/lib/public-purpose-lab/identity-runtime.sqlite
-            - name: PPL_IDENTITY_STATE_ROOT
-              value: /var/lib/public-purpose-lab/identity
-            - name: PPL_TRUST_BUNDLE_PATH
-              value: /run/trust/ppl-identity/trust-bundle.json
             - name: PPL_ENVIRONMENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: ppl-m3-environment
+                  name: {{ $.Values.environmentConfigMap }}
                   key: environmentId
             - name: PPL_SOURCE_REVISION
               valueFrom:
                 configMapKeyRef:
-                  name: ppl-m3-build-evidence
+                  name: {{ $.Values.buildEvidenceConfigMap }}
                   key: sourceRevision
             - name: PPL_IMAGE_DIGEST
               valueFrom:
                 configMapKeyRef:
-                  name: ppl-m3-build-evidence
+                  name: {{ $.Values.buildEvidenceConfigMap }}
                   key: imageDigest
             - name: PPL_NATS_URL
-              value: tls://nats:4222
+              value: {{ $.Values.natsUrl | quote }}
             - name: PPL_NATS_NKEY_SEED_FILE
-              value: /run/secrets/ppl/identity.seed
-            - name: PPL_NATS_ROOT_CERTIFICATE
-              value: /run/trust/ppl/ca.crt
-            - name: PPL_GATE_A_READINESS
-              value: "1"
-            - name: PPL_INSTANCE_ID
-              value: identity-broker-1
+              value: /run/secrets/ppl/component.seed
             - name: PPL_WORKLOAD_IDENTITY_FILE
               value: /run/secrets/ppl/workload.nkey
+            - name: PPL_NATS_ROOT_CERTIFICATE
+              value: /run/trust/ppl/ca.crt
+            {{- if .operationsSurface }}
+            - name: PPL_STATIC_DIRECTORY
+              value: /opt/public-purpose-lab/frontend/operations
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -75,7 +80,7 @@ spec:
             httpGet:
               path: /health/live
               port: http
-            initialDelaySeconds: 3
+            initialDelaySeconds: 2
             periodSeconds: 10
           readinessProbe:
             httpGet:
@@ -85,11 +90,11 @@ spec:
             periodSeconds: 5
           resources:
             requests:
-              cpu: 20m
-              memory: 48Mi
+              cpu: 5m
+              memory: 24Mi
             limits:
-              cpu: 250m
-              memory: 192Mi
+              cpu: 100m
+              memory: 96Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -98,10 +103,6 @@ spec:
             runAsUser: 65532
             runAsGroup: 65532
           volumeMounts:
-            - name: state
-              mountPath: /var/lib/public-purpose-lab
-            - name: identity-public
-              mountPath: /run/trust/ppl-identity
             - name: nkey
               mountPath: /run/secrets/ppl
               readOnly: true
@@ -111,32 +112,32 @@ spec:
             - name: temporary
               mountPath: /tmp
       volumes:
-        - name: state
-          persistentVolumeClaim:
-            claimName: m3-identity-state
-        - name: identity-public
-          persistentVolumeClaim:
-            claimName: m3-identity-public
         - name: nkey
           secret:
-            secretName: ppl-m3-identity-nkey
+            secretName: {{ .identitySecret }}
             defaultMode: 0440
         - name: root-ca
           secret:
-            secretName: ppl-m3-root-ca
+            secretName: {{ $.Values.rootCaSecret }}
             defaultMode: 0444
         - name: temporary
           emptyDir: {}
+{{- if .operationsSurface }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: m3-identity-broker
+  name: gate-a-operations
+  labels:
+    app.kubernetes.io/name: gate-a-operations
+    app.kubernetes.io/part-of: public-purpose-lab
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: m3-identity-broker
+    app.kubernetes.io/name: gate-a-operations
   ports:
     - name: http
       port: 8080
       targetPort: http
+{{- end }}
+{{- end }}

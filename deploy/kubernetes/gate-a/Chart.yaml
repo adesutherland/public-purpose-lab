@@ -1,0 +1,6 @@
+apiVersion: v2
+name: public-purpose-lab-gate-a
+description: Gate A configurable component-host workloads
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

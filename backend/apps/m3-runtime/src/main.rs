@@ -14,8 +14,8 @@ use axum::{
 };
 use futures_util::StreamExt;
 use ppl_contracts::{
-    CommandOutcome, OutcomeStatus, PresentationCapabilityManifest, PresentationCue,
-    PresentationCueOutcome, PresentationRegistration, ScenarioControlCommand,
+    CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus, PresentationCapabilityManifest,
+    PresentationCue, PresentationCueOutcome, PresentationRegistration, ScenarioControlCommand,
     ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState, SyntheticSessionStatus,
 };
 use ppl_ctl_01::{DirectorError, DirectorRuntime};
@@ -124,6 +124,13 @@ struct AppConfig {
     oidc: Option<OidcConfig>,
     mapping_version: String,
     managed_identity: Option<ManagedIdentityRuntimeConfig>,
+    gate_a_readiness: Option<GateAReadinessConfig>,
+}
+
+#[derive(Clone)]
+struct GateAReadinessConfig {
+    instance_id: String,
+    workload_identity: String,
 }
 
 #[derive(Clone)]
@@ -306,6 +313,7 @@ async fn run_director(config: AppConfig) -> Result<(), AppError> {
         oidc,
     };
     if let Some(broker) = state.broker.clone() {
+        spawn_gate_a_readiness(&state.config, broker.clone());
         tokio::spawn(director_consumer(state.clone(), broker.clone()));
         tokio::spawn(director_outbox(state.clone(), broker));
     }
@@ -339,6 +347,7 @@ async fn run_gateway(config: AppConfig) -> Result<(), AppError> {
         let _ = gateway_grant_store(&state)?;
     }
     if let Some(broker) = state.broker.clone() {
+        spawn_gate_a_readiness(&state.config, broker.clone());
         tokio::spawn(gateway_consumer(state.clone(), broker.clone()));
         tokio::spawn(gateway_outbox(state.clone(), broker));
     }
@@ -395,6 +404,7 @@ async fn run_identity(config: AppConfig) -> Result<(), AppError> {
         identity,
         broker: broker.clone(),
     };
+    spawn_gate_a_readiness(&state.config, broker.clone());
     tokio::spawn(identity_consumer(state.clone(), broker));
     let router = Router::new()
         .route("/health/live", get(identity_liveness))
@@ -575,7 +585,86 @@ fn load_config() -> Result<AppConfig, AppError> {
         oidc,
         mapping_version,
         managed_identity,
+        gate_a_readiness: load_gate_a_readiness()?,
     })
+}
+
+fn load_gate_a_readiness() -> Result<Option<GateAReadinessConfig>, AppError> {
+    if !env::var("PPL_GATE_A_READINESS").is_ok_and(|value| value == "1") {
+        return Ok(None);
+    }
+    let instance_id = required_env("PPL_INSTANCE_ID")?;
+    let workload_identity_path = required_env("PPL_WORKLOAD_IDENTITY_FILE")?;
+    let workload_identity = std::fs::read_to_string(workload_identity_path)
+        .map_err(|_| AppError::configuration("workload-identity-unavailable"))?
+        .trim()
+        .to_owned();
+    if instance_id.is_empty() || workload_identity.is_empty() {
+        return Err(AppError::configuration("gate-a-identity-invalid"));
+    }
+    Ok(Some(GateAReadinessConfig {
+        instance_id,
+        workload_identity,
+    }))
+}
+
+fn spawn_gate_a_readiness(config: &AppConfig, broker: Broker) {
+    let Some(gate_a) = config.gate_a_readiness.clone() else {
+        return;
+    };
+    let (component_id, component_name, capability) = match config.mode {
+        WorkloadMode::ScenarioDirector => (
+            "CTL-01",
+            "scenario-director",
+            "scenario lifecycle and presentation orchestration",
+        ),
+        WorkloadMode::PresentationGateway => (
+            "CTL-02",
+            "presentation-gateway",
+            "target-owned semantic presentation",
+        ),
+        WorkloadMode::IdentityBroker => (
+            "IAM-01",
+            "identity-broker",
+            "environment-scoped synthetic identity",
+        ),
+    };
+    let environment_id = config.environment_id.clone();
+    let source_revision = config.source_revision.clone();
+    let image_digest = config.image_digest.clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(5));
+        loop {
+            interval.tick().await;
+            let event = OperationalEvent {
+                contract_id: "O-001".to_owned(),
+                contract_version: O001_VERSION.to_owned(),
+                event_id: format!("event:{}", Uuid::new_v4()),
+                event_type: "component.ready".to_owned(),
+                component_id: component_id.to_owned(),
+                component_name: component_name.to_owned(),
+                instance_id: gate_a.instance_id.clone(),
+                workload_identity: gate_a.workload_identity.clone(),
+                environment_id: environment_id.clone(),
+                status: "ready".to_owned(),
+                capability: capability.to_owned(),
+                source_revision: source_revision.clone(),
+                image_digest: image_digest.clone(),
+                occurred_at: OffsetDateTime::now_utc()
+                    .format(&Rfc3339)
+                    .unwrap_or_else(|_| "time-unavailable".to_owned()),
+                information_profile: "synthetic-only".to_owned(),
+                command_name: None,
+                correlation_id: None,
+                causation_id: None,
+                idempotency_key: None,
+                reason_code: None,
+            };
+            if let Err(error) = broker.publish_operational_event(&event).await {
+                warn!(reason = %error, component_id, "Gate A readiness event was not published");
+            }
+        }
+    });
 }
 
 fn validate_managed_web_binding(allowed_origin: &str, redirect_uri: &str) -> Result<(), AppError> {

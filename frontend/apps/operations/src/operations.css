@@ -1,0 +1,219 @@
+.ops-hero {
+  padding-top: clamp(48px, 7vw, 80px);
+  padding-bottom: 48px;
+}
+
+.ops-hero h1 {
+  max-width: 760px;
+  font-size: clamp(3rem, 7vw, 5.7rem);
+}
+
+.ops-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.ops-summary strong {
+  font-family: Didot, "Bodoni 72", "Noto Serif Display", serif;
+  font-size: 3.3rem;
+  font-weight: 400;
+}
+
+.ops-pill {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ops-ready {
+  color: #17493c;
+  background: #cfe6d7;
+}
+
+.ops-degraded,
+.ops-stale {
+  color: #6b431f;
+  background: #f5dfbf;
+}
+
+.ops-missing {
+  color: #772f25;
+  background: #f3d8d2;
+}
+
+.ops-environment {
+  margin: 18px 0 0;
+  color: #52615d;
+}
+
+.ops-content {
+  padding: clamp(30px, 5vw, 64px);
+  background: #eef1ea;
+}
+
+.ops-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+  color: #53645f;
+}
+
+.ops-section-heading h2 {
+  margin: 0;
+  color: #172421;
+  font-family: Didot, "Bodoni 72", "Noto Serif Display", serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+}
+
+.ops-components {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ops-component {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid rgb(23 36 33 / 10%);
+  border-radius: 14px;
+  background: #fffdf7;
+}
+
+.ops-component-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #316b59;
+  font-weight: 700;
+}
+
+.ops-component h3 {
+  margin: 16px 0 8px;
+  font-size: 1.12rem;
+}
+
+.ops-component p {
+  min-height: 44px;
+  margin: 0;
+  color: #53645f;
+  line-height: 1.45;
+}
+
+.ops-component dl {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+}
+
+.ops-component dl div {
+  min-width: 0;
+}
+
+.ops-component dt {
+  color: #667772;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ops-component dd {
+  margin: 3px 0 0;
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-events-heading {
+  margin-top: 52px;
+}
+
+.ops-filter {
+  width: min(320px, 100%);
+}
+
+.ops-event-filters {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.ops-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: #42544f;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.ops-empty-events {
+  margin: 0;
+  padding: 24px;
+  color: #667772;
+}
+
+.ops-timeline {
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fffdf7;
+}
+
+.ops-timeline article {
+  display: grid;
+  grid-template-columns:
+    92px 74px minmax(190px, 1.2fr) minmax(140px, 1fr)
+    minmax(160px, 1fr);
+  gap: 14px;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgb(23 36 33 / 9%);
+  font-size: 0.8rem;
+}
+
+.ops-timeline time,
+.ops-correlation {
+  overflow: hidden;
+  color: #667772;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .ops-components {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ops-timeline article {
+    grid-template-columns: 80px 70px 1fr;
+  }
+
+  .ops-timeline article > :nth-child(n + 4) {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .ops-components {
+    grid-template-columns: 1fr;
+  }
+
+  .ops-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

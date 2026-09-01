@@ -47,6 +47,11 @@ nsc generate nkey --user >"$pair_file"
 sed -n '1p' "$pair_file" >"$environment_directory/identity.seed"
 identity_public=$(sed -n '2p' "$pair_file")
 printf '%s\n' "$identity_public" >"$environment_directory/identity.nkey"
+for workload in authorisation engagement source-governance knowledge-processing review-workflow reporting audit-evidence operations event-infrastructure; do
+  nsc generate nkey --user >"$pair_file"
+  sed -n '1p' "$pair_file" >"$environment_directory/$workload.seed"
+  sed -n '2p' "$pair_file" >"$environment_directory/$workload.nkey"
+done
 rm "$pair_file"
 printf 'environment-%s\n' "$(openssl rand -hex 16)" >"$environment_directory/environment-id"
 
@@ -89,23 +94,59 @@ printf '%s\n' \
   '    {' \
   "      nkey: \"${director_public}\"" \
   '      permissions: {' \
-  '        publish: ["ppl.m3.to-presentation.*", "ppl.m3.to-identity.*", "ppl.m3.events.director", "$JS.>"]' \
+  '        publish: ["ppl.m3.to-presentation.*", "ppl.m3.to-identity.*", "ppl.m3.events.director", "ppl.gate-a.events.CTL-01", "$JS.>"]' \
   '        subscribe: ["ppl.m3.to-director.*", "_INBOX.>"]' \
   '      }' \
   '    },' \
   '    {' \
   "      nkey: \"${presentation_public}\"" \
   '      permissions: {' \
-  '        publish: ["ppl.m3.to-director.*", "$JS.>"]' \
+  '        publish: ["ppl.m3.to-director.*", "ppl.gate-a.events.CTL-02", "$JS.>"]' \
   '        subscribe: ["ppl.m3.to-presentation.*", "_INBOX.>"]' \
   '      }' \
   '    },' \
   '    {' \
   "      nkey: \"${identity_public}\"" \
   '      permissions: {' \
-  '        publish: ["ppl.m3.to-presentation.synthetic-grant", "ppl.m3.to-director.identity-outcome", "$JS.>"]' \
+  '        publish: ["ppl.m3.to-presentation.synthetic-grant", "ppl.m3.to-director.identity-outcome", "ppl.gate-a.events.IAM-01", "$JS.>"]' \
   '        subscribe: ["ppl.m3.to-identity.*", "_INBOX.>"]' \
   '      }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/authorisation.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.AUT-01"], subscribe: ["ppl.gate-a.commands.AUT-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/engagement.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.DOM-01"], subscribe: ["ppl.gate-a.commands.DOM-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/source-governance.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.CNT-01"], subscribe: ["ppl.gate-a.commands.CNT-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/knowledge-processing.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.KNO-01"], subscribe: ["ppl.gate-a.commands.KNO-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/review-workflow.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.WRK-01"], subscribe: ["ppl.gate-a.commands.WRK-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/reporting.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.RPT-01"], subscribe: ["ppl.gate-a.commands.RPT-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/audit-evidence.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.AUD-01"], subscribe: ["ppl.gate-a.commands.AUD-01", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/operations.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.OPS-01", "ppl.gate-a.commands.*"], subscribe: ["ppl.gate-a.commands.OPS-01", "ppl.gate-a.events.*", "_INBOX.>"] }' \
+  '    },' \
+  '    {' \
+  "      nkey: \"$(sed -n '1p' "$environment_directory/event-infrastructure.nkey")\"" \
+  '      permissions: { publish: ["ppl.gate-a.events.INT-01"], subscribe: ["ppl.gate-a.commands.INT-01", "_INBOX.>"] }' \
   '    }' \
   '  ]' \
   '}' >"$environment_directory/nats-server.conf"
@@ -123,6 +164,15 @@ if [ "$layout" = portable ]; then
     "$environment_directory/director.seed" \
     "$environment_directory/presentation.seed" \
     "$environment_directory/identity.seed" \
+    "$environment_directory/authorisation.seed" \
+    "$environment_directory/engagement.seed" \
+    "$environment_directory/source-governance.seed" \
+    "$environment_directory/knowledge-processing.seed" \
+    "$environment_directory/review-workflow.seed" \
+    "$environment_directory/reporting.seed" \
+    "$environment_directory/audit-evidence.seed" \
+    "$environment_directory/operations.seed" \
+    "$environment_directory/event-infrastructure.seed" \
     "$environment_directory/nats-server.conf"
 fi
 

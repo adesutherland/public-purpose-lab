@@ -27,6 +27,57 @@ pub const P001_VERSION: &str = "1.0.0";
 pub const P002_VERSION: &str = "1.0.0";
 pub const P003_VERSION: &str = "1.0.0";
 pub const P004_VERSION: &str = "1.0.0";
+pub const O001_VERSION: &str = "0.1.0";
+
+/// Gate A operational command. O-001 remains an in-development contract until
+/// the component mesh has supplied implementation evidence.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct OperationalCommand {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub command_id: String,
+    pub command_name: String,
+    pub target_component: String,
+    pub issuer_component: String,
+    pub environment_id: String,
+    pub purpose: String,
+    pub correlation_id: String,
+    pub causation_id: String,
+    pub idempotency_key: String,
+    pub issued_at: String,
+}
+
+/// Privacy-minimised operational fact used for readiness and command outcomes.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct OperationalEvent {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub event_id: String,
+    pub event_type: String,
+    pub component_id: String,
+    pub component_name: String,
+    pub instance_id: String,
+    pub workload_identity: String,
+    pub environment_id: String,
+    pub status: String,
+    pub capability: String,
+    pub source_revision: String,
+    pub image_digest: String,
+    pub occurred_at: String,
+    pub information_profile: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub command_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub causation_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub idempotency_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason_code: Option<String>,
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]

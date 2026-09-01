@@ -1,0 +1,48 @@
+image:
+  repository: public-purpose-lab/m3-runtime
+  tag: development
+  pullPolicy: Never
+
+environmentConfigMap: ppl-m3-environment
+buildEvidenceConfigMap: ppl-m3-build-evidence
+rootCaSecret: ppl-m3-root-ca
+natsUrl: tls://nats:4222
+
+components:
+  - id: AUT-01
+    name: authorisation
+    instanceId: authorisation-1
+    identitySecret: ppl-gate-a-authorisation-nkey
+  - id: DOM-01
+    name: engagement
+    instanceId: engagement-1
+    identitySecret: ppl-gate-a-engagement-nkey
+  - id: CNT-01
+    name: source-governance
+    instanceId: source-governance-1
+    identitySecret: ppl-gate-a-source-governance-nkey
+  - id: KNO-01
+    name: knowledge-processing
+    instanceId: knowledge-processing-1
+    identitySecret: ppl-gate-a-knowledge-processing-nkey
+  - id: WRK-01
+    name: review-workflow
+    instanceId: review-workflow-1
+    identitySecret: ppl-gate-a-review-workflow-nkey
+  - id: RPT-01
+    name: reporting
+    instanceId: reporting-1
+    identitySecret: ppl-gate-a-reporting-nkey
+  - id: AUD-01
+    name: audit-evidence
+    instanceId: audit-evidence-1
+    identitySecret: ppl-gate-a-audit-evidence-nkey
+  - id: OPS-01
+    name: operations
+    instanceId: operations-1
+    identitySecret: ppl-gate-a-operations-nkey
+    operationsSurface: true
+  - id: INT-01
+    name: event-infrastructure
+    instanceId: event-infrastructure-1
+    identitySecret: ppl-gate-a-event-infrastructure-nkey

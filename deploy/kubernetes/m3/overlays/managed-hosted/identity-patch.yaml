@@ -13,6 +13,8 @@ spec:
           env:
             - name: PPL_RUNTIME_PROFILE
               value: managed-hosted
+            - name: PPL_GATE_A_READINESS
+              value: "0"
             - name: PPL_ENVIRONMENT_ID
               valueFrom:
                 configMapKeyRef:
