@@ -49,5 +49,12 @@ repository owns website presentation and deployment.
 - Keep documentation synchronized with implementation.
 - Add focused tests for component contracts and end-to-end evidence for the
   scenarios they support.
+- Do not close an implementation gate without a maintained Markdown progress
+  and show-and-tell report plus a visually verified PDF distribution copy. The
+  report must use real screenshots from a walkthrough of the exact evidenced
+  build, connect them to the approved flow and acceptance steps, list the
+  screens, functions and rules delivered, explain inherited context and
+  limitations, and identify the next gate. Retain only synthetic,
+  privacy-safe screenshots and record source revision and environment profile.
 - Never commit secrets, personal data, confidential material, or unlicensed
   third-party assets.

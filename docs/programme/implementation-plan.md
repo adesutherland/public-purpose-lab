@@ -114,6 +114,11 @@ is expanded further.
 12. **Do not complete foundations in isolation.** A new component, contract,
     service or platform capability must identify the active business-path
     behaviour or adverse case that needs it. Otherwise it remains deferred.
+13. **Close gates with a walked-through show-and-tell.** Every implementation
+    gate produces a maintained progress/evidence report and visually verified
+    PDF using real screenshots from the exact evidenced build. The report maps
+    screens, functions, rules, components and events to the approved flow,
+    states limitations and inherited context, and identifies the next gate.
 
 ## Parallel delivery model
 
@@ -568,7 +573,16 @@ bindings.
 
 ### M4 — Source-to-Report Value Slice
 
-Status: Active — approved by the founders on 31 August 2026
+Status: Gate A active — detailed functional baseline approved by the founders
+on 1 September 2026
+
+The founders approved the six-scenario catalogue direction on 31 August 2026
+and its detailed functional baseline on 1 September 2026. The
+[demonstration scenarios and functional requirements](../scenarios/demonstration-scenarios-and-functional-requirements.md)
+defines the screens, user actions, deployed component mesh, event behaviour and
+acceptance evidence. Gate A now establishes the deployed, authenticated and
+observable component mesh; later functional behaviour remains gated by the
+approved sequence.
 
 Outcome: A practitioner can create one bounded synthetic charity engagement,
 govern two controlled source assets, obtain a cited answer that exposes a
