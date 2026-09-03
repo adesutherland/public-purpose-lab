@@ -1,0 +1,9 @@
+{
+  "contractId": "K-001",
+  "contractVersion": "0.1.0",
+  "messageType": "processing-lifecycle.query",
+  "queryId": "processing-status-query:gate-c-example",
+  "environmentId": "environment-gate-c-example",
+  "sourceVersionId": "source-version:gate-c-example",
+  "requestedAt": "2026-09-03T10:00:03Z"
+}

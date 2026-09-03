@@ -26,6 +26,7 @@ components:
     name: knowledge-processing
     instanceId: knowledge-processing-1
     identitySecret: ppl-gate-a-knowledge-processing-nkey
+    processingState: true
   - id: WRK-01
     name: review-workflow
     instanceId: review-workflow-1

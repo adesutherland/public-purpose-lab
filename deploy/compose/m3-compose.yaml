@@ -7,8 +7,8 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - >-
-        chmod 700 /state/director /state/presentation /state/identity /state/identity-public /state/source-governance
-        && chown 65532:65532 /state/director /state/presentation /state/identity /state/identity-public /state/source-governance
+        chmod 700 /state/director /state/presentation /state/identity /state/identity-public /state/source-governance /state/knowledge-processing
+        && chown 65532:65532 /state/director /state/presentation /state/identity /state/identity-public /state/source-governance /state/knowledge-processing
     network_mode: none
     volumes:
       - director-state:/state/director
@@ -16,6 +16,7 @@ services:
       - identity-state:/state/identity
       - identity-public:/state/identity-public
       - source-governance-state:/state/source-governance
+      - knowledge-processing-state:/state/knowledge-processing
     read_only: true
     cap_drop: ["ALL"]
     cap_add: ["CHOWN", "FOWNER"]
@@ -240,14 +241,21 @@ services:
 
   knowledge-processing:
     <<: *component-host
+    depends_on:
+      state-initializer:
+        condition: service_completed_successfully
+      nats:
+        condition: service_started
     environment:
       <<: *component-environment
       PPL_COMPONENT_ID: KNO-01
       PPL_INSTANCE_ID: knowledge-processing-1
+      PPL_PROCESSING_STATE_PATH: /var/lib/public-purpose-lab/knowledge-processing.sqlite
     volumes:
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/root-ca.crt:/etc/public-purpose-lab/root-ca.crt:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/environment-id:/run/environment/environment-id:ro
       - ${PPL_M3_ENVIRONMENT_DIRECTORY:-../../.local/m3-compose}/knowledge-processing.nkey:/run/identity/workload.nkey:ro
+      - knowledge-processing-state:/var/lib/public-purpose-lab
     secrets:
       - source: knowledge-processing-nkey
         target: /run/secrets/component-nkey
@@ -360,3 +368,4 @@ volumes:
   identity-public:
   nats-state:
   source-governance-state:
+  knowledge-processing-state:

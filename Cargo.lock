@@ -2170,6 +2170,7 @@ dependencies = [
  "ppl-aut-01",
  "ppl-cnt-01",
  "ppl-contracts",
+ "ppl-kno-01",
  "rustls",
  "serde_json",
  "sha2 0.10.9",
@@ -2271,6 +2272,20 @@ dependencies = [
  "thiserror 2.0.20",
  "time",
  "tokio",
+]
+
+[[package]]
+name = "ppl-kno-01"
+version = "0.1.0"
+dependencies = [
+ "ppl-contracts",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.20",
+ "uuid",
 ]
 
 [[package]]

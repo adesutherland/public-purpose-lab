@@ -585,23 +585,20 @@ bindings.
 
 ### M4 — Source-to-Report Value Slice
 
-Status: Gate A and Gate B accepted and closed; Gate C authorised as the active
-delivery gate — detailed functional baseline approved by the founders on 1
-September 2026
+Status: Gate A and Gate B accepted and closed; Gate C implementation and
+evidence complete as a final candidate, subject to founder review sign-off by
+exception
 
-Current Gate C baseline: the founders accepted the `A-001` upload/paste,
-authenticated receipt and component-owned quarantine baseline on 3 September 2026. The published `A-002` slice adds visible bounded validation, a named
-reviewer staging request, an exact protected-action decision from deployed
-`AUT-01`, and durable staged or refused state. Its progress/show-and-tell
-evidence is final subject to review sign-off by exception. This remains a
-current baseline, not a claim that the whole DS-03 flow is complete.
-
-Next implementation slice: exercise DS-03 steps 7 and 9 so `KNO-01` consumes a
-staged-source fact, records idempotent receipt, emits a visible processing
-lifecycle, performs only the approved basic text-processing step, and
-reconciles after restart without a duplicate terminal result. This slice does
-not claim RAG ingestion or semantic understanding. Gate C closes only after the
-complete DS-03 path and adverse cases are walked and evidenced.
+Current Gate C candidate: accepted `A-001` quarantine and published `A-002`
+validation/staging evidence are unchanged. `K-001` now completes DS-03 steps 7
+and 9: `KNO-01` durably consumes only the exact staged-source fact, records
+idempotent acceptance, emits accepted/started/terminal lifecycle facts,
+performs digest verification and bounded structural inspection, and reconciles
+after restart without another terminal result. Workbench, Presentation and
+Operations expose the appropriate different views. The complete paste/upload
+path and adverse cases are walked and evidenced. This is not RAG ingestion,
+semantic understanding, evidence-quality or compliance assurance. Formal Gate
+C closure remains subject to successful founder review by exception.
 
 The founders approved the six-scenario catalogue direction on 31 August 2026
 and its detailed functional baseline on 1 September 2026. The

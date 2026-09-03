@@ -1,0 +1,19 @@
+{
+  "contractId": "K-001",
+  "contractVersion": "0.1.0",
+  "messageType": "staged-source-content.response",
+  "responseId": "content-response:gate-c-example",
+  "queryId": "processing-input-query:gate-c-example",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "engagementId": "engagement:harbour-support-review",
+  "sourceVersionId": "source-version:gate-c-example",
+  "mediaType": "text/markdown",
+  "sizeBytes": 49,
+  "digestAlgorithm": "sha-256",
+  "digestValue": "f0d4f980aeb0c2af94793b50af46e132a13332bbfeb1efd943682f47073733a4",
+  "content": "# Synthetic policy\n\nA bounded source for Gate C.\n",
+  "releasedToComponent": "KNO-01",
+  "purpose": "bounded-source-processing",
+  "recordedAt": "2026-09-03T10:00:01Z"
+}

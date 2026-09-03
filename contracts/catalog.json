@@ -188,11 +188,11 @@
     },
     {
       "id": "K-001",
-      "name": "Knowledge ingestion",
+      "name": "Staged source processing",
       "group": "service",
-      "status": "planned",
-      "documentation": null,
-      "schema": null
+      "status": "implemented",
+      "documentation": "docs/architecture/logical/contracts/service/k-001-staged-source-processing.md",
+      "schema": "contracts/knowledge/k-001-staged-source-processing.schema.json"
     },
     {
       "id": "K-002",

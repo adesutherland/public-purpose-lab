@@ -186,11 +186,19 @@
 }
 
 .ops-timeline time,
-.ops-correlation {
+.ops-evidence {
   overflow: hidden;
   color: #667772;
   text-overflow: ellipsis;
+}
+
+.ops-timeline time {
   white-space: nowrap;
+}
+
+.ops-evidence {
+  overflow-wrap: anywhere;
+  line-height: 1.35;
 }
 
 @media (max-width: 900px) {

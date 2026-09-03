@@ -48,6 +48,24 @@ post_json() {
     -H "X-PPL-CSRF: $csrf" -H 'Content-Type: application/json' -X POST "$url" -d "$body"
 }
 
+wait_for_processing() {
+  source_version=$1
+  expected_terminal=$2
+  attempt=0
+  while [ "$attempt" -lt 80 ]; do
+    processing_response=$(curl -sS -b "$workbench_cookie_jar" \
+      "$gateway_url/api/v1/source-processing/$source_version")
+    if [ "$(printf '%s' "$processing_response" | jq -r '.lifecycleStatus // empty')" = "$expected_terminal" ]; then
+      printf '%s' "$processing_response"
+      return 0
+    fi
+    attempt=$((attempt + 1))
+    sleep 0.1
+  done
+  printf 'processing-terminal-not-observed:%s:%s\n' "$source_version" "$expected_terminal" >&2
+  return 1
+}
+
 require_command curl
 require_command jq
 login "$director_origin" "$director_url" "$director_cookie_jar"
@@ -315,6 +333,125 @@ source_status=$(curl -fsS -b "$workbench_cookie_jar" \
   exit 1
 }
 
+stage='gate-c-source-processing'
+processing_status=$(wait_for_processing "$source_version_id" completed)
+[ "$(printf '%s' "$processing_status" | jq -r '.terminalCount')" = 1 ] \
+  && [ "$(printf '%s' "$processing_status" | jq -r '.result.digestVerified')" = true ] \
+  && [ "$(printf '%s' "$processing_status" | jq -r '.result.byteCount')" = 51 ] \
+  && [ "$(printf '%s' "$processing_status" | jq -r '[.stages[].state] == ["accepted","processing","completed"]')" = true ] || {
+  printf 'processing-lifecycle-incomplete\n' >&2
+  exit 1
+}
+presentation_progress=$(curl -fsS -b "$gateway_cookie_jar" \
+  "$gateway_url/api/v1/presentation-processing")
+[ "$(printf '%s' "$presentation_progress" | jq -r '.sourceVersionId')" = "$source_version_id" ] \
+  && [ "$(printf '%s' "$presentation_progress" | jq -r '.componentId')" = KNO-01 ] \
+  && [ "$(printf '%s' "$presentation_progress" | jq -r '.lifecycleStatus')" = completed ] \
+  && [ "$(printf '%s' "$presentation_progress" | jq -r 'has("safePreview") or has("result") or has("content")')" = false ] || {
+  printf 'presentation-processing-progress-invalid\n' >&2
+  exit 1
+}
+
+stage='gate-c-upload-processing'
+upload_submission_id="upload-$(date +%s)-$$"
+upload_text='# Synthetic policy
+
+One bounded upload section.'
+upload_body=$(jq -cn \
+  --arg submission "$upload_submission_id" \
+  --arg key "source-intake:$upload_submission_id" \
+  --arg content "$upload_text" \
+  '{submissionId:$submission,idempotencyKey:$key,source:{acquisitionMode:"upload",originalName:"synthetic-policy.md",mediaType:"text/markdown",sizeBytes:($content|utf8bytelength),content:$content,title:"Uploaded synthetic policy",owner:"Harbour Community Support",rights:"Synthetic demonstration fixture",provenance:"Gate C upload smoke test",classification:"synthetic"}}')
+upload_outcome=$(post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
+  "$gateway_url/api/v1/source-intake" "$upload_body")
+upload_source_version_id=$(printf '%s' "$upload_outcome" | jq -r '.sourceVersion.sourceVersionId')
+upload_stage_id="upload-stage-$(date +%s)-$$"
+upload_stage_body=$(jq -cn --arg request "$upload_stage_id" \
+  --arg key "source-stage:$upload_stage_id" --arg source "$upload_source_version_id" \
+  '{requestId:$request,idempotencyKey:$key,sourceVersionId:$source}')
+post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
+  "$gateway_url/api/v1/source-stage" "$upload_stage_body" >/dev/null
+upload_processing=$(wait_for_processing "$upload_source_version_id" completed)
+[ "$(printf '%s' "$upload_processing" | jq -r '[.stages[].state] == ["accepted","processing","completed"]')" = true ] \
+  && [ "$(printf '%s' "$upload_processing" | jq -r '.terminalCount')" = 1 ] || {
+  printf 'upload-processing-semantics-mismatch\n' >&2
+  exit 1
+}
+
+stage='gate-c-processing-failure'
+failure_submission_id="failure-$(date +%s)-$$"
+failure_text='Synthetic fixture [[PPL_PROCESSING_FAILURE]]'
+failure_body=$(jq -cn --arg submission "$failure_submission_id" \
+  --arg key "source-intake:$failure_submission_id" --arg content "$failure_text" \
+  '{submissionId:$submission,idempotencyKey:$key,source:{acquisitionMode:"paste",mediaType:"text/plain",sizeBytes:($content|utf8bytelength),content:$content,title:"Synthetic processing failure",owner:"Harbour Community Support",rights:"Synthetic demonstration fixture",provenance:"Gate C failure smoke test",classification:"synthetic"}}')
+failure_outcome=$(post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
+  "$gateway_url/api/v1/source-intake" "$failure_body")
+failure_source_version_id=$(printf '%s' "$failure_outcome" | jq -r '.sourceVersion.sourceVersionId')
+failure_stage_id="failure-stage-$(date +%s)-$$"
+failure_stage_body=$(jq -cn --arg request "$failure_stage_id" \
+  --arg key "source-stage:$failure_stage_id" --arg source "$failure_source_version_id" \
+  '{requestId:$request,idempotencyKey:$key,sourceVersionId:$source}')
+post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
+  "$gateway_url/api/v1/source-stage" "$failure_stage_body" >/dev/null
+failure_processing=$(wait_for_processing "$failure_source_version_id" failed)
+[ "$(printf '%s' "$failure_processing" | jq -r '.reasonCode')" = processing-fixture-failure ] \
+  && [ "$(printf '%s' "$failure_processing" | jq -r '.terminalCount')" = 1 ] \
+  && [ "$(printf '%s' "$failure_processing" | jq -r '[.stages[].state] == ["accepted","processing","failed"]')" = true ] || {
+  printf 'processing-failure-lifecycle-incomplete\n' >&2
+  exit 1
+}
+
+stage='gate-c-intake-boundary-refusals'
+for refusal_kind in empty malformed oversized; do
+  refusal_id="$refusal_kind-$(date +%s)-$$"
+  case "$refusal_kind" in
+    empty) refusal_content='   '; expected_refusal=source-empty ;;
+    malformed) refusal_content=''; expected_refusal=source-malformed ;;
+    oversized) refusal_content=$(jq -nr '"x" * 65537'); expected_refusal=source-size-refused ;;
+  esac
+  if [ "$refusal_kind" = malformed ]; then
+    refusal_body=$(jq -cn --arg submission "$refusal_id" \
+      --arg key "source-intake:$refusal_id" \
+      '{submissionId:$submission,idempotencyKey:$key,source:{acquisitionMode:"paste",mediaType:"text/plain",sizeBytes:19,content:"synthetic\u0000malformed",title:"Synthetic refused source",owner:"Harbour Community Support",rights:"Synthetic demonstration fixture",provenance:"Gate C refusal smoke test",classification:"synthetic"}}')
+  else
+    refusal_body=$(jq -cn --arg submission "$refusal_id" \
+      --arg key "source-intake:$refusal_id" --arg content "$refusal_content" \
+      '{submissionId:$submission,idempotencyKey:$key,source:{acquisitionMode:"paste",mediaType:"text/plain",sizeBytes:($content|utf8bytelength),content:$content,title:"Synthetic refused source",owner:"Harbour Community Support",rights:"Synthetic demonstration fixture",provenance:"Gate C refusal smoke test",classification:"synthetic"}}')
+  fi
+  refusal_file=$(mktemp)
+  refusal_http=$(curl -sS -o "$refusal_file" -w '%{http_code}' -b "$workbench_cookie_jar" \
+    -H "Origin: $workbench_origin" -H "X-PPL-CSRF: $workbench_csrf" \
+    -H 'Content-Type: application/json' -X POST "$gateway_url/api/v1/source-intake" -d "$refusal_body")
+  refusal_outcome=$(sed -n '1p' "$refusal_file")
+  rm -f "$refusal_file"
+  [ "$refusal_http" = 422 ] \
+    && [ "$(printf '%s' "$refusal_outcome" | jq -r '.code')" = "$expected_refusal" ] || {
+    printf 'source-boundary-refusal-mismatch:%s\n' "$refusal_kind" >&2
+    exit 1
+  }
+done
+
+if [ "${PPL_KNO_RESTART_MODE:-}" = minikube ]; then
+  stage='gate-c-kno-restart-reconciliation'
+  require_command kubectl
+  for processing_deployment in gate-a-source-governance gate-a-knowledge-processing; do
+    if kubectl --namespace public-purpose-lab logs "deployment/$processing_deployment" \
+      --all-containers=true | grep -Fq 'Synthetic harbour support policy for Gate C review.'; then
+      printf 'source-body-disclosed-in-component-log:%s\n' "$processing_deployment" >&2
+      exit 1
+    fi
+  done
+  processing_id_before_restart=$(printf '%s' "$processing_status" | jq -r '.processingId')
+  kubectl --namespace public-purpose-lab rollout restart deployment/gate-a-knowledge-processing >/dev/null
+  kubectl --namespace public-purpose-lab rollout status deployment/gate-a-knowledge-processing --timeout=90s >/dev/null
+  processing_after_restart=$(wait_for_processing "$source_version_id" completed)
+  [ "$(printf '%s' "$processing_after_restart" | jq -r '.processingId')" = "$processing_id_before_restart" ] \
+    && [ "$(printf '%s' "$processing_after_restart" | jq -r '.terminalCount')" = 1 ] || {
+    printf 'processing-reconciliation-created-second-terminal\n' >&2
+    exit 1
+  }
+fi
+
 duplicate_source=$(post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
   "$gateway_url/api/v1/source-intake" "$source_body")
 [ "$(printf '%s' "$duplicate_source" | jq -r '.outcomeId')" = \
@@ -373,6 +510,16 @@ rm -f "$hostile_stage_file"
   printf 'invalid-source-staging-not-refused\n' >&2
   exit 1
 }
+hostile_processing_file=$(mktemp)
+hostile_processing_http=$(curl -sS -o "$hostile_processing_file" -w '%{http_code}' \
+  -b "$workbench_cookie_jar" "$gateway_url/api/v1/source-processing/$hostile_source_version_id")
+hostile_processing_outcome=$(sed -n '1p' "$hostile_processing_file")
+rm -f "$hostile_processing_file"
+[ "$hostile_processing_http" = 409 ] \
+  && [ "$(printf '%s' "$hostile_processing_outcome" | jq -r '.code')" = processing-record-not-found ] || {
+  printf 'unvalidated-source-reached-processing\n' >&2
+  exit 1
+}
 if [ -n "$operations_url" ]; then
   attempt=0
   while [ "$attempt" -lt 30 ]; do
@@ -389,9 +536,23 @@ if [ -n "$operations_url" ]; then
       --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "source.validation-refused")] | length')
     staging_refused=$(printf '%s' "$source_events" | jq -r \
       --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "source.staging-refused")] | length')
-    [ "$received" -ge 2 ] && [ "$quarantined" -ge 2 ] \
-      && [ "$validated" -ge 1 ] && [ "$staged" -ge 1 ] \
-      && [ "$validation_refused" -ge 1 ] && [ "$staging_refused" -ge 1 ] && break
+    processing_accepted=$(printf '%s' "$source_events" | jq -r \
+      --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "processing.accepted")] | length')
+    processing_started=$(printf '%s' "$source_events" | jq -r \
+      --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "processing.started")] | length')
+    processing_completed=$(printf '%s' "$source_events" | jq -r \
+      --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "processing.completed")] | length')
+    processing_failed=$(printf '%s' "$source_events" | jq -r \
+      --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "processing.failed")] | length')
+    if printf '%s' "$source_events" | grep -Fq 'Synthetic harbour support policy for Gate C review.'; then
+      printf 'source-body-disclosed-in-operational-event\n' >&2
+      exit 1
+    fi
+    [ "$received" -ge 4 ] && [ "$quarantined" -ge 4 ] \
+      && [ "$validated" -ge 3 ] && [ "$staged" -ge 3 ] \
+      && [ "$validation_refused" -ge 1 ] && [ "$staging_refused" -ge 1 ] \
+      && [ "$processing_accepted" -ge 3 ] && [ "$processing_started" -ge 3 ] \
+      && [ "$processing_completed" -ge 2 ] && [ "$processing_failed" -ge 1 ] && break
     attempt=$((attempt + 1))
     sleep 0.1
   done
@@ -462,7 +623,7 @@ done
   exit 1
 }
 
-printf 'session=%s\ncsrf_refusal=%s\nsynthetic_actor=%s\nworkbench_actor=%s\nsecure_fault=%s\nsse_view=%s\nworkbench_views=%s,%s\nsource_status=%s\nsource_version=%s\nvalidation_status=%s\nvalidation_checks_passed=%s\nstage_status=%s\npolicy_decision=%s\nhostile_validation=%s\nhostile_stage_http=%s\nsource_conflict_status=%s\nunsupported_view_status=%s\npause_state=%s\ncheckpoint=%s\nprior_state=%s\nsuccessor=%s\nsuccessor_checkpoint=%s\nsuccessor_logical_time_initialised=%s\n' \
+printf 'session=%s\ncsrf_refusal=%s\nsynthetic_actor=%s\nworkbench_actor=%s\nsecure_fault=%s\nsse_view=%s\nworkbench_views=%s,%s\nsource_status=%s\nsource_version=%s\nvalidation_status=%s\nvalidation_checks_passed=%s\nstage_status=%s\npolicy_decision=%s\nprocessing_status=%s\nprocessing_terminal_count=%s\nupload_processing_status=%s\nprocessing_failure=%s\nrestart_reconciled=%s\nhostile_validation=%s\nhostile_stage_http=%s\nsource_conflict_status=%s\nunsupported_view_status=%s\npause_state=%s\ncheckpoint=%s\nprior_state=%s\nsuccessor=%s\nsuccessor_checkpoint=%s\nsuccessor_logical_time_initialised=%s\n' \
   "$session_id" \
   "$csrf_status" \
   "$(printf '%s' "$identity_context" | jq -r '.syntheticActorId')" \
@@ -477,6 +638,11 @@ printf 'session=%s\ncsrf_refusal=%s\nsynthetic_actor=%s\nworkbench_actor=%s\nsec
   "$(printf '%s' "$stage_outcome" | jq -r '[.sourceStatus.validation.checks[] | select(.status == "passed")] | length')" \
   "$(printf '%s' "$stage_outcome" | jq -r '.status')" \
   "$(printf '%s' "$stage_outcome" | jq -r '.sourceStatus.staging.policyDecisionReference')" \
+  "$(printf '%s' "$processing_status" | jq -r '.lifecycleStatus')" \
+  "$(printf '%s' "$processing_status" | jq -r '.terminalCount')" \
+  "$(printf '%s' "$upload_processing" | jq -r '.lifecycleStatus')" \
+  "$(printf '%s' "$failure_processing" | jq -r '.reasonCode')" \
+  "${PPL_KNO_RESTART_MODE:-not-requested}" \
   "$(printf '%s' "$hostile_status" | jq -r '.lifecycleStatus')" \
   "$hostile_stage_http" \
   "$conflict_status" \

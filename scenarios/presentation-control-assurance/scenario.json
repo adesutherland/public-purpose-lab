@@ -2,11 +2,11 @@
   "contractId": "D-001",
   "contractVersion": "1.0.0",
   "packageId": "presentation-control-assurance",
-  "packageVersion": "1.2.1",
+  "packageVersion": "1.3.0",
   "title": "Governed source assurance",
-  "purpose": "Demonstrate environment-scoped identity and robust semantic portal orchestration before governed source intake, using synthetic information only.",
+  "purpose": "Demonstrate reviewer-controlled source staging and basic, inspectable KNO-01 processing with correlated progress across the governed surfaces, using synthetic information only.",
   "publisher": "public-purpose-lab",
-  "releasedAt": "2026-09-01T11:00:00Z",
+  "releasedAt": "2026-09-03T12:00:00Z",
   "informationProfile": "synthetic-only",
   "permittedProfiles": [
     "native-development",
@@ -26,7 +26,11 @@
       "slotId": "reviewer-workbench",
       "role": "reviewer-workbench",
       "required": false,
-      "supportedViews": ["wb-engagement", "wb-source-intake"]
+      "supportedViews": [
+        "wb-engagement",
+        "wb-source-intake",
+        "wb-source-status"
+      ]
     }
   ],
   "stages": [
@@ -75,9 +79,29 @@
         {
           "stepId": "open-source-intake",
           "kind": "presentation-cue",
-          "description": "Ask the reviewer workbench to show source-intake controls without performing a business operation.",
+          "description": "Ask the reviewer workbench to show the component-owned source-intake controls.",
           "target": "reviewer-workbench",
           "semanticView": "wb-source-intake"
+        },
+        {
+          "stepId": "show-processing-status",
+          "kind": "presentation-cue",
+          "description": "Ask the reviewer workbench to show KNO-01 processing lifecycle and its bounded result.",
+          "target": "reviewer-workbench",
+          "semanticView": "wb-source-status"
+        },
+        {
+          "stepId": "show-audience-progress",
+          "kind": "presentation-cue",
+          "description": "Ask the Presentation surface to show read-only KNO-01 progress without gaining business control.",
+          "target": "audience-display",
+          "semanticView": "pres-progress"
+        },
+        {
+          "stepId": "verify-processing-evidence",
+          "kind": "checkpoint",
+          "description": "Confirm the correlated CNT-01 to KNO-01 sequence, safe evidence references and single terminal outcome in Operations.",
+          "target": "reviewer-workbench"
         },
         {
           "stepId": "pause",
@@ -115,7 +139,9 @@
   "limitations": [
     "Synthetic development assurance only.",
     "Presentation progress is not business completion or compliance evidence.",
-    "Gate B does not create an engagement or receive, stage or process a source.",
+    "KNO-01 processing is limited to digest verification, counts and a bounded safe preview; it is not RAG ingestion or semantic understanding.",
+    "Processing completion is not evidence-quality, compliance, legal, clinical or production assurance.",
+    "The source body remains inside the authorised CNT-01 and KNO-01 boundary and is not published in lifecycle events, general logs or Presentation.",
     "Managed hosted use requires the reviewed OIDC, workload identity, Cloud KMS, HTTPS, expiry and teardown bindings.",
     "Hosted operation remains supervised, activation-scoped and synthetic-only."
   ]

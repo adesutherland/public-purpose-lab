@@ -30,6 +30,8 @@ pub const SOURCE_INTAKE_COMMAND_SUBJECT: &str = "ppl.gate-c.commands.CNT-01";
 pub const SOURCE_INTAKE_QUERY_SUBJECT: &str = "ppl.gate-c.queries.CNT-01";
 pub const SOURCE_AUTHORISATION_SUBJECT: &str = "ppl.gate-c.decisions.AUT-01";
 pub const SOURCE_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.CNT-01";
+pub const PROCESSING_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.KNO-01";
+pub const PROCESSING_QUERY_SUBJECT: &str = "ppl.gate-c.queries.KNO-01";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WorkloadMode {
@@ -155,7 +157,10 @@ impl Broker {
         self.context
             .create_or_update_stream(StreamConfig {
                 name: SOURCE_STREAM_NAME.to_owned(),
-                subjects: vec![SOURCE_LIFECYCLE_EVENT_SUBJECT.to_owned()],
+                subjects: vec![
+                    SOURCE_LIFECYCLE_EVENT_SUBJECT.to_owned(),
+                    PROCESSING_LIFECYCLE_EVENT_SUBJECT.to_owned(),
+                ],
                 storage: StorageType::File,
                 max_messages: 1_000,
                 max_bytes: 4 * 1024 * 1024,
@@ -265,7 +270,9 @@ impl Broker {
         if self.workload_mode != WorkloadMode::PresentationGateway
             || !matches!(
                 subject,
-                SOURCE_INTAKE_COMMAND_SUBJECT | SOURCE_INTAKE_QUERY_SUBJECT
+                SOURCE_INTAKE_COMMAND_SUBJECT
+                    | SOURCE_INTAKE_QUERY_SUBJECT
+                    | PROCESSING_QUERY_SUBJECT
             )
         {
             return Err(BrokerError::ActionNotPermitted);
@@ -305,6 +312,7 @@ fn can_publish(mode: WorkloadMode, subject: &str) -> bool {
                 || subject == PRESENTATION_OPERATIONAL_SUBJECT
                 || subject == SOURCE_INTAKE_COMMAND_SUBJECT
                 || subject == SOURCE_INTAKE_QUERY_SUBJECT
+                || subject == PROCESSING_QUERY_SUBJECT
         }
         WorkloadMode::IdentityBroker => {
             subject == SYNTHETIC_GRANT_SUBJECT

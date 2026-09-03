@@ -46,3 +46,4 @@ candidate is not an approved gate until founder review succeeds.
 - [Gate A deployed component mesh show-and-tell](gate-a-component-mesh-show-and-tell.md)
 - [Gate B environment, identity and portal orchestration show-and-tell](gate-b-orchestration-show-and-tell.md)
 - [Gate C source validation and staged release progress show-and-tell](gate-c-validation-and-staging-show-and-tell.md)
+- [Gate C complete DS-03 processing show-and-tell](gate-c-complete-show-and-tell.md)

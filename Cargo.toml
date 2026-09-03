@@ -9,6 +9,7 @@ members = [
   "backend/components/ctl-02",
   "backend/components/iam-01",
   "backend/components/int-01",
+  "backend/components/kno-01",
   "backend/crates/contracts",
   "backend/crates/core",
 ]

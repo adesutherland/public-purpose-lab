@@ -1,0 +1,29 @@
+{
+  "contractId": "K-001",
+  "contractVersion": "0.1.0",
+  "messageType": "processing-lifecycle.status",
+  "statusId": "processing-status:gate-c-example",
+  "processingId": "processing:gate-c-example",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "engagementId": "engagement:harbour-support-review",
+  "sourceVersionId": "source-version:gate-c-example",
+  "correlationId": "session:gate-c-example",
+  "causationId": "event:source-staged-example",
+  "lifecycleStatus": "completed",
+  "stages": [
+    { "state": "accepted", "occurredAt": "2026-09-03T10:00:00Z" },
+    { "state": "processing", "occurredAt": "2026-09-03T10:00:01Z" },
+    { "state": "completed", "occurredAt": "2026-09-03T10:00:02Z" }
+  ],
+  "result": {
+    "digestVerified": true,
+    "byteCount": 49,
+    "lineCount": 3,
+    "sectionCount": 1,
+    "safePreview": "# Synthetic policy\n\nA bounded source for Gate C.\n",
+    "previewTruncated": false
+  },
+  "terminalCount": 1,
+  "recordedAt": "2026-09-03T10:00:02Z"
+}

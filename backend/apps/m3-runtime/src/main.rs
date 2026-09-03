@@ -14,9 +14,10 @@ use axum::{
 };
 use futures_util::StreamExt;
 use ppl_contracts::{
-    A001_VERSION, A002_VERSION, CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus,
-    PresentationCapabilityManifest, PresentationCue, PresentationCueOutcome,
-    PresentationOutcomeResult, PresentationRegistration, ScenarioControlCommand,
+    A001_VERSION, A002_VERSION, CommandOutcome, K001_VERSION, O001_VERSION, OperationalEvent,
+    OutcomeStatus, PresentationCapabilityManifest, PresentationCue, PresentationCueOutcome,
+    PresentationOutcomeResult, PresentationRegistration, ProcessingLifecycleQuery,
+    ProcessingLifecycleState, ProcessingLifecycleStatus, ScenarioControlCommand,
     ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState, SourceIntakeCommand,
     SourceIntakeOutcome, SourceIntakePayload, SourceIntakeQuery, SourceIntakeStatus,
     SourceLifecycleQuery, SourceLifecycleStatus, SourceStageCommand, SourceStageOutcome,
@@ -32,8 +33,9 @@ use ppl_iam_01::{
 use ppl_int_01::nats::{
     Broker, BrokerConfig, BrokerError, CONTROL_OUTCOME_SUBJECT, CONTROL_SUBJECT, CUE_SUBJECT,
     DIRECTOR_EVENT_SUBJECT, GRANT_REQUEST_SUBJECT, IDENTITY_OUTCOME_SUBJECT, OUTCOME_SUBJECT,
-    REGISTRATION_SUBJECT, SOURCE_INTAKE_COMMAND_SUBJECT, SOURCE_INTAKE_QUERY_SUBJECT,
-    SYNTHETIC_GRANT_SUBJECT, SYNTHETIC_TERMINATION_SUBJECT, WorkloadMode,
+    PROCESSING_QUERY_SUBJECT, REGISTRATION_SUBJECT, SOURCE_INTAKE_COMMAND_SUBJECT,
+    SOURCE_INTAKE_QUERY_SUBJECT, SYNTHETIC_GRANT_SUBJECT, SYNTHETIC_TERMINATION_SUBJECT,
+    WorkloadMode,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -50,7 +52,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 
 const PACKAGE_ID: &str = "presentation-control-assurance";
-const PACKAGE_VERSION: &str = "1.2.1";
+const PACKAGE_VERSION: &str = "1.3.0";
 const MANIFEST_JSON: &str =
     include_str!("../../../../contracts/presentation/examples/p-001-assurance-surface.json");
 
@@ -979,6 +981,14 @@ fn gateway_router(state: GatewayState) -> Router {
             "/api/v1/source-status/{source_version_id}",
             get(source_lifecycle_status),
         )
+        .route(
+            "/api/v1/source-processing/{source_version_id}",
+            get(source_processing_status),
+        )
+        .route(
+            "/api/v1/presentation-processing",
+            get(presentation_processing_progress),
+        )
         .with_state(state)
 }
 
@@ -1049,10 +1059,10 @@ async fn director_contracts(State(state): State<DirectorState>) -> Result<Json<V
 async fn gateway_contracts(State(state): State<GatewayState>) -> Json<Value> {
     Json(serde_json::json!({
         "selfTest": "passed",
-        "contracts": ["P-001", "P-002", "P-003", "P-004", "A-001@0.1.0", "A-002@0.1.0"],
+        "contracts": ["P-001", "P-002", "P-003", "P-004", "A-001@0.1.0", "A-002@0.1.0", "K-001@0.1.0"],
         "identityContracts": ["I-001", "I-004", "I-005"],
         "manifestId": "assurance-presentation-surface",
-        "manifestVersion": "1.2.1",
+        "manifestVersion": "1.3.0",
         "manifestDigest": state.manifest_digest,
         "sourceRevision": state.config.source_revision,
         "imageDigest": state.config.image_digest,
@@ -1578,11 +1588,11 @@ async fn director_environment(
         "catalogue": [{
             "scenarioId": "governed-source-assurance",
             "title": "Governed source assurance",
-            "purpose": "Show environment-scoped identity and robust semantic portal orchestration before governed source intake.",
-            "maturity": "Gate B implementation",
+            "purpose": "Show reviewer-controlled staging and basic KNO-01 processing with correlated, read-only progress.",
+            "maturity": "Gate C completion candidate",
             "estimatedDuration": "8 minutes",
             "actors": ["external presenter", "synthetic-reviewer"],
-            "requiredComponents": ["CTL-01", "CTL-02", "IAM-01", "OPS-01", "INT-01"],
+            "requiredComponents": ["CTL-01", "CTL-02", "IAM-01", "OPS-01", "INT-01", "CNT-01", "KNO-01"],
             "status": control_path,
             "reasons": if state.broker.is_some() {
                 Vec::<String>::new()
@@ -1591,7 +1601,7 @@ async fn director_environment(
             },
             "limitations": [
                 "Synthetic information only.",
-                "Gate B changes views but performs no engagement, source, workflow or reporting business operation."
+                "KNO-01 performs only digest verification, counts and a bounded safe preview; completion is not RAG ingestion, semantic understanding, evidence quality or compliance assurance."
             ]
         }],
         "maturity": "in-development",
@@ -1894,12 +1904,7 @@ async fn issue_cue(
     } else {
         "portal-orchestration"
     };
-    let step_id = match request.semantic_view.as_str() {
-        "pres-intro" => "show-introduction",
-        "wb-engagement" => "open-engagement-context",
-        "wb-source-intake" => "open-source-intake",
-        _ => "unsupported-view-test",
-    };
+    let step_id = cue_step_id(&request.semantic_view);
     let cue = PresentationCue {
         contract_id: "P-003".to_owned(),
         contract_version: "1.0.0".to_owned(),
@@ -1959,6 +1964,17 @@ async fn issue_cue(
             .await;
             Err(error.into())
         }
+    }
+}
+
+fn cue_step_id(semantic_view: &str) -> &'static str {
+    match semantic_view {
+        "pres-intro" => "show-introduction",
+        "pres-progress" => "show-audience-progress",
+        "wb-engagement" => "open-engagement-context",
+        "wb-source-intake" => "open-source-intake",
+        "wb-source-status" => "show-processing-status",
+        _ => "unsupported-view-test",
     }
 }
 
@@ -2099,7 +2115,11 @@ async fn register_surface(
     let supported_views = match request.surface_role.as_str() {
         "audience-display" => vec!["pres-intro".to_owned(), "pres-progress".to_owned()],
         "reviewer-workbench" => {
-            vec!["wb-engagement".to_owned(), "wb-source-intake".to_owned()]
+            vec![
+                "wb-engagement".to_owned(),
+                "wb-source-intake".to_owned(),
+                "wb-source-status".to_owned(),
+            ]
         }
         _ => unreachable!("surface role was validated above"),
     };
@@ -2111,7 +2131,7 @@ async fn register_surface(
         surface_slot: request.surface_slot,
         surface_role: request.surface_role,
         manifest_id: "assurance-presentation-surface".to_owned(),
-        manifest_version: "1.2.1".to_owned(),
+        manifest_version: "1.3.0".to_owned(),
         supported_views,
         binding_mode: "development-assurance".to_owned(),
         registration_revision: 1,
@@ -2395,6 +2415,136 @@ async fn source_lifecycle_status(
         return Err(AppError::unauthorised("synthetic-surface-binding-refused"));
     }
     Ok(Json(status))
+}
+
+async fn source_processing_status(
+    State(state): State<GatewayState>,
+    Path(source_version_id): Path<String>,
+    headers: HeaderMap,
+) -> Result<Json<ProcessingLifecycleStatus>, AppError> {
+    let authorised = require_synthetic_source_session(&state, &headers)?;
+    let synthetic = authorised.synthetic_identity.ok_or(AppError::unauthorised(
+        "synthetic-application-session-required",
+    ))?;
+    let status = request_processing_status(
+        &state,
+        ProcessingLifecycleQuery {
+            contract_id: "K-001".to_owned(),
+            contract_version: K001_VERSION.to_owned(),
+            message_type: "processing-lifecycle.query".to_owned(),
+            query_id: format!("processing-status-query:{}", Uuid::new_v4()),
+            environment_id: state.config.environment_id.clone(),
+            demonstration_session_id: None,
+            source_version_id: Some(source_version_id),
+            requested_at: now_string()?,
+        },
+    )
+    .await?;
+    if status.demonstration_session_id != synthetic.demonstration_session_id {
+        return Err(AppError::unauthorised("synthetic-surface-binding-refused"));
+    }
+    Ok(Json(status))
+}
+
+async fn presentation_processing_progress(
+    State(state): State<GatewayState>,
+    headers: HeaderMap,
+) -> Result<Json<Value>, AppError> {
+    let token = cookie_value(&headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let mapping_version = current_mapping_version(&state.config)?;
+    let authorised = state.sessions.authorise_read(
+        token,
+        "surface-operator",
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    if authorised.bound_surface_id.as_deref() != Some("audience-display") {
+        return Err(AppError::unauthorised(
+            "presentation-surface-binding-refused",
+        ));
+    }
+    let demonstration_session_id =
+        authorised
+            .bound_demonstration_session_id
+            .ok_or(AppError::unauthorised(
+                "presentation-session-binding-required",
+            ))?;
+    let status = request_processing_status(
+        &state,
+        ProcessingLifecycleQuery {
+            contract_id: "K-001".to_owned(),
+            contract_version: K001_VERSION.to_owned(),
+            message_type: "processing-lifecycle.query".to_owned(),
+            query_id: format!("processing-progress-query:{}", Uuid::new_v4()),
+            environment_id: state.config.environment_id.clone(),
+            demonstration_session_id: Some(demonstration_session_id.clone()),
+            source_version_id: None,
+            requested_at: now_string()?,
+        },
+    )
+    .await?;
+    if status.demonstration_session_id != demonstration_session_id {
+        return Err(AppError::unauthorised(
+            "presentation-session-binding-refused",
+        ));
+    }
+    let occurred_at = |state| {
+        status
+            .stages
+            .iter()
+            .find(|stage| stage.state == state)
+            .map(|stage| stage.occurred_at.clone())
+    };
+    Ok(Json(serde_json::json!({
+        "processingId": status.processing_id,
+        "sourceVersionId": status.source_version_id,
+        "componentId": "KNO-01",
+        "lifecycleStatus": status.lifecycle_status,
+        "latestOutcome": status.reason_code.unwrap_or_else(|| match status.lifecycle_status {
+            ProcessingLifecycleState::Accepted => "processing-accepted",
+            ProcessingLifecycleState::Processing => "processing-started",
+            ProcessingLifecycleState::Completed => "processing-completed",
+            ProcessingLifecycleState::Failed => "processing-failed",
+        }.to_owned()),
+        "acceptedAt": occurred_at(ProcessingLifecycleState::Accepted),
+        "startedAt": occurred_at(ProcessingLifecycleState::Processing),
+        "completedAt": occurred_at(if status.lifecycle_status == ProcessingLifecycleState::Failed {
+            ProcessingLifecycleState::Failed
+        } else {
+            ProcessingLifecycleState::Completed
+        }),
+        "byteCount": status.result.as_ref().map(|result| result.byte_count),
+        "lineCount": status.result.as_ref().map(|result| result.line_count),
+        "sectionCount": status.result.as_ref().map(|result| result.section_count),
+        "limitation": "Basic digest and structural counts only; no source text, RAG ingestion, semantic understanding, evidence-quality or compliance claim."
+    })))
+}
+
+async fn request_processing_status(
+    state: &GatewayState,
+    query: ProcessingLifecycleQuery,
+) -> Result<ProcessingLifecycleStatus, AppError> {
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::configuration("interactive-broker-unavailable"))?;
+    let bytes = broker.request(PROCESSING_QUERY_SUBJECT, &query).await?;
+    let value: Value = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::configuration("processing-status-response-invalid"))?;
+    if value.get("status").and_then(Value::as_str) == Some("refused") {
+        let code = value
+            .get("code")
+            .and_then(Value::as_str)
+            .unwrap_or("processing-status-refused");
+        return Err(AppError::refused(match code {
+            "processing-record-not-found" => "processing-record-not-found",
+            "processing-query-invalid" => "processing-query-invalid",
+            _ => "processing-status-refused",
+        }));
+    }
+    serde_json::from_value(value)
+        .map_err(|_| AppError::configuration("processing-status-response-invalid"))
 }
 
 fn authorise_source_write(

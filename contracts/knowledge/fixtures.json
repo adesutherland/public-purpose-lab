@@ -1,0 +1,29 @@
+{
+  "fixtures": [
+    {
+      "schemaId": "urn:public-purpose-lab:contract:K-001:0.1.0",
+      "file": "contracts/knowledge/examples/k-001-content-query.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:K-001:0.1.0",
+      "file": "contracts/knowledge/examples/k-001-content-response.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:K-001:0.1.0",
+      "file": "contracts/knowledge/examples/k-001-lifecycle-query.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:K-001:0.1.0",
+      "file": "contracts/knowledge/examples/k-001-completed-status.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:K-001:0.1.0",
+      "file": "contracts/knowledge/invalid/k-001-duplicate-terminal.json",
+      "valid": false
+    }
+  ]
+}

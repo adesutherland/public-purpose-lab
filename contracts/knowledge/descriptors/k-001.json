@@ -1,0 +1,26 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "K-001",
+  "describedContractName": "Staged source processing",
+  "describedVersion": "0.1.0",
+  "status": "implemented",
+  "schemaId": "urn:public-purpose-lab:contract:K-001:0.1.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-09-03T12:00:00Z",
+  "examples": [
+    "contracts/knowledge/examples/k-001-content-query.json",
+    "contracts/knowledge/examples/k-001-content-response.json",
+    "contracts/knowledge/examples/k-001-lifecycle-query.json",
+    "contracts/knowledge/examples/k-001-completed-status.json"
+  ],
+  "producerExpectations": [
+    "Accept only an exact immutable source version represented by a durable source.staged fact.",
+    "Record accepted, started and exactly one terminal processing result in component-owned state."
+  ],
+  "consumerExpectations": [
+    "Keep the source body inside the protected CNT-01 to KNO-01 exchange and out of events, logs and Presentation.",
+    "Treat the result as basic digest and structural inspection, not RAG ingestion, semantic understanding or evidence quality."
+  ],
+  "evidence": []
+}

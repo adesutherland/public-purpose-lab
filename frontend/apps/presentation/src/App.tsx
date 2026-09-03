@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type {
   PresentationCue,
   PresentationCueOutcome,
+  PresentationProcessingProgress,
   PresentationRegistration,
 } from "@public-purpose-lab/contracts";
 import { SurfaceShell, surfaceById } from "@public-purpose-lab/ui";
@@ -66,6 +67,8 @@ export function App() {
   const [sessionId, setSessionId] = useState("");
   const [registration, setRegistration] = useState<PresentationRegistration>();
   const [activeCue, setActiveCue] = useState<PresentationCue>();
+  const [processing, setProcessing] =
+    useState<PresentationProcessingProgress>();
   const [message, setMessage] = useState(
     "Connect this display and register it to the Director's Demonstration Session.",
   );
@@ -146,6 +149,23 @@ export function App() {
     return () => source.close();
   }, [registration]);
 
+  useEffect(() => {
+    if (activeCue?.semanticView !== "pres-progress") return undefined;
+    let active = true;
+    const refresh = () =>
+      getJson<PresentationProcessingProgress>("/api/v1/presentation-processing")
+        .then((status) => {
+          if (active) setProcessing(status);
+        })
+        .catch(() => undefined);
+    void refresh();
+    const interval = window.setInterval(refresh, 750);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [activeCue?.semanticView]);
+
   const run = async (operation: () => Promise<void>) => {
     try {
       setError(false);
@@ -161,8 +181,8 @@ export function App() {
   return (
     <SurfaceShell
       surface={surfaceById("UX-04")}
-      maturityLabel="Gate B · functional demonstration"
-      notice="Synthetic demonstration only. A displayed view proves presentation progress, not human attention, business completion or compliance."
+      maturityLabel="Gate C · visible processing candidate"
+      notice="Synthetic demonstration only. This read-only surface reports component-owned progress; it cannot stage a source, control processing or claim compliance."
     >
       <article className="ppl-card ppl-live-card">
         <p className="ppl-card-label">Audience presentation binding</p>
@@ -286,9 +306,55 @@ export function App() {
               </li>
             </ul>
           </section>
+        ) : activeCue?.semanticView === "pres-progress" ? (
+          <section className="ppl-semantic-view" aria-live="polite">
+            <p className="ppl-eyebrow">PRES-PROGRESS · business progress</p>
+            <h2>{activeCue.context.heading}</h2>
+            <p className="ppl-purpose">{activeCue.context.message}</p>
+            <div className="ppl-status-grid ppl-runtime-message">
+              <span>
+                Current component
+                <br />
+                <strong>{processing?.componentId ?? "KNO-01"}</strong>
+              </span>
+              <span>
+                Processing state
+                <br />
+                <strong>{processing?.lifecycleStatus ?? "waiting"}</strong>
+              </span>
+              <span>
+                Latest conclusive outcome
+                <br />
+                <strong>
+                  {processing?.latestOutcome ?? "No processing fact observed"}
+                </strong>
+              </span>
+              <span>
+                Bounded result
+                <br />
+                <strong>
+                  {processing?.byteCount === undefined
+                    ? "Pending"
+                    : `${processing.byteCount} bytes · ${processing.lineCount} lines · ${processing.sectionCount} sections`}
+                </strong>
+              </span>
+            </div>
+            <p className="ppl-mono">
+              {processing?.sourceVersionId ?? "source version pending"}
+            </p>
+            <h3>Authority and content boundary</h3>
+            <p>
+              {processing?.limitation ??
+                "The Presentation Surface receives progress metadata only and never receives the source body."}
+            </p>
+            <p>
+              This surface has no control for receipt, validation, staging or
+              processing. Its cue records presentation progress only.
+            </p>
+          </section>
         ) : (
           <p className="ppl-runtime-message">
-            Waiting for the Director to request PRES-INTRO.
+            Waiting for the Director to request PRES-INTRO or PRES-PROGRESS.
           </p>
         )}
         <div
