@@ -18,7 +18,11 @@ use axum::{
     routing::{get, post},
 };
 use futures_util::StreamExt;
-use ppl_contracts::{O001_VERSION, OperationalCommand, OperationalEvent};
+use ppl_cnt_01::{SourceLifecycleEvent, SourceStore};
+use ppl_contracts::{
+    A001_VERSION, O001_VERSION, OperationalCommand, OperationalEvent, SourceIntakeCommand,
+    SourceIntakeQuery,
+};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
@@ -37,6 +41,7 @@ const COMMAND_PURPOSE: &str = "gate-a-component-mesh";
 const READINESS_INTERVAL: Duration = Duration::from_secs(5);
 const STALE_AFTER: Duration = Duration::from_secs(15);
 const MAX_EVENTS: usize = 250;
+const SOURCE_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.CNT-01";
 
 #[derive(Clone, Copy)]
 struct ComponentDefinition {
@@ -135,6 +140,7 @@ struct Config {
     source_revision: String,
     image_digest: String,
     static_directory: Option<PathBuf>,
+    source_state_path: Option<PathBuf>,
 }
 
 #[derive(Clone)]
@@ -144,6 +150,7 @@ struct AppState {
     components: Arc<RwLock<BTreeMap<String, ObservedComponent>>>,
     events: Arc<RwLock<VecDeque<OperationalEvent>>>,
     idempotency: Arc<Mutex<HashMap<String, String>>>,
+    source_store: Option<SourceStore>,
 }
 
 #[derive(Clone)]
@@ -191,12 +198,19 @@ async fn run() -> Result<(), SafeError> {
         .map_err(|_| SafeError("tls-crypto-provider-conflict"))?;
     let config = load_config()?;
     let client = connect(&config).await?;
+    let source_store = match &config.source_state_path {
+        Some(path) => {
+            Some(SourceStore::open(path).map_err(|_| SafeError("source-store-unavailable"))?)
+        }
+        None => None,
+    };
     let state = AppState {
         config: config.clone(),
         client,
         components: Arc::new(RwLock::new(BTreeMap::new())),
         events: Arc::new(RwLock::new(VecDeque::new())),
         idempotency: Arc::new(Mutex::new(HashMap::new())),
+        source_store,
     };
 
     if config.component.id == "OPS-01" {
@@ -204,6 +218,14 @@ async fn run() -> Result<(), SafeError> {
         tokio::spawn(async move {
             if let Err(error) = observe_events(observer).await {
                 error!(reason = error.0, "operations event observer stopped");
+            }
+        });
+    }
+    if config.component.id == "CNT-01" {
+        let source_intake = state.clone();
+        tokio::spawn(async move {
+            if let Err(error) = consume_source_intake(source_intake).await {
+                error!(reason = error.0, "source-intake consumer stopped");
             }
         });
     }
@@ -292,9 +314,20 @@ async fn readiness(State(state): State<AppState>) -> Json<Value> {
 }
 
 async fn contracts(State(state): State<AppState>) -> Json<Value> {
+    let mut contracts = vec![json!({
+        "contractId": CONTRACT_ID,
+        "contractVersion": O001_VERSION
+    })];
+    if state.config.component.id == "CNT-01" {
+        contracts.push(json!({
+            "contractId": "A-001",
+            "contractVersion": A001_VERSION,
+            "status": "working-draft"
+        }));
+    }
     Json(json!({
         "componentId": state.config.component.id,
-        "contracts": [{"contractId": CONTRACT_ID, "contractVersion": O001_VERSION}],
+        "contracts": contracts,
         "maturity": "in-development"
     }))
 }
@@ -443,6 +476,151 @@ fn operational_event(
         causation_id: command.map(|value| value.command_id.clone()),
         idempotency_key: command.map(|value| value.idempotency_key.clone()),
         reason_code: reason_code.map(str::to_owned),
+        subject_reference: None,
+    }
+}
+
+async fn consume_source_intake(state: AppState) -> Result<(), SafeError> {
+    let store = state
+        .source_store
+        .clone()
+        .ok_or(SafeError("source-store-unavailable"))?;
+    let mut commands = state
+        .client
+        .subscribe("ppl.gate-c.commands.CNT-01")
+        .await
+        .map_err(|_| SafeError("source-command-subscription-unavailable"))?;
+    let mut queries = state
+        .client
+        .subscribe("ppl.gate-c.queries.CNT-01")
+        .await
+        .map_err(|_| SafeError("source-query-subscription-unavailable"))?;
+    let mut retry = tokio::time::interval(Duration::from_secs(2));
+
+    loop {
+        tokio::select! {
+            Some(message) = commands.next() => {
+                let Some(reply) = message.reply else {
+                    warn!("source-intake command without reply subject was refused");
+                    continue;
+                };
+                let response = match serde_json::from_slice::<SourceIntakeCommand>(&message.payload) {
+                    Ok(command) => store
+                        .apply(&command, &state.config.environment_id, &now())
+                        .and_then(|outcome| serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)),
+                    Err(_) => Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid),
+                };
+                publish_source_outbox(&state, &store).await;
+                respond(&state, reply, response).await?;
+            }
+            Some(message) = queries.next() => {
+                let Some(reply) = message.reply else {
+                    warn!("source-intake query without reply subject was refused");
+                    continue;
+                };
+                let response = match serde_json::from_slice::<SourceIntakeQuery>(&message.payload) {
+                    Ok(query)
+                        if query.contract_id == "A-001"
+                            && query.contract_version == A001_VERSION
+                            && query.message_type == "source-intake.query"
+                            && query.environment_id == state.config.environment_id => store
+                                .outcome(&query.command_id, &state.config.environment_id)
+                                .and_then(|outcome| serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)),
+                    _ => Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid),
+                };
+                respond(&state, reply, response).await?;
+            }
+            _ = retry.tick() => publish_source_outbox(&state, &store).await,
+            else => return Err(SafeError("source-intake-subscription-closed")),
+        }
+    }
+}
+
+async fn respond(
+    state: &AppState,
+    reply: async_nats::Subject,
+    response: Result<Vec<u8>, ppl_cnt_01::SourceStoreError>,
+) -> Result<(), SafeError> {
+    let bytes = response.unwrap_or_else(|error| {
+        serde_json::to_vec(&json!({
+            "status": "refused",
+            "code": error.to_string(),
+            "informationProfile": INFORMATION_PROFILE,
+        }))
+        .unwrap_or_default()
+    });
+    state
+        .client
+        .publish(reply, bytes.into())
+        .await
+        .map_err(|_| SafeError("source-response-publish-failed"))
+}
+
+async fn publish_source_outbox(state: &AppState, store: &SourceStore) {
+    let Ok(events) = store.pending_events() else {
+        warn!("source event outbox could not be read");
+        return;
+    };
+    for event in events {
+        let operational = source_operational_event(&state.config, &event);
+        let durable = async_nats::jetstream::new(state.client.clone())
+            .publish(
+                SOURCE_LIFECYCLE_EVENT_SUBJECT,
+                match serde_json::to_vec(&operational) {
+                    Ok(bytes) => bytes.into(),
+                    Err(_) => break,
+                },
+            )
+            .await;
+        let durable = match durable {
+            Ok(acknowledgement) => acknowledgement.await.is_ok(),
+            Err(_) => false,
+        };
+        if durable && publish_event(state, &operational).await.is_ok() {
+            if store.mark_published(&event.event_id, &now()).is_err() {
+                warn!(
+                    event_id = event.event_id,
+                    "source event publication could not be concluded"
+                );
+            }
+        } else {
+            warn!(
+                event_id = event.event_id,
+                "source event remains pending durable publication"
+            );
+            break;
+        }
+    }
+}
+
+fn source_operational_event(config: &Config, source: &SourceLifecycleEvent) -> OperationalEvent {
+    OperationalEvent {
+        contract_id: "O-001".to_owned(),
+        contract_version: O001_VERSION.to_owned(),
+        event_id: source.event_id.clone(),
+        event_type: source.event_type.clone(),
+        component_id: config.component.id.to_owned(),
+        component_name: config.component.name.to_owned(),
+        instance_id: config.instance_id.clone(),
+        workload_identity: config.workload_identity.clone(),
+        environment_id: config.environment_id.clone(),
+        status: if source.event_type.ends_with("refused") {
+            "refused"
+        } else {
+            "accepted"
+        }
+        .to_owned(),
+        capability: config.component.capability.to_owned(),
+        source_revision: config.source_revision.clone(),
+        image_digest: config.image_digest.clone(),
+        occurred_at: source.occurred_at.clone(),
+        information_profile: INFORMATION_PROFILE.to_owned(),
+        command_name: Some("submit-to-quarantine".to_owned()),
+        correlation_id: Some(source.correlation_id.clone()),
+        causation_id: Some(source.causation_id.clone()),
+        idempotency_key: None,
+        reason_code: source.reason_code.clone(),
+        subject_reference: Some(source.source_version_id.clone()),
     }
 }
 
@@ -621,6 +799,11 @@ fn load_config() -> Result<Config, SafeError> {
         image_digest: env::var("PPL_IMAGE_DIGEST")
             .unwrap_or_else(|_| "unresolved-build-digest".to_owned()),
         static_directory: env::var("PPL_STATIC_DIRECTORY").ok().map(PathBuf::from),
+        source_state_path: if component.id == "CNT-01" {
+            Some(PathBuf::from(required_env("PPL_SOURCE_STATE_PATH")?))
+        } else {
+            None
+        },
     })
 }
 

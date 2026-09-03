@@ -172,11 +172,11 @@
     },
     {
       "id": "A-001",
-      "name": "Asset registration and acquisition",
+      "name": "Governed source intake",
       "group": "service",
-      "status": "planned",
-      "documentation": null,
-      "schema": null
+      "status": "working-draft",
+      "documentation": "docs/architecture/logical/contracts/service/a-001-governed-source-intake.md",
+      "schema": "contracts/source/a-001-source-intake.schema.json"
     },
     {
       "id": "A-002",

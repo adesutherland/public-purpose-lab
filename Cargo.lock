@@ -2147,12 +2147,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "ppl-cnt-01"
+version = "0.1.0"
+dependencies = [
+ "ppl-contracts",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 2.0.20",
+ "uuid",
+]
+
+[[package]]
 name = "ppl-component-host"
 version = "0.1.0"
 dependencies = [
  "async-nats",
  "axum",
  "futures-util",
+ "ppl-cnt-01",
  "ppl-contracts",
  "rustls",
  "serde_json",

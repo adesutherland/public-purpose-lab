@@ -14,6 +14,7 @@ gateway_url=${PPL_GATEWAY_URL:-http://127.0.0.1:18082}
 director_origin=${PPL_DIRECTOR_ORIGIN:-$director_url}
 gateway_origin=${PPL_GATEWAY_ORIGIN:-$gateway_url}
 workbench_origin=${PPL_WORKBENCH_ORIGIN:-$gateway_origin}
+operations_url=${PPL_OPERATIONS_URL:-}
 sse_capture=${PPL_SSE_CAPTURE:-.local/m3-native-sse.txt}
 
 require_command() {
@@ -241,6 +242,70 @@ for applied_cue in "$engagement_cue" "$intake_cue"; do
     "$gateway_url/api/v1/outcomes" "$outcome" >/dev/null
 done
 
+stage='gate-c-source-intake'
+submission_id="smoke-$(date +%s)-$$"
+idempotency_key="source-intake:$submission_id"
+source_body=$(jq -cn \
+  --arg submission "$submission_id" \
+  --arg key "$idempotency_key" \
+  '{submissionId:$submission,idempotencyKey:$key,source:{acquisitionMode:"paste",mediaType:"text/plain",sizeBytes:51,content:"Synthetic harbour support policy for Gate C review.",title:"Harbour support policy",owner:"Harbour Community Support",rights:"Synthetic demonstration fixture",provenance:"Gate C system smoke test",classification:"synthetic"}}')
+source_outcome=$(post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
+  "$gateway_url/api/v1/source-intake" "$source_body")
+[ "$(printf '%s' "$source_outcome" | jq -r '.status')" = quarantined ] \
+  && [ "$(printf '%s' "$source_outcome" | jq -r '.sourceVersion.version')" = 1 ] \
+  && [ "$(printf '%s' "$source_outcome" | jq -r '.sourceVersion.digestAlgorithm')" = sha-256 ] \
+  && [ "$(printf '%s' "$source_outcome" | jq -r '.sourceVersion.classification')" = synthetic ] || {
+  printf 'source-not-quarantined\n' >&2
+  exit 1
+}
+if printf '%s' "$source_outcome" | grep -Fq 'Synthetic harbour support policy'; then
+  printf 'source-content-disclosed-in-outcome\n' >&2
+  exit 1
+fi
+source_command_id=$(printf '%s' "$source_outcome" | jq -r '.commandId')
+queried_source=$(curl -fsS -b "$workbench_cookie_jar" \
+  "$gateway_url/api/v1/source-intake/$source_command_id")
+[ "$(printf '%s' "$queried_source" | jq -r '.outcomeId')" = \
+  "$(printf '%s' "$source_outcome" | jq -r '.outcomeId')" ] || {
+  printf 'source-query-outcome-mismatch\n' >&2
+  exit 1
+}
+duplicate_source=$(post_json "$workbench_cookie_jar" "$workbench_csrf" "$workbench_origin" \
+  "$gateway_url/api/v1/source-intake" "$source_body")
+[ "$(printf '%s' "$duplicate_source" | jq -r '.outcomeId')" = \
+  "$(printf '%s' "$source_outcome" | jq -r '.outcomeId')" ] || {
+  printf 'source-idempotent-redelivery-mismatch\n' >&2
+  exit 1
+}
+changed_body=$(printf '%s' "$source_body" | jq -c \
+  '.source.content="Changed synthetic content." | .source.sizeBytes=26')
+conflict_file=$(mktemp)
+conflict_status=$(curl -sS -o "$conflict_file" -w '%{http_code}' -b "$workbench_cookie_jar" \
+  -H "Origin: $workbench_origin" -H "X-PPL-CSRF: $workbench_csrf" \
+  -H 'Content-Type: application/json' -X POST "$gateway_url/api/v1/source-intake" \
+  -d "$changed_body")
+conflict_outcome=$(sed -n '1p' "$conflict_file")
+rm -f "$conflict_file"
+[ "$conflict_status" = 422 ] \
+  && [ "$(printf '%s' "$conflict_outcome" | jq -r '.code')" = idempotency-content-conflict ] || {
+  printf 'source-idempotency-conflict-not-refused\n' >&2
+  exit 1
+}
+if [ -n "$operations_url" ]; then
+  attempt=0
+  while [ "$attempt" -lt 30 ]; do
+    source_events=$(curl -fsS "$operations_url/api/v1/events")
+    received=$(printf '%s' "$source_events" | jq -r \
+      --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "source.received")] | length')
+    quarantined=$(printf '%s' "$source_events" | jq -r \
+      --arg correlation "$session_id" '[.events[] | select(.correlationId == $correlation and .eventType == "source.quarantined")] | length')
+    [ "$received" -ge 1 ] && [ "$quarantined" -ge 1 ] && break
+    attempt=$((attempt + 1))
+    sleep 0.1
+  done
+  [ "$attempt" -lt 30 ] || { printf 'source-events-not-observed\n' >&2; exit 1; }
+fi
+
 stage='unsupported-view-refusal'
 body='{"surfaceSlot":"reviewer-workbench","semanticView":"wb-not-admitted","heading":"Unsupported view test","message":"This must be refused before delivery.","expiresInSeconds":60}'
 unsupported_status=$(curl -sS -o /dev/null -w '%{http_code}' -b "$director_cookie_jar" \
@@ -305,7 +370,7 @@ done
   exit 1
 }
 
-printf 'session=%s\ncsrf_refusal=%s\nsynthetic_actor=%s\nworkbench_actor=%s\nsecure_fault=%s\nsse_view=%s\nworkbench_views=%s,%s\nunsupported_view_status=%s\npause_state=%s\ncheckpoint=%s\nprior_state=%s\nsuccessor=%s\nsuccessor_checkpoint=%s\nsuccessor_logical_time_initialised=%s\n' \
+printf 'session=%s\ncsrf_refusal=%s\nsynthetic_actor=%s\nworkbench_actor=%s\nsecure_fault=%s\nsse_view=%s\nworkbench_views=%s,%s\nsource_status=%s\nsource_version=%s\nsource_conflict_status=%s\nunsupported_view_status=%s\npause_state=%s\ncheckpoint=%s\nprior_state=%s\nsuccessor=%s\nsuccessor_checkpoint=%s\nsuccessor_logical_time_initialised=%s\n' \
   "$session_id" \
   "$csrf_status" \
   "$(printf '%s' "$identity_context" | jq -r '.syntheticActorId')" \
@@ -314,6 +379,9 @@ printf 'session=%s\ncsrf_refusal=%s\nsynthetic_actor=%s\nworkbench_actor=%s\nsec
   "$(printf '%s' "$sse_cue" | jq -r '.semanticView')" \
   "$(printf '%s' "$engagement_sse_cue" | jq -r '.semanticView')" \
   "$(printf '%s' "$intake_sse_cue" | jq -r '.semanticView')" \
+  "$(printf '%s' "$source_outcome" | jq -r '.status')" \
+  "$(printf '%s' "$source_outcome" | jq -r '.sourceVersion.version')" \
+  "$conflict_status" \
   "$unsupported_status" \
   "$(printf '%s' "$paused" | jq -r '.session.state')" \
   "$(printf '%s' "$status" | jq -r '.presentationCheckpoint.result')" \

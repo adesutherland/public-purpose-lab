@@ -32,6 +32,7 @@ interface OperationalEvent {
   correlationId?: string;
   commandName?: string;
   reasonCode?: string;
+  subjectReference?: string;
 }
 
 async function getJson<T>(path: string): Promise<T> {
@@ -120,7 +121,7 @@ export function App() {
           </span>
           <span>Public Purpose Lab</span>
         </a>
-        <span className="ppl-maturity">Gate B · functional demonstration</span>
+        <span className="ppl-maturity">Gate C · source intake active</span>
       </header>
 
       <main>
@@ -259,7 +260,10 @@ export function App() {
                 <strong>{event.eventType}</strong>
                 <span>{event.commandName ?? event.status}</span>
                 <span className="ppl-mono ops-correlation">
-                  {event.correlationId ?? event.reasonCode ?? "readiness"}
+                  {event.subjectReference ??
+                    event.correlationId ??
+                    event.reasonCode ??
+                    "readiness"}
                 </span>
               </article>
             ))}
@@ -268,7 +272,7 @@ export function App() {
       </main>
 
       <footer>
-        <span>OPS-01 · O-001 · Gate B</span>
+        <span>OPS-01 · O-001 · Gate C working slice</span>
         <span>Synthetic data only · no compliance claim</span>
       </footer>
     </div>

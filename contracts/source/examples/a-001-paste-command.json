@@ -1,0 +1,29 @@
+{
+  "contractId": "A-001",
+  "contractVersion": "0.1.0",
+  "messageType": "source-intake.command",
+  "commandId": "source-command:gate-c-example",
+  "action": "submit-to-quarantine",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "engagementId": "engagement:harbour-support-review",
+  "actorId": "synthetic-reviewer",
+  "actorRole": "workbench-reviewer",
+  "authorityReference": "application-session:gate-c-example",
+  "purpose": "governed-source-intake",
+  "correlationId": "session:gate-c-example",
+  "causationId": "user-action:gate-c-example",
+  "idempotencyKey": "source-intake:gate-c-example",
+  "issuedAt": "2026-09-01T15:00:00Z",
+  "source": {
+    "acquisitionMode": "paste",
+    "mediaType": "text/plain",
+    "sizeBytes": 29,
+    "content": "Synthetic policy source text.",
+    "title": "Harbour support policy",
+    "owner": "Harbour Community Support",
+    "rights": "Synthetic demonstration fixture",
+    "provenance": "Created for Gate C system testing",
+    "classification": "synthetic"
+  }
+}

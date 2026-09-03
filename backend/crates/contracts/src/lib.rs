@@ -27,7 +27,118 @@ pub const P001_VERSION: &str = "1.0.0";
 pub const P002_VERSION: &str = "1.0.0";
 pub const P003_VERSION: &str = "1.0.0";
 pub const P004_VERSION: &str = "1.0.0";
+pub const A001_VERSION: &str = "0.1.0";
 pub const O001_VERSION: &str = "0.1.0";
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceAcquisitionMode {
+    Upload,
+    Paste,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceIntakePayload {
+    pub acquisition_mode: SourceAcquisitionMode,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub original_name: Option<String>,
+    pub media_type: String,
+    pub size_bytes: u64,
+    pub content: String,
+    pub title: String,
+    pub owner: String,
+    pub rights: String,
+    pub provenance: String,
+    pub classification: String,
+}
+
+/// Gate C working A-001 command. The browser supplies source fields to the
+/// Workbench backend; the backend adds the authenticated actor and scenario
+/// binding before this message enters the component channel.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceIntakeCommand {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub command_id: String,
+    pub action: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub engagement_id: String,
+    pub actor_id: String,
+    pub actor_role: String,
+    pub authority_reference: String,
+    pub purpose: String,
+    pub correlation_id: String,
+    pub causation_id: String,
+    pub idempotency_key: String,
+    pub issued_at: String,
+    pub source: SourceIntakePayload,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceVersionSummary {
+    pub source_id: String,
+    pub source_version_id: String,
+    pub version: u64,
+    pub status: String,
+    pub digest_algorithm: String,
+    pub digest_value: String,
+    pub acquisition_mode: SourceAcquisitionMode,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub original_name: Option<String>,
+    pub media_type: String,
+    pub size_bytes: u64,
+    pub title: String,
+    pub owner: String,
+    pub rights: String,
+    pub provenance: String,
+    pub classification: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceIntakeStatus {
+    Quarantined,
+    Refused,
+    Duplicate,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceIntakeOutcome {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub outcome_id: String,
+    pub command_id: String,
+    pub status: SourceIntakeStatus,
+    pub code: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub engagement_id: String,
+    pub actor_id: String,
+    pub correlation_id: String,
+    pub recorded_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_version: Option<SourceVersionSummary>,
+    pub event_types: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceIntakeQuery {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub query_id: String,
+    pub command_id: String,
+    pub environment_id: String,
+    pub requested_at: String,
+}
 
 /// Gate A operational command. O-001 remains an in-development contract until
 /// the component mesh has supplied implementation evidence.
@@ -77,6 +188,8 @@ pub struct OperationalEvent {
     pub idempotency_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason_code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_reference: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -914,8 +1027,8 @@ mod tests {
         InteractionEnvelope, PresentationCapabilityManifest, PresentationCue,
         PresentationCueOutcome, PresentationRegistration, PrincipalType,
         ScenarioCheckpointEvaluation, ScenarioControlCommand, ScenarioLifecycleCommand,
-        ScenarioPackage, SyntheticSessionOutcome, SyntheticTrustBootstrapRecord,
-        WorkloadIdentityContext,
+        ScenarioPackage, SourceIntakeCommand, SourceIntakeOutcome, SourceIntakeQuery,
+        SyntheticSessionOutcome, SyntheticTrustBootstrapRecord, WorkloadIdentityContext,
     };
 
     #[test]
@@ -1012,5 +1125,21 @@ mod tests {
         ))
         .expect("P-004 example must match Rust types");
         assert!(!outcome.business_completion_claimed);
+    }
+
+    #[test]
+    fn canonical_gate_c_source_examples_deserialise() {
+        let _: SourceIntakeCommand = serde_json::from_str(include_str!(
+            "../../../../contracts/source/examples/a-001-paste-command.json"
+        ))
+        .expect("A-001 command example must match Rust types");
+        let _: SourceIntakeOutcome = serde_json::from_str(include_str!(
+            "../../../../contracts/source/examples/a-001-quarantined-outcome.json"
+        ))
+        .expect("A-001 outcome example must match Rust types");
+        let _: SourceIntakeQuery = serde_json::from_str(include_str!(
+            "../../../../contracts/source/examples/a-001-outcome-query.json"
+        ))
+        .expect("A-001 query example must match Rust types");
     }
 }

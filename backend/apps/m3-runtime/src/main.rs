@@ -14,9 +14,11 @@ use axum::{
 };
 use futures_util::StreamExt;
 use ppl_contracts::{
-    CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus, PresentationCapabilityManifest,
-    PresentationCue, PresentationCueOutcome, PresentationOutcomeResult, PresentationRegistration,
-    ScenarioControlCommand, ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState,
+    A001_VERSION, CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus,
+    PresentationCapabilityManifest, PresentationCue, PresentationCueOutcome,
+    PresentationOutcomeResult, PresentationRegistration, ScenarioControlCommand,
+    ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState, SourceIntakeCommand,
+    SourceIntakeOutcome, SourceIntakePayload, SourceIntakeQuery, SourceIntakeStatus,
     SyntheticSessionStatus,
 };
 use ppl_ctl_01::{DirectorError, DirectorRuntime};
@@ -29,7 +31,8 @@ use ppl_iam_01::{
 use ppl_int_01::nats::{
     Broker, BrokerConfig, BrokerError, CONTROL_OUTCOME_SUBJECT, CONTROL_SUBJECT, CUE_SUBJECT,
     DIRECTOR_EVENT_SUBJECT, GRANT_REQUEST_SUBJECT, IDENTITY_OUTCOME_SUBJECT, OUTCOME_SUBJECT,
-    REGISTRATION_SUBJECT, SYNTHETIC_GRANT_SUBJECT, SYNTHETIC_TERMINATION_SUBJECT, WorkloadMode,
+    REGISTRATION_SUBJECT, SOURCE_INTAKE_COMMAND_SUBJECT, SOURCE_INTAKE_QUERY_SUBJECT,
+    SYNTHETIC_GRANT_SUBJECT, SYNTHETIC_TERMINATION_SUBJECT, WorkloadMode,
 };
 use serde::Deserialize;
 use serde_json::Value;
@@ -674,6 +677,7 @@ fn spawn_gate_a_readiness(config: &AppConfig, broker: Broker) {
                 causation_id: None,
                 idempotency_key: None,
                 reason_code: None,
+                subject_reference: None,
             };
             if let Err(error) = broker.publish_operational_event(&event).await {
                 warn!(reason = %error, component_id, "Gate A readiness event was not published");
@@ -737,6 +741,7 @@ async fn publish_gate_b_event(
         causation_id: details.causation_id.map(str::to_owned),
         idempotency_key: None,
         reason_code: details.reason_code.map(str::to_owned),
+        subject_reference: None,
     };
     if let Err(error) = broker.publish_operational_event(&event).await {
         warn!(reason = %error, event_type = details.event_type, "Gate B operational event was not published");
@@ -963,6 +968,11 @@ fn gateway_router(state: GatewayState) -> Router {
         .route("/api/v1/session-context", get(gateway_session_context))
         .route("/api/v1/cues", get(cue_events))
         .route("/api/v1/outcomes", post(record_outcome))
+        .route("/api/v1/source-intake", post(submit_source_intake))
+        .route(
+            "/api/v1/source-intake/{command_id}",
+            get(source_intake_status),
+        )
         .with_state(state)
 }
 
@@ -1033,7 +1043,7 @@ async fn director_contracts(State(state): State<DirectorState>) -> Result<Json<V
 async fn gateway_contracts(State(state): State<GatewayState>) -> Json<Value> {
     Json(serde_json::json!({
         "selfTest": "passed",
-        "contracts": ["P-001", "P-002", "P-003", "P-004"],
+        "contracts": ["P-001", "P-002", "P-003", "P-004", "A-001@0.1.0"],
         "identityContracts": ["I-001", "I-004", "I-005"],
         "manifestId": "assurance-presentation-surface",
         "manifestVersion": "1.2.1",
@@ -2203,6 +2213,155 @@ async fn gateway_session_context(
             })
         },
     ))
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct SubmitSourceRequest {
+    submission_id: String,
+    idempotency_key: String,
+    source: SourceIntakePayload,
+}
+
+async fn submit_source_intake(
+    State(state): State<GatewayState>,
+    headers: HeaderMap,
+    Json(request): Json<SubmitSourceRequest>,
+) -> Result<Response, AppError> {
+    let authorised = authorise_source_write(&state, &headers)?;
+    if request.submission_id.len() < 8 || request.idempotency_key.len() < 8 {
+        return Err(AppError::refused("source-submission-identifier-invalid"));
+    }
+    let synthetic = authorised.synthetic_identity.ok_or(AppError::unauthorised(
+        "synthetic-application-session-required",
+    ))?;
+    let command = SourceIntakeCommand {
+        contract_id: "A-001".to_owned(),
+        contract_version: A001_VERSION.to_owned(),
+        message_type: "source-intake.command".to_owned(),
+        command_id: format!("source-command:{}", request.submission_id),
+        action: "submit-to-quarantine".to_owned(),
+        environment_id: state.config.environment_id.clone(),
+        demonstration_session_id: synthetic.demonstration_session_id.clone(),
+        engagement_id: "engagement:harbour-support-review".to_owned(),
+        actor_id: synthetic.actor_id,
+        actor_role: "workbench-reviewer".to_owned(),
+        authority_reference: format!("application-session:{}", authorised.session_id),
+        purpose: "governed-source-intake".to_owned(),
+        correlation_id: synthetic.demonstration_session_id,
+        causation_id: format!("user-action:{}", request.submission_id),
+        idempotency_key: request.idempotency_key,
+        issued_at: now_string()?,
+        source: request.source,
+    };
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::configuration("interactive-broker-unavailable"))?;
+    let bytes = broker
+        .request(SOURCE_INTAKE_COMMAND_SUBJECT, &command)
+        .await?;
+    let outcome: SourceIntakeOutcome = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::configuration("source-intake-response-invalid"))?;
+    let status = match outcome.status {
+        SourceIntakeStatus::Quarantined => StatusCode::CREATED,
+        SourceIntakeStatus::Duplicate => StatusCode::OK,
+        SourceIntakeStatus::Refused => StatusCode::UNPROCESSABLE_ENTITY,
+    };
+    Ok((status, Json(outcome)).into_response())
+}
+
+async fn source_intake_status(
+    State(state): State<GatewayState>,
+    Path(command_id): Path<String>,
+    headers: HeaderMap,
+) -> Result<Json<SourceIntakeOutcome>, AppError> {
+    let authorised = require_synthetic_source_session(&state, &headers)?;
+    let synthetic = authorised.synthetic_identity.ok_or(AppError::unauthorised(
+        "synthetic-application-session-required",
+    ))?;
+    let query = SourceIntakeQuery {
+        contract_id: "A-001".to_owned(),
+        contract_version: A001_VERSION.to_owned(),
+        message_type: "source-intake.query".to_owned(),
+        query_id: format!("source-query:{}", Uuid::new_v4()),
+        command_id,
+        environment_id: state.config.environment_id.clone(),
+        requested_at: now_string()?,
+    };
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::configuration("interactive-broker-unavailable"))?;
+    let bytes = broker.request(SOURCE_INTAKE_QUERY_SUBJECT, &query).await?;
+    let outcome: SourceIntakeOutcome = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::configuration("source-intake-response-invalid"))?;
+    if outcome.demonstration_session_id != synthetic.demonstration_session_id {
+        return Err(AppError::unauthorised("synthetic-surface-binding-refused"));
+    }
+    Ok(Json(outcome))
+}
+
+fn authorise_source_write(
+    state: &GatewayState,
+    headers: &HeaderMap,
+) -> Result<ppl_iam_01::application_sessions::AuthorisedApplicationSession, AppError> {
+    require_origin(&state.config, headers)?;
+    let token = cookie_value(headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let csrf = headers
+        .get("x-ppl-csrf")
+        .and_then(|value| value.to_str().ok())
+        .ok_or(AppError::unauthorised("csrf-required"))?;
+    let mapping_version = current_mapping_version(&state.config)?;
+    let authorised = state.sessions.authorise_write(
+        token,
+        csrf,
+        "surface-operator",
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    validate_source_synthetic_binding(&authorised)?;
+    Ok(authorised)
+}
+
+fn require_synthetic_source_session(
+    state: &GatewayState,
+    headers: &HeaderMap,
+) -> Result<ppl_iam_01::application_sessions::AuthorisedApplicationSession, AppError> {
+    let token = cookie_value(headers, "PPL_APP_SESSION")
+        .ok_or(AppError::unauthorised("application-session-required"))?;
+    let mapping_version = current_mapping_version(&state.config)?;
+    let authorised = state.sessions.authorise_read(
+        token,
+        "surface-operator",
+        &mapping_version,
+        OffsetDateTime::now_utc(),
+    )?;
+    validate_source_synthetic_binding(&authorised)?;
+    Ok(authorised)
+}
+
+fn validate_source_synthetic_binding(
+    authorised: &ppl_iam_01::application_sessions::AuthorisedApplicationSession,
+) -> Result<(), AppError> {
+    let synthetic = authorised
+        .synthetic_identity
+        .as_ref()
+        .ok_or(AppError::unauthorised(
+            "synthetic-application-session-required",
+        ))?;
+    if synthetic.status != SyntheticSessionStatus::Established
+        || synthetic.actor_id != "synthetic-reviewer"
+        || synthetic.surface_id != "reviewer-workbench"
+        || !synthetic
+            .roles
+            .iter()
+            .any(|role| role == "workbench-reviewer")
+    {
+        return Err(AppError::unauthorised("synthetic-source-authority-refused"));
+    }
+    Ok(())
 }
 
 async fn record_outcome(

@@ -1,0 +1,25 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "A-001",
+  "describedContractName": "Governed source intake",
+  "describedVersion": "0.1.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-09-01T15:00:00Z",
+  "examples": [
+    "contracts/source/examples/a-001-paste-command.json",
+    "contracts/source/examples/a-001-quarantined-outcome.json",
+    "contracts/source/examples/a-001-outcome-query.json"
+  ],
+  "producerExpectations": [
+    "Bind the command to an authenticated environment, demonstration session, synthetic reviewer and explicit purpose.",
+    "Keep source content out of outcomes and operational events."
+  ],
+  "consumerExpectations": [
+    "Create at most one immutable quarantined source version for an idempotency key.",
+    "Refuse unsupported classification, media, size, metadata or authority before staging or processing."
+  ],
+  "evidence": []
+}

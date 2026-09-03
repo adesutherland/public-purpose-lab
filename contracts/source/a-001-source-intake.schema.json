@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:A-001:0.1.0",
+  "title": "A-001 governed source intake",
+  "oneOf": [
+    { "$ref": "#/$defs/command" },
+    { "$ref": "#/$defs/outcome" },
+    { "$ref": "#/$defs/query" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]+$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acquisitionMode",
+        "mediaType",
+        "sizeBytes",
+        "content",
+        "title",
+        "owner",
+        "rights",
+        "provenance",
+        "classification"
+      ],
+      "properties": {
+        "acquisitionMode": { "enum": ["upload", "paste"] },
+        "originalName": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "mediaType": { "enum": ["text/plain", "text/markdown"] },
+        "sizeBytes": { "type": "integer", "minimum": 0, "maximum": 65536 },
+        "content": { "type": "string", "maxLength": 65536 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "owner": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "rights": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "provenance": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "classification": { "const": "synthetic" }
+      }
+    },
+    "sourceVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "sourceVersionId",
+        "version",
+        "status",
+        "digestAlgorithm",
+        "digestValue",
+        "acquisitionMode",
+        "mediaType",
+        "sizeBytes",
+        "title",
+        "owner",
+        "rights",
+        "provenance",
+        "classification"
+      ],
+      "properties": {
+        "sourceId": { "$ref": "#/$defs/identifier" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "version": { "const": 1 },
+        "status": { "const": "quarantined" },
+        "digestAlgorithm": { "const": "sha-256" },
+        "digestValue": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "acquisitionMode": { "enum": ["upload", "paste"] },
+        "originalName": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "mediaType": { "enum": ["text/plain", "text/markdown"] },
+        "sizeBytes": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "owner": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "rights": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "provenance": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "classification": { "const": "synthetic" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "commandId",
+        "action",
+        "environmentId",
+        "demonstrationSessionId",
+        "engagementId",
+        "actorId",
+        "actorRole",
+        "authorityReference",
+        "purpose",
+        "correlationId",
+        "causationId",
+        "idempotencyKey",
+        "issuedAt",
+        "source"
+      ],
+      "properties": {
+        "contractId": { "const": "A-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "source-intake.command" },
+        "commandId": { "$ref": "#/$defs/identifier" },
+        "action": { "const": "submit-to-quarantine" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "engagementId": { "const": "engagement:harbour-support-review" },
+        "actorId": { "const": "synthetic-reviewer" },
+        "actorRole": { "const": "workbench-reviewer" },
+        "authorityReference": { "$ref": "#/$defs/identifier" },
+        "purpose": { "const": "governed-source-intake" },
+        "correlationId": { "$ref": "#/$defs/identifier" },
+        "causationId": { "$ref": "#/$defs/identifier" },
+        "idempotencyKey": { "$ref": "#/$defs/identifier" },
+        "issuedAt": { "type": "string", "format": "date-time" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "outcomeId",
+        "commandId",
+        "status",
+        "code",
+        "environmentId",
+        "demonstrationSessionId",
+        "engagementId",
+        "actorId",
+        "correlationId",
+        "recordedAt",
+        "eventTypes"
+      ],
+      "properties": {
+        "contractId": { "const": "A-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "source-intake.outcome" },
+        "outcomeId": { "$ref": "#/$defs/identifier" },
+        "commandId": { "$ref": "#/$defs/identifier" },
+        "status": { "enum": ["quarantined", "refused", "duplicate"] },
+        "code": { "type": "string", "minLength": 3, "maxLength": 100 },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "engagementId": { "$ref": "#/$defs/identifier" },
+        "actorId": { "$ref": "#/$defs/identifier" },
+        "correlationId": { "$ref": "#/$defs/identifier" },
+        "recordedAt": { "type": "string", "format": "date-time" },
+        "sourceVersion": { "$ref": "#/$defs/sourceVersion" },
+        "eventTypes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 3, "maxLength": 80 }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "quarantined" } } },
+          "then": {
+            "properties": { "sourceVersion": true },
+            "required": ["sourceVersion"]
+          }
+        }
+      ]
+    },
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "queryId",
+        "commandId",
+        "environmentId",
+        "requestedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "A-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "source-intake.query" },
+        "queryId": { "$ref": "#/$defs/identifier" },
+        "commandId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

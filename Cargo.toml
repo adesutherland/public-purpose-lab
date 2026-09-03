@@ -4,6 +4,7 @@ members = [
   "backend/apps/framework-host",
   "backend/apps/m3-runtime",
   "backend/components/aut-01",
+  "backend/components/cnt-01",
   "backend/components/ctl-01",
   "backend/components/ctl-02",
   "backend/components/iam-01",

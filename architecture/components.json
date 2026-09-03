@@ -130,9 +130,9 @@
       "id": "CNT-01",
       "name": "Assets, content and source staging",
       "group": "service",
-      "maturity": "planned",
+      "maturity": "in-development",
       "contracts": ["A-001", "A-002", "K-001", "C-004", "AU-001"],
-      "repositoryPath": null
+      "repositoryPath": "backend/components/cnt-01"
     },
     {
       "id": "KNO-01",
