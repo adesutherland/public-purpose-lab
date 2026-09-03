@@ -29,6 +29,7 @@ export const m3ContractVersions = {
 
 export const gateCContractVersions = {
   "A-001": "0.1.0",
+  "A-002": "0.1.0",
 } as const;
 
 export type SourceAcquisitionMode = "upload" | "paste";
@@ -66,6 +67,57 @@ export interface SourceIntakeOutcome {
   readonly correlationId: string;
   readonly recordedAt: string;
   readonly sourceVersion?: SourceVersionSummary;
+  readonly eventTypes: readonly string[];
+}
+
+export interface SourceValidationCheck {
+  readonly checkId: string;
+  readonly status: "passed" | "failed";
+  readonly reasonCode?: string;
+}
+
+export interface SourceValidationSummary {
+  readonly status: "validated" | "refused";
+  readonly validatedAt: string;
+  readonly digestVerified: boolean;
+  readonly reasonCode?: string;
+  readonly checks: readonly SourceValidationCheck[];
+}
+
+export interface SourceStagingSummary {
+  readonly status: "staged" | "refused";
+  readonly actorId: string;
+  readonly purpose: "governed-source-staging";
+  readonly policyDecisionReference: string;
+  readonly reasonCode: string;
+  readonly decidedAt: string;
+}
+
+export interface SourceLifecycleStatus {
+  readonly contractId: "A-002";
+  readonly contractVersion: "0.1.0";
+  readonly messageType: "source-lifecycle.status";
+  readonly statusId: string;
+  readonly environmentId: string;
+  readonly demonstrationSessionId: string;
+  readonly engagementId: string;
+  readonly sourceVersionId: string;
+  readonly lifecycleStatus:
+    "validated" | "validation-refused" | "staged" | "staging-refused";
+  readonly validation: SourceValidationSummary;
+  readonly staging?: SourceStagingSummary;
+  readonly recordedAt: string;
+}
+
+export interface SourceStageOutcome {
+  readonly contractId: "A-002";
+  readonly contractVersion: "0.1.0";
+  readonly messageType: "staged-source-release.outcome";
+  readonly outcomeId: string;
+  readonly commandId: string;
+  readonly status: "staged" | "refused" | "duplicate";
+  readonly code: string;
+  readonly sourceStatus: SourceLifecycleStatus;
   readonly eventTypes: readonly string[];
 }
 

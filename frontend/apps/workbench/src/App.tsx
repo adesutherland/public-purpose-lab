@@ -4,6 +4,8 @@ import type {
   PresentationCueOutcome,
   PresentationRegistration,
   SourceIntakeOutcome,
+  SourceLifecycleStatus,
+  SourceStageOutcome,
 } from "@public-purpose-lab/contracts";
 import { SurfaceShell, surfaceById } from "@public-purpose-lab/ui";
 
@@ -102,6 +104,8 @@ export function App() {
   );
   const [syntheticConfirmed, setSyntheticConfirmed] = useState(false);
   const [sourceOutcome, setSourceOutcome] = useState<SourceIntakeOutcome>();
+  const [sourceLifecycle, setSourceLifecycle] =
+    useState<SourceLifecycleStatus>();
   const [message, setMessage] = useState(
     "Connect the Workbench, register it to the demonstration, then ask the Director to assign synthetic-reviewer.",
   );
@@ -233,8 +237,8 @@ export function App() {
   return (
     <SurfaceShell
       surface={surfaceById("UX-02")}
-      maturityLabel="Gate C · source intake in development"
-      notice="Synthetic demonstration only. This Gate C slice can submit text to an immutable quarantine record. It does not yet validate, stage, index, retrieve or answer from that source."
+      maturityLabel="Gate C · source validation and staging in development"
+      notice="Synthetic demonstration only. This Gate C slice can quarantine and visibly validate text, then request reviewer-controlled staging through AUT-01. It does not yet index, retrieve or answer from that source."
     >
       <article className="ppl-card ppl-live-card">
         <p className="ppl-card-label">Reviewer Workbench binding</p>
@@ -556,6 +560,15 @@ export function App() {
                       },
                     );
                     setSourceOutcome(outcome);
+                    const sourceVersionId =
+                      outcome.sourceVersion?.sourceVersionId;
+                    setSourceLifecycle(
+                      sourceVersionId
+                        ? await getJson<SourceLifecycleStatus>(
+                            `/api/v1/source-status/${encodeURIComponent(sourceVersionId)}`,
+                          )
+                        : undefined,
+                    );
                     setActiveView("wb-source-status");
                     setMessage(
                       `${outcome.sourceVersion?.sourceVersionId ?? outcome.commandId} recorded as ${outcome.status}.`,
@@ -577,16 +590,24 @@ export function App() {
         {activeView === "wb-source-status" && sourceOutcome && (
           <section className="ppl-semantic-view" aria-live="polite">
             <p className="ppl-eyebrow">WB-SOURCE-STATUS</p>
-            <h2>Source recorded in quarantine</h2>
+            <h2>Source validation and controlled staging</h2>
             <p className="ppl-purpose">
-              The source is isolated from knowledge processing until a later
-              validation and staging decision. Human authority is unchanged.
+              The source remains isolated from knowledge processing until its
+              deterministic checks pass and this reviewer requests an AUT-01
+              policy decision. Human authority is unchanged.
             </p>
             <div className="ppl-status-grid ppl-runtime-message">
               <span>
-                Status
+                Intake status
                 <br />
                 <strong>{sourceOutcome.status}</strong>
+              </span>
+              <span>
+                Lifecycle status
+                <br />
+                <strong>
+                  {sourceLifecycle?.lifecycleStatus ?? "unavailable"}
+                </strong>
               </span>
               <span>
                 Version
@@ -620,9 +641,64 @@ export function App() {
                 </strong>
               </span>
             </div>
+            {sourceLifecycle && (
+              <div className="ppl-runtime-message">
+                <strong>Bounded validation checks</strong>
+                <ul>
+                  {sourceLifecycle.validation.checks.map((check) => (
+                    <li key={check.checkId}>
+                      {check.checkId}: <strong>{check.status}</strong>
+                      {check.reasonCode ? ` · ${check.reasonCode}` : ""}
+                    </li>
+                  ))}
+                </ul>
+                Digest verified:{" "}
+                {String(sourceLifecycle.validation.digestVerified)}
+              </div>
+            )}
+            {sourceLifecycle?.staging && (
+              <div className="ppl-runtime-message">
+                <strong>Staging decision</strong>
+                <br />
+                {sourceLifecycle.staging.status} by{" "}
+                {sourceLifecycle.staging.actorId}
+                {" · "}
+                {sourceLifecycle.staging.reasonCode}
+                <br />
+                Policy decision:{" "}
+                {sourceLifecycle.staging.policyDecisionReference}
+              </div>
+            )}
+            <div className="ppl-button-row">
+              <button
+                className="ppl-button"
+                type="button"
+                disabled={sourceLifecycle?.lifecycleStatus !== "validated"}
+                onClick={() =>
+                  void perform(async () => {
+                    if (!sourceLifecycle) return;
+                    const requestId = crypto.randomUUID();
+                    const outcome = await postJson<SourceStageOutcome>(
+                      "/api/v1/source-stage",
+                      {
+                        requestId,
+                        idempotencyKey: `source-stage:${requestId}`,
+                        sourceVersionId: sourceLifecycle.sourceVersionId,
+                      },
+                    );
+                    setSourceLifecycle(outcome.sourceStatus);
+                    setMessage(
+                      `${outcome.sourceStatus.sourceVersionId} ${outcome.status} through ${outcome.sourceStatus.staging?.policyDecisionReference ?? "a refused policy decision"}.`,
+                    );
+                  })
+                }
+              >
+                Release validated source to staging
+              </button>
+            </div>
             <p className="ppl-runtime-message">
               Events: {sourceOutcome.eventTypes.join(", ")}. Source content is
-              intentionally absent from this response and event view.
+              intentionally absent from lifecycle, policy and event views.
             </p>
           </section>
         )}

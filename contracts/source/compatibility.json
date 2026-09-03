@@ -1,3 +1,6 @@
 {
-  "descriptors": ["contracts/source/descriptors/a-001.json"]
+  "descriptors": [
+    "contracts/source/descriptors/a-001.json",
+    "contracts/source/descriptors/a-002.json"
+  ]
 }

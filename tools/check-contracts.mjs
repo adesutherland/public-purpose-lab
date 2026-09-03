@@ -38,11 +38,11 @@ const contractSets = [
   },
   {
     name: "source",
-    ids: ["A-001"],
+    ids: ["A-001", "A-002"],
     fixtures: "contracts/source/fixtures.json",
     compatibility: "contracts/source/compatibility.json",
-    status: "working-draft",
-    version: "0.1.0",
+    statuses: { "A-001": "implemented", "A-002": "working-draft" },
+    versions: { "A-001": "0.1.0", "A-002": "0.1.0" },
   },
 ];
 const ajv = new Ajv2020({ allErrors: true, strict: true });
@@ -75,8 +75,10 @@ for (const set of contractSets) {
     `Expected ${set.ids.length} ${set.name} contracts, found ${contracts.length}`,
   );
   for (const contract of contracts) {
-    const expectedStatus = set.status ?? "agreed";
-    const expectedVersion = set.version ?? "1.0.0";
+    const expectedStatus =
+      set.statuses?.[contract.id] ?? set.status ?? "agreed";
+    const expectedVersion =
+      set.versions?.[contract.id] ?? set.version ?? "1.0.0";
     assert(
       contract.status === expectedStatus,
       `${contract.id} must be ${expectedStatus}`,

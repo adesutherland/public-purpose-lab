@@ -18,10 +18,14 @@ use axum::{
     routing::{get, post},
 };
 use futures_util::StreamExt;
+use ppl_aut_01::{PolicyAdapter, PolicyConfig};
 use ppl_cnt_01::{SourceLifecycleEvent, SourceStore};
 use ppl_contracts::{
-    A001_VERSION, O001_VERSION, OperationalCommand, OperationalEvent, SourceIntakeCommand,
-    SourceIntakeQuery,
+    A001_VERSION, A002_VERSION, AZ001_VERSION, AssertionStatus, AssertionType,
+    AuthorisationDecision, AuthorisationDecisionRequest, AuthorisationDecisionStatus,
+    AuthorisationObligation, AuthoritativeAssertion, O001_VERSION, OperationalCommand,
+    OperationalEvent, PrincipalReference, PrincipalType, SourceIntakeCommand, SourceIntakeQuery,
+    SourceIntakeStatus, SourceLifecycleQuery, SourceStageCommand, SourceValidationStatus,
 };
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -41,6 +45,7 @@ const COMMAND_PURPOSE: &str = "gate-a-component-mesh";
 const READINESS_INTERVAL: Duration = Duration::from_secs(5);
 const STALE_AFTER: Duration = Duration::from_secs(15);
 const MAX_EVENTS: usize = 250;
+const SOURCE_AUTHORISATION_SUBJECT: &str = "ppl.gate-c.decisions.AUT-01";
 const SOURCE_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.CNT-01";
 
 #[derive(Clone, Copy)]
@@ -229,6 +234,14 @@ async fn run() -> Result<(), SafeError> {
             }
         });
     }
+    if config.component.id == "AUT-01" {
+        let source_authorisation = state.clone();
+        tokio::spawn(async move {
+            if let Err(error) = consume_source_authorisation(source_authorisation).await {
+                error!(reason = error.0, "source authorisation consumer stopped");
+            }
+        });
+    }
     let commands = state.clone();
     tokio::spawn(async move {
         if let Err(error) = consume_commands(commands).await {
@@ -322,7 +335,19 @@ async fn contracts(State(state): State<AppState>) -> Json<Value> {
         contracts.push(json!({
             "contractId": "A-001",
             "contractVersion": A001_VERSION,
+            "status": "implemented"
+        }));
+        contracts.push(json!({
+            "contractId": "A-002",
+            "contractVersion": A002_VERSION,
             "status": "working-draft"
+        }));
+    }
+    if state.config.component.id == "AUT-01" {
+        contracts.push(json!({
+            "contractId": "AZ-001",
+            "contractVersion": AZ001_VERSION,
+            "status": "agreed"
         }));
     }
     Json(json!({
@@ -504,12 +529,7 @@ async fn consume_source_intake(state: AppState) -> Result<(), SafeError> {
                     warn!("source-intake command without reply subject was refused");
                     continue;
                 };
-                let response = match serde_json::from_slice::<SourceIntakeCommand>(&message.payload) {
-                    Ok(command) => store
-                        .apply(&command, &state.config.environment_id, &now())
-                        .and_then(|outcome| serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)),
-                    Err(_) => Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid),
-                };
+                let response = handle_source_command(&state, &store, &message.payload).await;
                 publish_source_outbox(&state, &store).await;
                 respond(&state, reply, response).await?;
             }
@@ -518,21 +538,264 @@ async fn consume_source_intake(state: AppState) -> Result<(), SafeError> {
                     warn!("source-intake query without reply subject was refused");
                     continue;
                 };
-                let response = match serde_json::from_slice::<SourceIntakeQuery>(&message.payload) {
-                    Ok(query)
-                        if query.contract_id == "A-001"
-                            && query.contract_version == A001_VERSION
-                            && query.message_type == "source-intake.query"
-                            && query.environment_id == state.config.environment_id => store
-                                .outcome(&query.command_id, &state.config.environment_id)
-                                .and_then(|outcome| serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)),
-                    _ => Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid),
-                };
+                let response = handle_source_query(&state, &store, &message.payload);
                 respond(&state, reply, response).await?;
             }
             _ = retry.tick() => publish_source_outbox(&state, &store).await,
             else => return Err(SafeError("source-intake-subscription-closed")),
         }
+    }
+}
+
+async fn handle_source_command(
+    state: &AppState,
+    store: &SourceStore,
+    payload: &[u8],
+) -> Result<Vec<u8>, ppl_cnt_01::SourceStoreError> {
+    let envelope: Value = serde_json::from_slice(payload)
+        .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+    match envelope.get("contractId").and_then(Value::as_str) {
+        Some("A-001") => {
+            let command: SourceIntakeCommand = serde_json::from_value(envelope)
+                .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+            let outcome = store.apply(&command, &state.config.environment_id, &now())?;
+            if outcome.status == SourceIntakeStatus::Quarantined {
+                let source_version_id = outcome
+                    .source_version
+                    .as_ref()
+                    .ok_or(ppl_cnt_01::SourceStoreError::OutcomeInvalid)?
+                    .source_version_id
+                    .clone();
+                store.validate_source(&source_version_id, &state.config.environment_id, &now())?;
+            }
+            serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)
+        }
+        Some("A-002") => {
+            let command: SourceStageCommand = serde_json::from_value(envelope)
+                .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+            let lifecycle =
+                store.lifecycle(&command.source_version_id, &state.config.environment_id)?;
+            let decision = if lifecycle.validation.status == SourceValidationStatus::Validated {
+                request_source_authorisation(state, &command).await
+            } else {
+                let request = source_authorisation_request(&command, OffsetDateTime::now_utc());
+                safe_authorisation_decision(
+                    &request,
+                    AuthorisationDecisionStatus::NotApplicable,
+                    "source-validation-refused",
+                    OffsetDateTime::now_utc(),
+                )
+            };
+            let outcome = store.stage(&command, &decision, &state.config.environment_id, &now())?;
+            serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)
+        }
+        _ => Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid),
+    }
+}
+
+fn handle_source_query(
+    state: &AppState,
+    store: &SourceStore,
+    payload: &[u8],
+) -> Result<Vec<u8>, ppl_cnt_01::SourceStoreError> {
+    let envelope: Value = serde_json::from_slice(payload)
+        .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+    match envelope.get("contractId").and_then(Value::as_str) {
+        Some("A-001") => {
+            let query: SourceIntakeQuery = serde_json::from_value(envelope)
+                .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+            if query.contract_version != A001_VERSION
+                || query.message_type != "source-intake.query"
+                || query.environment_id != state.config.environment_id
+            {
+                return Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid);
+            }
+            let outcome = store.outcome(&query.command_id, &state.config.environment_id)?;
+            serde_json::to_vec(&outcome).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)
+        }
+        Some("A-002") => {
+            let query: SourceLifecycleQuery = serde_json::from_value(envelope)
+                .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+            if query.contract_version != A002_VERSION
+                || query.message_type != "source-lifecycle.query"
+                || query.environment_id != state.config.environment_id
+            {
+                return Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid);
+            }
+            let status = store.lifecycle(&query.source_version_id, &state.config.environment_id)?;
+            serde_json::to_vec(&status).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)
+        }
+        _ => Err(ppl_cnt_01::SourceStoreError::OutcomeInvalid),
+    }
+}
+
+async fn request_source_authorisation(
+    state: &AppState,
+    command: &SourceStageCommand,
+) -> AuthorisationDecision {
+    let evaluated_at = OffsetDateTime::now_utc();
+    let request = source_authorisation_request(command, evaluated_at);
+    let response = tokio::time::timeout(
+        Duration::from_secs(5),
+        state.client.request(
+            SOURCE_AUTHORISATION_SUBJECT,
+            serde_json::to_vec(&request).unwrap_or_default().into(),
+        ),
+    )
+    .await;
+    if let Ok(Ok(message)) = response
+        && let Ok(decision) = serde_json::from_slice::<AuthorisationDecision>(&message.payload)
+    {
+        return decision;
+    }
+    safe_authorisation_decision(
+        &request,
+        AuthorisationDecisionStatus::Indeterminate,
+        "dependency-unavailable",
+        evaluated_at,
+    )
+}
+
+fn source_authorisation_request(
+    command: &SourceStageCommand,
+    evaluated_at: OffsetDateTime,
+) -> AuthorisationDecisionRequest {
+    let principal = |principal_type, principal_id: &str, issuer: &str| PrincipalReference {
+        principal_type,
+        principal_id: principal_id.to_owned(),
+        environment_id: command.environment_id.clone(),
+        issuer: issuer.to_owned(),
+        trust_domain: Some(format!("trust-domain:{}", command.environment_id)),
+    };
+    let assertion = |assertion_type, source_id: &str| AuthoritativeAssertion {
+        source_id: source_id.to_owned(),
+        assertion_type,
+        subject_id: command.actor_id.clone(),
+        resource_id: command.source_version_id.clone(),
+        purpose_codes: vec![command.purpose.clone()],
+        status: AssertionStatus::Active,
+        effective_at: format_time(evaluated_at - time::Duration::minutes(1)),
+        expires_at: format_time(evaluated_at + time::Duration::minutes(5)),
+        version: "1.0.0".to_owned(),
+    };
+    AuthorisationDecisionRequest {
+        contract_id: "AZ-001".to_owned(),
+        contract_version: AZ001_VERSION.to_owned(),
+        kind: "decision-request".to_owned(),
+        request_id: format!("authorisation-request:{}", command.command_id),
+        environment_id: command.environment_id.clone(),
+        requester: principal(
+            PrincipalType::Workload,
+            "workload-source-governance",
+            "environment-workload-issuer",
+        ),
+        actor: principal(
+            PrincipalType::SyntheticHuman,
+            &command.actor_id,
+            &command.authority_reference,
+        ),
+        action: command.action.clone(),
+        resource: command.source_version_id.clone(),
+        purpose: command.purpose.clone(),
+        requested_roles: vec![command.actor_role.clone()],
+        assertions: vec![
+            assertion(AssertionType::Relationship, "scenario-session-binding"),
+            assertion(AssertionType::Consent, "source-owner-staging-authority"),
+        ],
+        policy_version: "1.0.0".to_owned(),
+        requested_at: command.requested_at.clone(),
+    }
+}
+
+async fn consume_source_authorisation(state: AppState) -> Result<(), SafeError> {
+    let mut requests = state
+        .client
+        .subscribe(SOURCE_AUTHORISATION_SUBJECT)
+        .await
+        .map_err(|_| SafeError("source-authorisation-subscription-unavailable"))?;
+    while let Some(message) = requests.next().await {
+        let Some(reply) = message.reply else {
+            warn!("source authorisation request without reply subject was refused");
+            continue;
+        };
+        let evaluated_at = OffsetDateTime::now_utc();
+        let decision =
+            match serde_json::from_slice::<AuthorisationDecisionRequest>(&message.payload) {
+                Ok(request) => evaluate_source_authorisation(
+                    &state.config.environment_id,
+                    &request,
+                    evaluated_at,
+                ),
+                Err(_) => continue,
+            };
+        state
+            .client
+            .publish(
+                reply,
+                serde_json::to_vec(&decision)
+                    .map_err(|_| SafeError("source-authorisation-response-invalid"))?
+                    .into(),
+            )
+            .await
+            .map_err(|_| SafeError("source-authorisation-response-failed"))?;
+    }
+    Err(SafeError("source-authorisation-subscription-closed"))
+}
+
+fn evaluate_source_authorisation(
+    environment_id: &str,
+    request: &AuthorisationDecisionRequest,
+    evaluated_at: OffsetDateTime,
+) -> AuthorisationDecision {
+    if request.requester.principal_id != "workload-source-governance"
+        || request.actor.principal_id != "synthetic-reviewer"
+        || request.action != "release-to-staging"
+        || request.purpose != "governed-source-staging"
+        || request.requested_roles != ["workbench-reviewer"]
+        || !request.resource.starts_with("source-version:")
+    {
+        return safe_authorisation_decision(
+            request,
+            AuthorisationDecisionStatus::Deny,
+            "source-staging-policy-refused",
+            evaluated_at,
+        );
+    }
+    PolicyAdapter::new(PolicyConfig {
+        environment_id: environment_id.to_owned(),
+        policy_version: "1.0.0".to_owned(),
+        allowed_action: "release-to-staging".to_owned(),
+        allowed_resources: vec![request.resource.clone()],
+        relationship_source: "scenario-session-binding".to_owned(),
+        consent_source: "source-owner-staging-authority".to_owned(),
+        obligations: vec![AuthorisationObligation {
+            code: "retain-staging-evidence".to_owned(),
+            value: None,
+        }],
+        dependency_available: true,
+    })
+    .evaluate(request, evaluated_at)
+}
+
+fn safe_authorisation_decision(
+    request: &AuthorisationDecisionRequest,
+    status: AuthorisationDecisionStatus,
+    reason_code: &str,
+    decided_at: OffsetDateTime,
+) -> AuthorisationDecision {
+    AuthorisationDecision {
+        contract_id: "AZ-001".to_owned(),
+        contract_version: AZ001_VERSION.to_owned(),
+        kind: "decision".to_owned(),
+        decision_id: format!("decision:refused:{}", Uuid::new_v4()),
+        request_id: request.request_id.clone(),
+        status,
+        reason_code: reason_code.to_owned(),
+        obligations: Vec::new(),
+        policy_version: "1.0.0".to_owned(),
+        decided_at: format_time(decided_at),
+        valid_until: None,
+        evidence_references: Vec::new(),
     }
 }
 
@@ -615,7 +878,16 @@ fn source_operational_event(config: &Config, source: &SourceLifecycleEvent) -> O
         image_digest: config.image_digest.clone(),
         occurred_at: source.occurred_at.clone(),
         information_profile: INFORMATION_PROFILE.to_owned(),
-        command_name: Some("submit-to-quarantine".to_owned()),
+        command_name: Some(
+            match source.event_type.as_str() {
+                "source.validated" | "source.validation-refused" => "validate-source",
+                "source.staged" | "source.staging-refused" | "source.stage-duplicate" => {
+                    "release-to-staging"
+                }
+                _ => "submit-to-quarantine",
+            }
+            .to_owned(),
+        ),
         correlation_id: Some(source.correlation_id.clone()),
         causation_id: Some(source.causation_id.clone()),
         idempotency_key: None,
@@ -828,14 +1100,23 @@ fn load_text(variable: &'static str) -> Result<String, SafeError> {
 }
 
 fn now() -> String {
-    OffsetDateTime::now_utc()
+    format_time(OffsetDateTime::now_utc())
+}
+
+fn format_time(value: OffsetDateTime) -> String {
+    value
         .format(&Rfc3339)
         .unwrap_or_else(|_| "time-unavailable".to_owned())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{COMPONENTS, PROBE_COMPONENTS, definition};
+    use super::{
+        COMPONENTS, PROBE_COMPONENTS, definition, evaluate_source_authorisation,
+        source_authorisation_request,
+    };
+    use ppl_contracts::{AuthorisationDecisionStatus, SourceStageCommand};
+    use time::OffsetDateTime;
 
     #[test]
     fn component_ids_and_names_are_unique() {
@@ -855,5 +1136,47 @@ mod tests {
             let component = definition(target).expect("probe target must be defined");
             assert!(!matches!(component.id, "CTL-01" | "CTL-02" | "IAM-01"));
         }
+    }
+
+    #[test]
+    fn source_staging_policy_permits_only_the_exact_reviewer_context() {
+        let command = SourceStageCommand {
+            contract_id: "A-002".to_owned(),
+            contract_version: "0.1.0".to_owned(),
+            message_type: "staged-source-release.command".to_owned(),
+            command_id: "stage-command:test-policy-0001".to_owned(),
+            action: "release-to-staging".to_owned(),
+            environment_id: "environment-test-0001".to_owned(),
+            demonstration_session_id: "session:test-0001".to_owned(),
+            engagement_id: "engagement:harbour-support-review".to_owned(),
+            source_version_id: "source-version:test-policy-0001".to_owned(),
+            actor_id: "synthetic-reviewer".to_owned(),
+            actor_role: "workbench-reviewer".to_owned(),
+            authority_reference: "application-session:test-policy-0001".to_owned(),
+            purpose: "governed-source-staging".to_owned(),
+            correlation_id: "session:test-0001".to_owned(),
+            causation_id: "user-action:test-policy-0001".to_owned(),
+            idempotency_key: "source-stage:test-policy-0001".to_owned(),
+            requested_at: "2026-09-03T09:00:00Z".to_owned(),
+        };
+        let evaluated_at =
+            OffsetDateTime::from_unix_timestamp(1_788_427_200).expect("fixed evaluation time");
+        let request = source_authorisation_request(&command, evaluated_at);
+        let permitted =
+            evaluate_source_authorisation("environment-test-0001", &request, evaluated_at);
+        assert_eq!(permitted.status, AuthorisationDecisionStatus::Permit);
+        assert!(
+            permitted
+                .obligations
+                .iter()
+                .any(|obligation| obligation.code == "retain-staging-evidence")
+        );
+
+        let mut substituted = request;
+        substituted.requested_roles = vec!["portal-viewer".to_owned()];
+        let refused =
+            evaluate_source_authorisation("environment-test-0001", &substituted, evaluated_at);
+        assert_eq!(refused.status, AuthorisationDecisionStatus::Deny);
+        assert_eq!(refused.reason_code, "source-staging-policy-refused");
     }
 }

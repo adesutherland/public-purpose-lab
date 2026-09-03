@@ -1,13 +1,14 @@
 openapi: 3.1.0
 info:
   title: Public Purpose Lab M3 runtime adapter
-  version: 1.3.0
+  version: 1.4.0
   description: >-
     In-development, synthetic-only HTTP and SSE adapter for the Scenario
     Director, Identity Broker and Presentation Gateway, including the Gate B
     environment, identity and semantic portal-orchestration path and the first
-    Gate C governed source-intake transaction. These paths are physical
-    adapters, not semantic contract identifiers or production interfaces.
+    Gate C governed source-intake, validation and reviewer-controlled staging
+    transaction. These paths are physical adapters, not semantic contract
+    identifiers or production interfaces.
 servers:
   - url: http://127.0.0.1:18081
     description: Native Scenario Director
@@ -448,7 +449,9 @@ paths:
       description: >-
         Accepts browser source fields only after the Presentation Gateway adds
         the authenticated synthetic reviewer, environment, session, purpose
-        and authority binding. It does not validate, stage or process content.
+        and authority binding. CNT-01 records quarantine and its bounded
+        validation result before responding. It does not stage or process
+        content.
       security:
         - applicationSession: []
       parameters:
@@ -493,6 +496,61 @@ paths:
                 $ref: ../source/a-001-source-intake.schema.json
         "401":
           $ref: "#/components/responses/Refused"
+  /api/v1/source-stage:
+    post:
+      tags: [source]
+      operationId: releaseSourceToStaging
+      description: >-
+        Derives the protected reviewer, environment, session, purpose and
+        authority fields at the Presentation Gateway. CNT-01 requests an exact
+        AZ-001 decision from deployed AUT-01 and records the conclusive staging
+        state. It does not start knowledge processing.
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/Origin"
+        - $ref: "#/components/parameters/Csrf"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SourceStageRequest"
+      responses:
+        "200":
+          description: A-002 source staged, or an exact retained outcome returned.
+          content:
+            application/json:
+              schema:
+                $ref: ../source/a-002-staged-source-release.schema.json
+        "401":
+          $ref: "#/components/responses/Refused"
+        "422":
+          description: A-002 conclusive staging refusal.
+          content:
+            application/json:
+              schema:
+                $ref: ../source/a-002-staged-source-release.schema.json
+  /api/v1/source-status/{source_version_id}:
+    get:
+      tags: [source]
+      operationId: getSourceLifecycleStatus
+      description: >-
+        Returns metadata-only validation and staging state after verifying the
+        caller is bound to the source demonstration session.
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/SourceVersionId"
+      responses:
+        "200":
+          description: Current A-002 validation and staging status.
+          content:
+            application/json:
+              schema:
+                $ref: ../source/a-002-staged-source-release.schema.json
+        "401":
+          $ref: "#/components/responses/Refused"
 components:
   securitySchemes:
     applicationSession:
@@ -533,6 +591,13 @@ components:
       required: true
       schema:
         type: string
+    SourceVersionId:
+      name: source_version_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^source-version:[A-Za-z0-9:._-]+$
   responses:
     Refused:
       description: Request is unauthorised, stale, unsupported or otherwise safely refused.
@@ -582,6 +647,20 @@ components:
             rights: { type: string, minLength: 1, maxLength: 500 }
             provenance: { type: string, minLength: 1, maxLength: 1000 }
             classification: { const: synthetic }
+    SourceStageRequest:
+      type: object
+      additionalProperties: false
+      required: [requestId, idempotencyKey, sourceVersionId]
+      properties:
+        requestId:
+          type: string
+          minLength: 8
+        idempotencyKey:
+          type: string
+          minLength: 8
+        sourceVersionId:
+          type: string
+          pattern: ^source-version:[A-Za-z0-9:._-]+$
     Liveness:
       type: object
       additionalProperties: false

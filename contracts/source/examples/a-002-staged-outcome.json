@@ -1,0 +1,42 @@
+{
+  "contractId": "A-002",
+  "contractVersion": "0.1.0",
+  "messageType": "staged-source-release.outcome",
+  "outcomeId": "stage-outcome:00000001",
+  "commandId": "stage-command:00000001",
+  "status": "staged",
+  "code": "source-staged",
+  "sourceStatus": {
+    "contractId": "A-002",
+    "contractVersion": "0.1.0",
+    "messageType": "source-lifecycle.status",
+    "statusId": "source-status:00000002",
+    "environmentId": "environment:local-demo",
+    "demonstrationSessionId": "session:gate-c-0001",
+    "engagementId": "engagement:harbour-support-review",
+    "sourceVersionId": "source-version:00000001",
+    "lifecycleStatus": "staged",
+    "validation": {
+      "status": "validated",
+      "validatedAt": "2026-09-03T09:00:01Z",
+      "digestVerified": true,
+      "checks": [
+        { "checkId": "media-type-supported", "status": "passed" },
+        { "checkId": "content-present", "status": "passed" },
+        { "checkId": "digest-matches", "status": "passed" },
+        { "checkId": "text-controls-safe", "status": "passed" },
+        { "checkId": "hostile-markers-absent", "status": "passed" }
+      ]
+    },
+    "staging": {
+      "status": "staged",
+      "actorId": "synthetic-reviewer",
+      "purpose": "governed-source-staging",
+      "policyDecisionReference": "decision-0123456789abcdef",
+      "reasonCode": "policy-permit",
+      "decidedAt": "2026-09-03T09:00:02Z"
+    },
+    "recordedAt": "2026-09-03T09:00:02Z"
+  },
+  "eventTypes": ["source.staged"]
+}

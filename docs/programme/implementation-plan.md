@@ -119,6 +119,11 @@ is expanded further.
     PDF using real screenshots from the exact evidenced build. The report maps
     screens, functions, rules, components and events to the approved flow,
     states limitations and inherited context, and identifies the next gate.
+    Publish the complete candidate once with the implementation as
+    `Final — subject to review sign-off by exception`. Successful review needs
+    no status-only change or repeated evidence cycle; an exception is corrected
+    and re-evidenced only in proportion to its effect, and the new head
+    supersedes the earlier report.
 
 ## Parallel delivery model
 
@@ -585,6 +590,12 @@ source status and correlated metadata-only operational events. Validation,
 reviewer release to staging and the knowledge-processing lifecycle remain
 required before Gate C can close. This is a current baseline, not a claim that
 the whole DS-03 flow is complete.
+
+Active implementation slice: define and exercise `A-002` so `CNT-01` records
+visible bounded validation results, a named synthetic reviewer can request
+release, deployed `AUT-01` evaluates the exact protected action, and `CNT-01`
+records either staged or refused state with durable metadata-only evidence.
+This slice does not call `KNO-01` or claim knowledge processing.
 
 The founders approved the six-scenario catalogue direction on 31 August 2026
 and its detailed functional baseline on 1 September 2026. The

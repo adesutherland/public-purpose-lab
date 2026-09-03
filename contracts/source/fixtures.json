@@ -19,6 +19,21 @@
       "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
       "file": "contracts/source/invalid/a-001-non-synthetic-command.json",
       "valid": false
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-002:0.1.0",
+      "file": "contracts/source/examples/a-002-release-command.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-002:0.1.0",
+      "file": "contracts/source/examples/a-002-lifecycle-status.json",
+      "valid": true
+    },
+    {
+      "schemaId": "urn:public-purpose-lab:contract:A-002:0.1.0",
+      "file": "contracts/source/examples/a-002-staged-outcome.json",
+      "valid": true
     }
   ]
 }

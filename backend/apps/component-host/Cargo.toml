@@ -10,6 +10,7 @@ async-nats = "0.50"
 axum = "0.8"
 futures-util = "0.3"
 ppl-contracts = { path = "../../crates/contracts" }
+ppl-aut-01 = { path = "../../components/aut-01" }
 ppl-cnt-01 = { path = "../../components/cnt-01" }
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
 serde_json = "1"

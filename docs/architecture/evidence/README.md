@@ -11,8 +11,26 @@ evidenced walkthrough, and a visually verified PDF distribution copy. The
 report identifies the exact source revision and environment, maps screenshots
 to approved flow steps, records functions and rules delivered, explains prior
 context and limitations, and states the next gate. Automated results do not
-replace the walkthrough, and a report does not close a gate until the founders
-approve the implementation and evidence.
+replace the walkthrough.
+
+## Review by exception
+
+A complete gate candidate is built, tested, walked through, documented,
+rendered and visually verified once. Its implementation, Markdown evidence and
+PDF distribution copy are published together as
+`Final — subject to review sign-off by exception`.
+
+- A successful founder review requires no status-only commit, repeated test or
+  walkthrough, regenerated report or second publication.
+- If review identifies an exception, the affected implementation or evidence
+  is corrected, checks and walkthrough evidence are repeated in proportion to
+  the change, and a new candidate is published.
+- The latest repository head is canonical. A corrected report supersedes the
+  earlier report retained in Git history; a separate invalidation artefact is
+  unnecessary unless an exceptional governance or safety issue requires one.
+
+This process changes the mechanics of sign-off, not the approval boundary: a
+candidate is not an approved gate until founder review succeeds.
 
 - [M1 common interaction baseline](m1-common-interaction-baseline.md)
 - [M2 local-synthetic identity baseline](m2-local-synthetic-identity-baseline.md)

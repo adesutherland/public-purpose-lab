@@ -1,0 +1,25 @@
+{
+  "contractId": "C-006",
+  "contractVersion": "1.0.0",
+  "describedContractId": "A-002",
+  "describedContractName": "Staged source release",
+  "describedVersion": "0.1.0",
+  "status": "working-draft",
+  "schemaId": "urn:public-purpose-lab:contract:A-002:0.1.0",
+  "compatibilityMode": "none",
+  "effectiveFrom": "2026-09-03T09:00:00Z",
+  "examples": [
+    "contracts/source/examples/a-002-release-command.json",
+    "contracts/source/examples/a-002-lifecycle-status.json",
+    "contracts/source/examples/a-002-staged-outcome.json"
+  ],
+  "producerExpectations": [
+    "Expose deterministic validation results before a reviewer can request staging.",
+    "Bind staging to an authenticated synthetic reviewer and a recorded AZ-001 decision."
+  ],
+  "consumerExpectations": [
+    "Refuse staging unless the immutable source version is validated in the same environment and demonstration session.",
+    "Treat exact retries idempotently and retain metadata-only lifecycle evidence."
+  ],
+  "evidence": []
+}

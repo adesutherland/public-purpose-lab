@@ -46,12 +46,12 @@ updated together.
 
 ### Experience and presentation
 
-| ID      | Component                  | Owned responsibility                                                                                           | Principal contract families                                        |
-| ------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `UX-01` | Common frontend platform   | Accessible design system, shell, navigation, session integration and shared interaction patterns.              | `C-005`, `I-001`, `I-005`, `O-001`                                 |
-| `UX-02` | Service Evidence Workbench | Practitioner and client interaction for engagements, assets, evidence, work, visualisation and report release. | `E-001`, `A-001`, `K-002`, `W-001`, `RP-001` to `RP-004`, `AN-002` |
-| `UX-03` | Director Console           | Presenter controls and views for sessions, screens, checkpoints, readiness and failures.                       | `D-001` to `D-004`, `P-002` to `P-004`, `I-004`, `O-001`           |
-| `UX-04` | Presentation Surface       | A registered screen that resolves semantic views and applies authorised presentation cues.                     | `P-001` to `P-004`, `I-005`, `O-001`                               |
+| ID      | Component                  | Owned responsibility                                                                                           | Principal contract families                                                 |
+| ------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `UX-01` | Common frontend platform   | Accessible design system, shell, navigation, session integration and shared interaction patterns.              | `C-005`, `I-001`, `I-005`, `O-001`                                          |
+| `UX-02` | Service Evidence Workbench | Practitioner and client interaction for engagements, assets, evidence, work, visualisation and report release. | `E-001`, `A-001`, `A-002`, `K-002`, `W-001`, `RP-001` to `RP-004`, `AN-002` |
+| `UX-03` | Director Console           | Presenter controls and views for sessions, screens, checkpoints, readiness and failures.                       | `D-001` to `D-004`, `P-002` to `P-004`, `I-004`, `O-001`                    |
+| `UX-04` | Presentation Surface       | A registered screen that resolves semantic views and applies authorised presentation cues.                     | `P-001` to `P-004`, `I-005`, `O-001`                                        |
 
 ### Control, identity and interaction
 

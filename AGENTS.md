@@ -56,5 +56,13 @@ repository owns website presentation and deployment.
   screens, functions and rules delivered, explain inherited context and
   limitations, and identify the next gate. Retain only synthetic,
   privacy-safe screenshots and record source revision and environment profile.
+- Use review by exception for gate publication. Build, test, walk through,
+  render and visually verify one complete candidate, then publish its Markdown
+  and PDF as `Final — subject to review sign-off by exception` with the
+  implementation. A successful founder review requires no status-only commit,
+  repeat test run or regenerated report. If review identifies an exception,
+  correct the affected material, rerun checks and walkthrough evidence in
+  proportion to the change, and publish a new head that supersedes the earlier
+  report. Do not repeat unaffected evidence merely to record approval.
 - Never commit secrets, personal data, confidential material, or unlicensed
   third-party assets.

@@ -1,0 +1,24 @@
+{
+  "contractId": "A-002",
+  "contractVersion": "0.1.0",
+  "messageType": "source-lifecycle.status",
+  "statusId": "source-status:00000001",
+  "environmentId": "environment:local-demo",
+  "demonstrationSessionId": "session:gate-c-0001",
+  "engagementId": "engagement:harbour-support-review",
+  "sourceVersionId": "source-version:00000001",
+  "lifecycleStatus": "validated",
+  "validation": {
+    "status": "validated",
+    "validatedAt": "2026-09-03T09:00:01Z",
+    "digestVerified": true,
+    "checks": [
+      { "checkId": "media-type-supported", "status": "passed" },
+      { "checkId": "content-present", "status": "passed" },
+      { "checkId": "digest-matches", "status": "passed" },
+      { "checkId": "text-controls-safe", "status": "passed" },
+      { "checkId": "hostile-markers-absent", "status": "passed" }
+    ]
+  },
+  "recordedAt": "2026-09-03T09:00:01Z"
+}

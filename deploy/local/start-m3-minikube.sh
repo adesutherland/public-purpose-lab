@@ -108,13 +108,13 @@ helm upgrade --install nats nats/nats \
   --set-json 'config.merge.authorization.users[2].permissions.publish=["ppl.m3.to-presentation.synthetic-grant","ppl.m3.to-director.identity-outcome","ppl.gate-a.events.IAM-01","$JS.>"]' \
   --set-json 'config.merge.authorization.users[2].permissions.subscribe=["ppl.m3.to-identity.*","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[3].nkey=$authorisation_public" \
-  --set-json 'config.merge.authorization.users[3].permissions.publish=["ppl.gate-a.events.AUT-01"]' \
-  --set-json 'config.merge.authorization.users[3].permissions.subscribe=["ppl.gate-a.commands.AUT-01","_INBOX.>"]' \
+  --set-json 'config.merge.authorization.users[3].permissions.publish=["ppl.gate-a.events.AUT-01","_INBOX.>"]' \
+  --set-json 'config.merge.authorization.users[3].permissions.subscribe=["ppl.gate-a.commands.AUT-01","ppl.gate-c.decisions.AUT-01","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[4].nkey=$engagement_public" \
   --set-json 'config.merge.authorization.users[4].permissions.publish=["ppl.gate-a.events.DOM-01"]' \
   --set-json 'config.merge.authorization.users[4].permissions.subscribe=["ppl.gate-a.commands.DOM-01","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[5].nkey=$source_governance_public" \
-  --set-json 'config.merge.authorization.users[5].permissions.publish=["ppl.gate-a.events.CNT-01","ppl.gate-c.events.CNT-01","_INBOX.>"]' \
+  --set-json 'config.merge.authorization.users[5].permissions.publish=["ppl.gate-a.events.CNT-01","ppl.gate-c.events.CNT-01","ppl.gate-c.decisions.AUT-01","_INBOX.>"]' \
   --set-json 'config.merge.authorization.users[5].permissions.subscribe=["ppl.gate-a.commands.CNT-01","ppl.gate-c.commands.CNT-01","ppl.gate-c.queries.CNT-01","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[6].nkey=$knowledge_processing_public" \
   --set-json 'config.merge.authorization.users[6].permissions.publish=["ppl.gate-a.events.KNO-01"]' \

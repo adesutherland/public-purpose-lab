@@ -28,6 +28,7 @@ pub const P002_VERSION: &str = "1.0.0";
 pub const P003_VERSION: &str = "1.0.0";
 pub const P004_VERSION: &str = "1.0.0";
 pub const A001_VERSION: &str = "0.1.0";
+pub const A002_VERSION: &str = "0.1.0";
 pub const O001_VERSION: &str = "0.1.0";
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -138,6 +139,141 @@ pub struct SourceIntakeQuery {
     pub command_id: String,
     pub environment_id: String,
     pub requested_at: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceValidationCheckStatus {
+    Passed,
+    Failed,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceValidationCheck {
+    pub check_id: String,
+    pub status: SourceValidationCheckStatus,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason_code: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceValidationStatus {
+    Validated,
+    Refused,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceValidationSummary {
+    pub status: SourceValidationStatus,
+    pub validated_at: String,
+    pub digest_verified: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason_code: Option<String>,
+    pub checks: Vec<SourceValidationCheck>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceStagingStatus {
+    Staged,
+    Refused,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceStagingSummary {
+    pub status: SourceStagingStatus,
+    pub actor_id: String,
+    pub purpose: String,
+    pub policy_decision_reference: String,
+    pub reason_code: String,
+    pub decided_at: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceLifecycleState {
+    Validated,
+    ValidationRefused,
+    Staged,
+    StagingRefused,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceLifecycleStatus {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub status_id: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub engagement_id: String,
+    pub source_version_id: String,
+    pub lifecycle_status: SourceLifecycleState,
+    pub validation: SourceValidationSummary,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub staging: Option<SourceStagingSummary>,
+    pub recorded_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceLifecycleQuery {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub query_id: String,
+    pub environment_id: String,
+    pub source_version_id: String,
+    pub requested_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceStageCommand {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub command_id: String,
+    pub action: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub engagement_id: String,
+    pub source_version_id: String,
+    pub actor_id: String,
+    pub actor_role: String,
+    pub authority_reference: String,
+    pub purpose: String,
+    pub correlation_id: String,
+    pub causation_id: String,
+    pub idempotency_key: String,
+    pub requested_at: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceStageOutcomeStatus {
+    Staged,
+    Refused,
+    Duplicate,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SourceStageOutcome {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub outcome_id: String,
+    pub command_id: String,
+    pub status: SourceStageOutcomeStatus,
+    pub code: String,
+    pub source_status: SourceLifecycleStatus,
+    pub event_types: Vec<String>,
 }
 
 /// Gate A operational command. O-001 remains an in-development contract until
@@ -1028,7 +1164,8 @@ mod tests {
         PresentationCueOutcome, PresentationRegistration, PrincipalType,
         ScenarioCheckpointEvaluation, ScenarioControlCommand, ScenarioLifecycleCommand,
         ScenarioPackage, SourceIntakeCommand, SourceIntakeOutcome, SourceIntakeQuery,
-        SyntheticSessionOutcome, SyntheticTrustBootstrapRecord, WorkloadIdentityContext,
+        SourceLifecycleStatus, SourceStageCommand, SourceStageOutcome, SyntheticSessionOutcome,
+        SyntheticTrustBootstrapRecord, WorkloadIdentityContext,
     };
 
     #[test]
@@ -1141,5 +1278,17 @@ mod tests {
             "../../../../contracts/source/examples/a-001-outcome-query.json"
         ))
         .expect("A-001 query example must match Rust types");
+        let _: SourceStageCommand = serde_json::from_str(include_str!(
+            "../../../../contracts/source/examples/a-002-release-command.json"
+        ))
+        .expect("A-002 command example must match Rust types");
+        let _: SourceLifecycleStatus = serde_json::from_str(include_str!(
+            "../../../../contracts/source/examples/a-002-lifecycle-status.json"
+        ))
+        .expect("A-002 lifecycle example must match Rust types");
+        let _: SourceStageOutcome = serde_json::from_str(include_str!(
+            "../../../../contracts/source/examples/a-002-staged-outcome.json"
+        ))
+        .expect("A-002 outcome example must match Rust types");
     }
 }

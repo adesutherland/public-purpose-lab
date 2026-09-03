@@ -114,7 +114,7 @@ printf '%s\n' \
   '    },' \
   '    {' \
   "      nkey: \"$(sed -n '1p' "$environment_directory/authorisation.nkey")\"" \
-  '      permissions: { publish: ["ppl.gate-a.events.AUT-01"], subscribe: ["ppl.gate-a.commands.AUT-01", "_INBOX.>"] }' \
+  '      permissions: { publish: ["ppl.gate-a.events.AUT-01", "_INBOX.>"], subscribe: ["ppl.gate-a.commands.AUT-01", "ppl.gate-c.decisions.AUT-01", "_INBOX.>"] }' \
   '    },' \
   '    {' \
   "      nkey: \"$(sed -n '1p' "$environment_directory/engagement.nkey")\"" \
@@ -122,7 +122,7 @@ printf '%s\n' \
   '    },' \
   '    {' \
   "      nkey: \"$(sed -n '1p' "$environment_directory/source-governance.nkey")\"" \
-  '      permissions: { publish: ["ppl.gate-a.events.CNT-01", "ppl.gate-c.events.CNT-01", "_INBOX.>"], subscribe: ["ppl.gate-a.commands.CNT-01", "ppl.gate-c.commands.CNT-01", "ppl.gate-c.queries.CNT-01", "_INBOX.>"] }' \
+  '      permissions: { publish: ["ppl.gate-a.events.CNT-01", "ppl.gate-c.events.CNT-01", "ppl.gate-c.decisions.AUT-01", "_INBOX.>"], subscribe: ["ppl.gate-a.commands.CNT-01", "ppl.gate-c.commands.CNT-01", "ppl.gate-c.queries.CNT-01", "_INBOX.>"] }' \
   '    },' \
   '    {' \
   "      nkey: \"$(sed -n '1p' "$environment_directory/knowledge-processing.nkey")\"" \

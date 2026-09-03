@@ -106,8 +106,11 @@ describe("common contract consumption", () => {
     ]);
   });
 
-  it("publishes the bounded Gate C source-intake working version", () => {
-    expect(gateCContractVersions).toEqual({ "A-001": "0.1.0" });
+  it("publishes the bounded Gate C intake and staging working versions", () => {
+    expect(gateCContractVersions).toEqual({
+      "A-001": "0.1.0",
+      "A-002": "0.1.0",
+    });
   });
 
   it("narrows synthetic session outcomes without treating an unknown state as established", () => {

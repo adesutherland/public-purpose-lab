@@ -472,9 +472,16 @@ be rendered to images and visually checked for legibility, clipping, alignment
 and complete figures before publication. Automated test output supports the
 report but cannot replace the walked-through screenshots.
 
-Gate closure requires founder approval of the implemented flow and its evidence
-report. A partial gate report may be published as in-development evidence, but
-it must not describe the gate as complete.
+The complete implementation and evidence candidate is tested, walked through,
+rendered, visually verified and published once as
+`Final — subject to review sign-off by exception`. Gate closure still requires
+founder review, but a successful review requires no status-only repository
+change, repeat test, repeated walkthrough, regenerated report or second
+publication. If review identifies an exception, only the affected material is
+corrected and re-evidenced in proportion to the change; the new repository head
+supersedes the earlier report. A partial gate report may be published as
+in-development evidence, but it must not describe the gate as complete or use
+the final-candidate status.
 
 ## Approved baseline decisions
 

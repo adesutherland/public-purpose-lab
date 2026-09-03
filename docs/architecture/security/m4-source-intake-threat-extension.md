@@ -1,13 +1,13 @@
 # Gate C source-intake threat extension
 
-Status: Working draft for the first DS-03 transaction
+Status: Working draft extended through DS-03 validation and staging
 
 Date: 2026-09-01
 
 This extension applies the accepted framework and M3 security models to the
-first operation that carries untrusted source content. It covers receipt and
-quarantine only. Validation, staging and processing require further review as
-their executable slices are added.
+first operation that carries untrusted source content. It now covers receipt,
+quarantine, bounded validation and reviewer-controlled staging. Processing
+requires further review as its executable slice is added.
 
 ## Protected assets and boundaries
 
@@ -32,12 +32,17 @@ their executable slices are added.
 | Gateway response is lost after commit                                     | Outcome can be queried by command ID or the exact operation retried                                                                         | Query transport remains bounded to the current single-instance event profile                                 |
 | Another environment or scenario reads an outcome                          | Component query is environment-bound; Gateway compares the returned demonstration session to the caller's synthetic session                 | Broader engagement-level authorisation will be required as more than one engagement is implemented           |
 | Quarantined text is mistaken for validated, staged or processed knowledge | Separate `quarantined` state, explicit UI limitation and no `KNO-01` event or call in this slice                                            | Gate C cannot close until later states and refusals are implemented and evidenced                            |
+| Deterministic text checks are mistaken for malware or truth assurance     | UI and contract list the exact bounded checks and explicitly disclaim malware, truth, authority and general content-safety qualification    | Later formats or non-synthetic inputs require a separately selected scanning and governance binding          |
+| Browser or gateway stages a source without reviewer authority             | Gateway derives actor/session fields; `CNT-01` requires successful validation and an exact-resource `AZ-001` permit from deployed `AUT-01`  | The first policy uses synthetic scenario assertions and is not an external organisational authority          |
+| Policy service is unavailable or returns an incomplete decision           | `CNT-01` treats deny, not-applicable, indeterminate, malformed and unavailable decisions as refusal                                         | Multi-policy reconciliation and external policy-administration availability are not qualified                |
+| Staged event is duplicated or response is lost                            | Component-owned idempotency and transactional outbox retain one conclusive decision and metadata-only event                                 | Distributed multi-writer staging is not qualified                                                            |
 | Database loss or trust-domain recovery silently changes evidence          | Source database is separate from trust and application-session state; no recovery claim is made                                             | Backup, restore, retention and evidence reconciliation remain an M6 qualification item                       |
 
 ## Required adverse evidence
 
 The executable checks must show non-synthetic, empty, oversized and changed
 idempotent submissions being refused; restart-safe exact redelivery; absence of
-source body from outcome and event JSON; and environment-bound lookup. Before
-Gate C closes, the walkthrough must add malformed/hostile validation refusal,
-staging-authority refusal and processing restart/reconciliation evidence.
+source body from outcome and event JSON; environment-bound lookup;
+malformed/hostile validation refusal; and staging-authority refusal. Before
+Gate C closes, the walkthrough must add processing restart/reconciliation
+evidence.

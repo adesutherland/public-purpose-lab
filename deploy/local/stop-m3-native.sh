@@ -3,7 +3,7 @@ set -eu
 
 environment_directory=${1:-.local/m3-environment}
 
-for process_name in director presentation identity source-governance nats; do
+for process_name in director presentation identity authorisation source-governance nats; do
   pid_file="$environment_directory/run/$process_name.pid"
   if [ -f "$pid_file" ]; then
     pid=$(sed -n '1p' "$pid_file")

@@ -1,0 +1,19 @@
+{
+  "contractId": "A-002",
+  "contractVersion": "0.1.0",
+  "messageType": "staged-source-release.command",
+  "commandId": "stage-command:00000001",
+  "action": "release-to-staging",
+  "environmentId": "environment:local-demo",
+  "demonstrationSessionId": "session:gate-c-0001",
+  "engagementId": "engagement:harbour-support-review",
+  "sourceVersionId": "source-version:00000001",
+  "actorId": "synthetic-reviewer",
+  "actorRole": "workbench-reviewer",
+  "authorityReference": "application-session:00000001",
+  "purpose": "governed-source-staging",
+  "correlationId": "session:gate-c-0001",
+  "causationId": "user-action:stage-00000001",
+  "idempotencyKey": "source-stage:00000001",
+  "requestedAt": "2026-09-03T09:00:00Z"
+}

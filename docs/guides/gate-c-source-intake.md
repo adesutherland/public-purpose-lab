@@ -1,11 +1,12 @@
 # Gate C governed source-intake guide
 
-Status: In-development operator guide for the first DS-03 increment
+Status: In-development operator guide for the DS-03 validation and staging increment
 
-This guide runs the local synthetic-only source-intake transaction. It proves
-upload or paste preview, authenticated submission, immutable quarantine,
-visible source status and metadata-only lifecycle events. It does not yet prove
-validation, staging, knowledge processing or Gate C closure.
+This guide runs the local synthetic-only source-intake, validation and staged
+release transaction. It proves upload or paste preview, authenticated
+submission, immutable quarantine, bounded visible validation, an exact
+`AUT-01` decision and metadata-only lifecycle events. It does not prove
+knowledge processing, evidence quality, malware clearance or Gate C closure.
 
 ## Start the local Kubernetes environment
 
@@ -58,12 +59,19 @@ Open:
    preview and supply title, owner, rights and provenance.
 7. Confirm synthetic classification and select **Submit to quarantine**.
 8. Inspect `WB-SOURCE-STATUS`. It must show quarantine, immutable version 1,
-   digest, actor and correlation; it must not return the source body.
-9. In Operations, filter for `CNT-01`. Inspect `source.received` and
-   `source.quarantined` under the same correlation identifier.
+   digest, actor and correlation plus five conclusive validation checks; it
+   must not return the source body.
+9. Select **Release validated source to staging**. The Workbench must show
+   `staged`, the named synthetic reviewer, safe reason and `AUT-01` policy
+   decision reference. This is a staging decision, not source or report
+   approval.
+10. In Operations, filter for `CNT-01`. Inspect `source.received`,
+    `source.quarantined`, `source.validated` and `source.staged` under the same
+    correlation identifier. `AUT-01` remains a separately deployed workload.
 
 The link field is deliberately disabled: this increment does not fetch remote
-content. A quarantined source is not validated, staged, indexed or approved.
+content. A staged source is not indexed, retrieved, treated as evidence-quality
+assured or approved for a business decision.
 
 ## Automated system check
 
@@ -77,7 +85,8 @@ PPL_OPERATIONS_URL=http://127.0.0.1:18084 \
 tools/smoke-m3-native.sh
 ```
 
-This includes exact-retry reconciliation, changed-idempotency refusal and
+This includes visible validation, authorised staging, exact-retry
+reconciliation, changed-idempotency refusal, hostile-marker refusal and
 Operations event checks. `deploy/local/smoke-m3-minikube.sh` starts temporary
 port-forwards and runs this check plus the complete component-mesh smoke when
 the standard ports are free.

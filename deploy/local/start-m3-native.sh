@@ -21,7 +21,8 @@ if [ -z "$identity_public" ] || ! grep -Fq "$identity_public" "$environment_dire
     'pre-m3-4-environment-refused: Identity Broker authority is absent; existing trust material was not changed.' >&2
   exit 2
 fi
-if ! grep -Fq 'ppl.gate-c.commands.CNT-01' "$environment_directory/nats-server.conf"; then
+if ! grep -Fq 'ppl.gate-c.commands.CNT-01' "$environment_directory/nats-server.conf" \
+  || ! grep -Fq 'ppl.gate-c.decisions.AUT-01' "$environment_directory/nats-server.conf"; then
   printf '%s\n' \
     'pre-gate-c-environment-refused: choose a new environment directory; existing trust material was not changed.' >&2
   exit 2
@@ -106,6 +107,19 @@ PPL_NATS_ROOT_CERTIFICATE="$environment_directory/root-ca.crt" \
 target/debug/ppl-m3-runtime >"$environment_directory/run/presentation.log" 2>&1 &
 printf '%s\n' "$!" >"$environment_directory/run/presentation.pid"
 
+PPL_COMPONENT_ID=AUT-01 \
+PPL_INSTANCE_ID=authorisation-1 \
+PPL_LISTEN_ADDRESS=127.0.0.1:18086 \
+PPL_ENVIRONMENT_ID="$environment_id" \
+PPL_SOURCE_REVISION=working-tree \
+PPL_IMAGE_DIGEST=native-development \
+PPL_NATS_URL="tls://127.0.0.1:$nats_port" \
+PPL_NATS_NKEY_SEED_FILE="$environment_directory/authorisation.seed" \
+PPL_NATS_ROOT_CERTIFICATE="$environment_directory/root-ca.crt" \
+PPL_WORKLOAD_IDENTITY_FILE="$environment_directory/authorisation.nkey" \
+target/debug/ppl-component-host >"$environment_directory/run/authorisation.log" 2>&1 &
+printf '%s\n' "$!" >"$environment_directory/run/authorisation.pid"
+
 PPL_COMPONENT_ID=CNT-01 \
 PPL_INSTANCE_ID=source-governance-1 \
 PPL_LISTEN_ADDRESS=127.0.0.1:18085 \
@@ -123,6 +137,7 @@ printf '%s\n' "$!" >"$environment_directory/run/source-governance.pid"
 for endpoint in \
   'Director:http://127.0.0.1:18081/health/ready' \
   'Presentation Gateway:http://127.0.0.1:18082/health/ready' \
+  'Authorisation:http://127.0.0.1:18086/health/ready' \
   'Source Governance:http://127.0.0.1:18085/health/ready'; do
   name=${endpoint%%:*}
   url=${endpoint#*:}

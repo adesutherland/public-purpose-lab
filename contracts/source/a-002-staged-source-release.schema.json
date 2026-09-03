@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:A-002:0.1.0",
+  "title": "A-002 staged source release",
+  "oneOf": [
+    { "$ref": "#/$defs/releaseCommand" },
+    { "$ref": "#/$defs/releaseOutcome" },
+    { "$ref": "#/$defs/lifecycleQuery" },
+    { "$ref": "#/$defs/lifecycleStatus" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]+$"
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100,
+      "pattern": "^[a-z][a-z0-9-]+$"
+    },
+    "validationCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkId", "status"],
+      "properties": {
+        "checkId": { "$ref": "#/$defs/reasonCode" },
+        "status": { "enum": ["passed", "failed"] },
+        "reasonCode": { "$ref": "#/$defs/reasonCode" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "validatedAt", "digestVerified", "checks"],
+      "properties": {
+        "status": { "enum": ["validated", "refused"] },
+        "validatedAt": { "type": "string", "format": "date-time" },
+        "digestVerified": { "type": "boolean" },
+        "reasonCode": { "$ref": "#/$defs/reasonCode" },
+        "checks": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/validationCheck" }
+        }
+      }
+    },
+    "staging": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "actorId",
+        "purpose",
+        "policyDecisionReference",
+        "reasonCode",
+        "decidedAt"
+      ],
+      "properties": {
+        "status": { "enum": ["staged", "refused"] },
+        "actorId": { "$ref": "#/$defs/identifier" },
+        "purpose": { "const": "governed-source-staging" },
+        "policyDecisionReference": { "$ref": "#/$defs/identifier" },
+        "reasonCode": { "$ref": "#/$defs/reasonCode" },
+        "decidedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "releaseCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "commandId",
+        "action",
+        "environmentId",
+        "demonstrationSessionId",
+        "engagementId",
+        "sourceVersionId",
+        "actorId",
+        "actorRole",
+        "authorityReference",
+        "purpose",
+        "correlationId",
+        "causationId",
+        "idempotencyKey",
+        "requestedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "A-002" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "staged-source-release.command" },
+        "commandId": { "$ref": "#/$defs/identifier" },
+        "action": { "const": "release-to-staging" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "engagementId": { "const": "engagement:harbour-support-review" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "actorId": { "const": "synthetic-reviewer" },
+        "actorRole": { "const": "workbench-reviewer" },
+        "authorityReference": { "$ref": "#/$defs/identifier" },
+        "purpose": { "const": "governed-source-staging" },
+        "correlationId": { "$ref": "#/$defs/identifier" },
+        "causationId": { "$ref": "#/$defs/identifier" },
+        "idempotencyKey": { "$ref": "#/$defs/identifier" },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "lifecycleQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "queryId",
+        "environmentId",
+        "sourceVersionId",
+        "requestedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "A-002" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "source-lifecycle.query" },
+        "queryId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "lifecycleStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "statusId",
+        "environmentId",
+        "demonstrationSessionId",
+        "engagementId",
+        "sourceVersionId",
+        "lifecycleStatus",
+        "validation",
+        "recordedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "A-002" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "source-lifecycle.status" },
+        "statusId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "engagementId": { "$ref": "#/$defs/identifier" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "lifecycleStatus": {
+          "enum": [
+            "validated",
+            "validation-refused",
+            "staged",
+            "staging-refused"
+          ]
+        },
+        "validation": { "$ref": "#/$defs/validation" },
+        "staging": { "$ref": "#/$defs/staging" },
+        "recordedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "releaseOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "outcomeId",
+        "commandId",
+        "status",
+        "code",
+        "sourceStatus",
+        "eventTypes"
+      ],
+      "properties": {
+        "contractId": { "const": "A-002" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "staged-source-release.outcome" },
+        "outcomeId": { "$ref": "#/$defs/identifier" },
+        "commandId": { "$ref": "#/$defs/identifier" },
+        "status": { "enum": ["staged", "refused", "duplicate"] },
+        "code": { "$ref": "#/$defs/reasonCode" },
+        "sourceStatus": { "$ref": "#/$defs/lifecycleStatus" },
+        "eventTypes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 3, "maxLength": 80 }
+        }
+      }
+    }
+  }
+}

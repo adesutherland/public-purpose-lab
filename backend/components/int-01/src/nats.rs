@@ -28,6 +28,7 @@ pub const PRESENTATION_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.CTL-02";
 pub const IDENTITY_OPERATIONAL_SUBJECT: &str = "ppl.gate-a.events.IAM-01";
 pub const SOURCE_INTAKE_COMMAND_SUBJECT: &str = "ppl.gate-c.commands.CNT-01";
 pub const SOURCE_INTAKE_QUERY_SUBJECT: &str = "ppl.gate-c.queries.CNT-01";
+pub const SOURCE_AUTHORISATION_SUBJECT: &str = "ppl.gate-c.decisions.AUT-01";
 pub const SOURCE_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.CNT-01";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

@@ -14,12 +14,13 @@ use axum::{
 };
 use futures_util::StreamExt;
 use ppl_contracts::{
-    A001_VERSION, CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus,
+    A001_VERSION, A002_VERSION, CommandOutcome, O001_VERSION, OperationalEvent, OutcomeStatus,
     PresentationCapabilityManifest, PresentationCue, PresentationCueOutcome,
     PresentationOutcomeResult, PresentationRegistration, ScenarioControlCommand,
     ScenarioLifecycleAction, ScenarioLifecycleCommand, ScenarioState, SourceIntakeCommand,
     SourceIntakeOutcome, SourceIntakePayload, SourceIntakeQuery, SourceIntakeStatus,
-    SyntheticSessionStatus,
+    SourceLifecycleQuery, SourceLifecycleStatus, SourceStageCommand, SourceStageOutcome,
+    SourceStageOutcomeStatus, SyntheticSessionStatus,
 };
 use ppl_ctl_01::{DirectorError, DirectorRuntime};
 use ppl_ctl_02::{PresentationError, PresentationRuntime};
@@ -973,6 +974,11 @@ fn gateway_router(state: GatewayState) -> Router {
             "/api/v1/source-intake/{command_id}",
             get(source_intake_status),
         )
+        .route("/api/v1/source-stage", post(stage_source))
+        .route(
+            "/api/v1/source-status/{source_version_id}",
+            get(source_lifecycle_status),
+        )
         .with_state(state)
 }
 
@@ -1043,7 +1049,7 @@ async fn director_contracts(State(state): State<DirectorState>) -> Result<Json<V
 async fn gateway_contracts(State(state): State<GatewayState>) -> Json<Value> {
     Json(serde_json::json!({
         "selfTest": "passed",
-        "contracts": ["P-001", "P-002", "P-003", "P-004", "A-001@0.1.0"],
+        "contracts": ["P-001", "P-002", "P-003", "P-004", "A-001@0.1.0", "A-002@0.1.0"],
         "identityContracts": ["I-001", "I-004", "I-005"],
         "manifestId": "assurance-presentation-surface",
         "manifestVersion": "1.2.1",
@@ -2300,6 +2306,95 @@ async fn source_intake_status(
         return Err(AppError::unauthorised("synthetic-surface-binding-refused"));
     }
     Ok(Json(outcome))
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+struct StageSourceRequest {
+    request_id: String,
+    idempotency_key: String,
+    source_version_id: String,
+}
+
+async fn stage_source(
+    State(state): State<GatewayState>,
+    headers: HeaderMap,
+    Json(request): Json<StageSourceRequest>,
+) -> Result<Response, AppError> {
+    let authorised = authorise_source_write(&state, &headers)?;
+    if request.request_id.len() < 8
+        || request.idempotency_key.len() < 8
+        || !request.source_version_id.starts_with("source-version:")
+    {
+        return Err(AppError::refused("source-stage-identifier-invalid"));
+    }
+    let synthetic = authorised.synthetic_identity.ok_or(AppError::unauthorised(
+        "synthetic-application-session-required",
+    ))?;
+    let command = SourceStageCommand {
+        contract_id: "A-002".to_owned(),
+        contract_version: A002_VERSION.to_owned(),
+        message_type: "staged-source-release.command".to_owned(),
+        command_id: format!("stage-command:{}", request.request_id),
+        action: "release-to-staging".to_owned(),
+        environment_id: state.config.environment_id.clone(),
+        demonstration_session_id: synthetic.demonstration_session_id.clone(),
+        engagement_id: "engagement:harbour-support-review".to_owned(),
+        source_version_id: request.source_version_id,
+        actor_id: synthetic.actor_id,
+        actor_role: "workbench-reviewer".to_owned(),
+        authority_reference: format!("application-session:{}", authorised.session_id),
+        purpose: "governed-source-staging".to_owned(),
+        correlation_id: synthetic.demonstration_session_id,
+        causation_id: format!("user-action:{}", request.request_id),
+        idempotency_key: request.idempotency_key,
+        requested_at: now_string()?,
+    };
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::configuration("interactive-broker-unavailable"))?;
+    let bytes = broker
+        .request(SOURCE_INTAKE_COMMAND_SUBJECT, &command)
+        .await?;
+    let outcome: SourceStageOutcome = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::configuration("source-stage-response-invalid"))?;
+    let status = match outcome.status {
+        SourceStageOutcomeStatus::Staged | SourceStageOutcomeStatus::Duplicate => StatusCode::OK,
+        SourceStageOutcomeStatus::Refused => StatusCode::UNPROCESSABLE_ENTITY,
+    };
+    Ok((status, Json(outcome)).into_response())
+}
+
+async fn source_lifecycle_status(
+    State(state): State<GatewayState>,
+    Path(source_version_id): Path<String>,
+    headers: HeaderMap,
+) -> Result<Json<SourceLifecycleStatus>, AppError> {
+    let authorised = require_synthetic_source_session(&state, &headers)?;
+    let synthetic = authorised.synthetic_identity.ok_or(AppError::unauthorised(
+        "synthetic-application-session-required",
+    ))?;
+    let query = SourceLifecycleQuery {
+        contract_id: "A-002".to_owned(),
+        contract_version: A002_VERSION.to_owned(),
+        message_type: "source-lifecycle.query".to_owned(),
+        query_id: format!("source-status-query:{}", Uuid::new_v4()),
+        environment_id: state.config.environment_id.clone(),
+        source_version_id,
+        requested_at: now_string()?,
+    };
+    let broker = state
+        .broker
+        .as_ref()
+        .ok_or(AppError::configuration("interactive-broker-unavailable"))?;
+    let bytes = broker.request(SOURCE_INTAKE_QUERY_SUBJECT, &query).await?;
+    let status: SourceLifecycleStatus = serde_json::from_slice(&bytes)
+        .map_err(|_| AppError::configuration("source-status-response-invalid"))?;
+    if status.demonstration_session_id != synthetic.demonstration_session_id {
+        return Err(AppError::unauthorised("synthetic-surface-binding-refused"));
+    }
+    Ok(Json(status))
 }
 
 fn authorise_source_write(

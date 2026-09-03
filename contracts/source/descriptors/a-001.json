@@ -4,7 +4,7 @@
   "describedContractId": "A-001",
   "describedContractName": "Governed source intake",
   "describedVersion": "0.1.0",
-  "status": "working-draft",
+  "status": "implemented",
   "schemaId": "urn:public-purpose-lab:contract:A-001:0.1.0",
   "compatibilityMode": "none",
   "effectiveFrom": "2026-09-01T15:00:00Z",
@@ -21,5 +21,30 @@
     "Create at most one immutable quarantined source version for an idempotency key.",
     "Refuse unsupported classification, media, size, metadata or authority before staging or processing."
   ],
-  "evidence": []
+  "evidence": [
+    {
+      "contractId": "C-004",
+      "contractVersion": "1.0.0",
+      "evidenceId": "evidence-a001-cnt01-tests",
+      "evidenceKind": "conformance-result",
+      "ownerComponent": "CNT-01",
+      "reference": "urn:public-purpose-lab:evidence:repository:cnt-01:a-001-tests",
+      "createdAt": "2026-09-01T15:00:00Z",
+      "classification": "synthetic",
+      "retentionClass": "repository-history",
+      "accessPolicyRef": "policy:public-repository"
+    },
+    {
+      "contractId": "C-004",
+      "contractVersion": "1.0.0",
+      "evidenceId": "evidence-a001-system-smoke",
+      "evidenceKind": "conformance-result",
+      "ownerComponent": "CNT-01",
+      "reference": "urn:public-purpose-lab:evidence:repository:gate-c:system-smoke",
+      "createdAt": "2026-09-01T15:00:00Z",
+      "classification": "synthetic",
+      "retentionClass": "repository-history",
+      "accessPolicyRef": "policy:public-repository"
+    }
+  ]
 }
