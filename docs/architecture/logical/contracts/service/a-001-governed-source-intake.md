@@ -1,8 +1,10 @@
 # A-001 — Governed source intake
 
-Status: Working draft implemented for the first Gate C transaction
+Status: Accepted Gate C intake and quarantine baseline; implemented
 
 Version: `0.1.0`
+
+Accepted: 3 September 2026
 
 Owners: `UX-02` Workbench adapter and `CNT-01` source governance
 
@@ -66,9 +68,12 @@ refused before a version is created. Component state failure is fail closed.
 Source bodies remain in the `CNT-01` store and are excluded from HTTP outcomes,
 operational events and logs.
 
-This working contract is not yet agreed. Gate C validation, staging and
-processing will extend or add contracts after their exact user actions and
-component responsibilities are implemented and reviewed.
+The founders accepted version `0.1.0` on 3 September 2026 as the bounded
+contract for authenticated receipt and quarantine. Acceptance does not qualify
+validation, staging, processing, backup and restore, non-synthetic data or
+production use. Those capabilities must extend or add contracts after their
+exact user actions and component responsibilities are implemented and
+reviewed.
 
 ## Evidence
 

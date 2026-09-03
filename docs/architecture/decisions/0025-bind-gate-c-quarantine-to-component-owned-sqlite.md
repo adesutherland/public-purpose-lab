@@ -1,7 +1,8 @@
 # ADR-0025: Bind Gate C quarantine to component-owned SQLite
 
-Status: Proposed
+Status: Accepted
 Date: 2026-09-01
+Accepted: 2026-09-03
 
 ## Context
 
@@ -17,7 +18,7 @@ single-instance M3 state. ADR-0024 requires this state-changing handler to
 revisit whether the configurable component host still preserves ownership and
 failure boundaries.
 
-## Proposed decision
+## Decision
 
 Keep the shared `ppl-component-host` image, but give the `CNT-01` deployment a
 dedicated source-governance module, SQLite database and persistent volume. No
@@ -37,7 +38,7 @@ version. Store the small bounded source body only in `CNT-01`; return and emit
 metadata only. A committed result is safe to query or retry after response
 loss.
 
-This proposal qualifies only the first synthetic single-instance transaction.
+This decision qualifies only the first synthetic single-instance transaction.
 It does not select long-term content storage, backup/restore, retention,
 malware scanning, multi-replica processing or hosted non-synthetic operation.
 
@@ -58,8 +59,12 @@ malware scanning, multi-replica processing or hosted non-synthetic operation.
 
 ## Validation and review
 
-Accept or revise this proposal after a walkthrough proves upload and paste,
-restart-safe exact retry, changed-duplicate refusal, content exclusion from
-outcomes/events/logs and environment-bound status lookup. Revisit before Gate C
-adds non-trivial content scanning, multi-replica operation, backup/restore,
-hosted non-synthetic data or retention requirements.
+The founders accepted this decision on 3 September 2026 after the implementation
+and walkthrough proved upload and paste, restart-safe exact retry,
+changed-duplicate refusal, content exclusion from outcomes, events and logs,
+and environment-bound status lookup.
+
+Revisit before Gate C adds a separate or privileged content-scanning service,
+or before multi-replica operation, backup and restore, hosted non-synthetic
+data or retention requirements are selected. The bounded in-component text
+validation required by DS-03 does not by itself change this storage decision.
