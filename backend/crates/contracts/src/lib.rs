@@ -29,6 +29,7 @@ pub const P003_VERSION: &str = "1.0.0";
 pub const P004_VERSION: &str = "1.0.0";
 pub const A001_VERSION: &str = "0.1.0";
 pub const A002_VERSION: &str = "0.1.0";
+pub const K001_VERSION: &str = "0.1.0";
 pub const O001_VERSION: &str = "0.1.0";
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -274,6 +275,113 @@ pub struct SourceStageOutcome {
     pub code: String,
     pub source_status: SourceLifecycleStatus,
     pub event_types: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct StagedSourceContentQuery {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub query_id: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub source_version_id: String,
+    pub requester_component: String,
+    pub purpose: String,
+    pub correlation_id: String,
+    pub causation_id: String,
+    pub requested_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct StagedSourceContent {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub response_id: String,
+    pub query_id: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub engagement_id: String,
+    pub source_version_id: String,
+    pub media_type: String,
+    pub size_bytes: u64,
+    pub digest_algorithm: String,
+    pub digest_value: String,
+    pub content: String,
+    pub released_to_component: String,
+    pub purpose: String,
+    pub recorded_at: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ProcessingLifecycleState {
+    Accepted,
+    Processing,
+    Completed,
+    Failed,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ProcessingLifecycleStage {
+    pub state: ProcessingLifecycleState,
+    pub occurred_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason_code: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct BoundedProcessingResult {
+    pub digest_verified: bool,
+    pub byte_count: u64,
+    pub line_count: u64,
+    pub section_count: u64,
+    pub safe_preview: String,
+    pub preview_truncated: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ProcessingLifecycleStatus {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub status_id: String,
+    pub processing_id: String,
+    pub environment_id: String,
+    pub demonstration_session_id: String,
+    pub engagement_id: String,
+    pub source_version_id: String,
+    pub correlation_id: String,
+    pub causation_id: String,
+    pub lifecycle_status: ProcessingLifecycleState,
+    pub stages: Vec<ProcessingLifecycleStage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<BoundedProcessingResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason_code: Option<String>,
+    pub terminal_count: u64,
+    pub recorded_at: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ProcessingLifecycleQuery {
+    pub contract_id: String,
+    pub contract_version: String,
+    pub message_type: String,
+    pub query_id: String,
+    pub environment_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub demonstration_session_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_version_id: Option<String>,
+    pub requested_at: String,
 }
 
 /// Gate A operational command. O-001 remains an in-development contract until
@@ -1161,10 +1269,11 @@ mod tests {
         AuthorisationDecision, CommandOutcome, ComponentCapabilityManifest,
         ContractCompatibilityDescriptor, DemonstrationSignInGrant, ExternalHumanIdentityContext,
         InteractionEnvelope, PresentationCapabilityManifest, PresentationCue,
-        PresentationCueOutcome, PresentationRegistration, PrincipalType,
-        ScenarioCheckpointEvaluation, ScenarioControlCommand, ScenarioLifecycleCommand,
-        ScenarioPackage, SourceIntakeCommand, SourceIntakeOutcome, SourceIntakeQuery,
-        SourceLifecycleStatus, SourceStageCommand, SourceStageOutcome, SyntheticSessionOutcome,
+        PresentationCueOutcome, PresentationRegistration, PrincipalType, ProcessingLifecycleQuery,
+        ProcessingLifecycleStatus, ScenarioCheckpointEvaluation, ScenarioControlCommand,
+        ScenarioLifecycleCommand, ScenarioPackage, SourceIntakeCommand, SourceIntakeOutcome,
+        SourceIntakeQuery, SourceLifecycleStatus, SourceStageCommand, SourceStageOutcome,
+        StagedSourceContent, StagedSourceContentQuery, SyntheticSessionOutcome,
         SyntheticTrustBootstrapRecord, WorkloadIdentityContext,
     };
 
@@ -1290,5 +1399,21 @@ mod tests {
             "../../../../contracts/source/examples/a-002-staged-outcome.json"
         ))
         .expect("A-002 outcome example must match Rust types");
+        let _: StagedSourceContentQuery = serde_json::from_str(include_str!(
+            "../../../../contracts/knowledge/examples/k-001-content-query.json"
+        ))
+        .expect("K-001 content query must match Rust types");
+        let _: StagedSourceContent = serde_json::from_str(include_str!(
+            "../../../../contracts/knowledge/examples/k-001-content-response.json"
+        ))
+        .expect("K-001 content response must match Rust types");
+        let _: ProcessingLifecycleQuery = serde_json::from_str(include_str!(
+            "../../../../contracts/knowledge/examples/k-001-lifecycle-query.json"
+        ))
+        .expect("K-001 lifecycle query must match Rust types");
+        let _: ProcessingLifecycleStatus = serde_json::from_str(include_str!(
+            "../../../../contracts/knowledge/examples/k-001-completed-status.json"
+        ))
+        .expect("K-001 lifecycle status must match Rust types");
     }
 }

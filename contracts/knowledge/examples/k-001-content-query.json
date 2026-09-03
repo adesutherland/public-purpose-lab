@@ -1,0 +1,14 @@
+{
+  "contractId": "K-001",
+  "contractVersion": "0.1.0",
+  "messageType": "staged-source-content.query",
+  "queryId": "processing-input-query:gate-c-example",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "sourceVersionId": "source-version:gate-c-example",
+  "requesterComponent": "KNO-01",
+  "purpose": "bounded-source-processing",
+  "correlationId": "session:gate-c-example",
+  "causationId": "processing:gate-c-example",
+  "requestedAt": "2026-09-03T10:00:00Z"
+}

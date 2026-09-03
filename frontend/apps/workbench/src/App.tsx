@@ -3,6 +3,7 @@ import type {
   PresentationCue,
   PresentationCueOutcome,
   PresentationRegistration,
+  ProcessingLifecycleStatus,
   SourceIntakeOutcome,
   SourceLifecycleStatus,
   SourceStageOutcome,
@@ -106,6 +107,7 @@ export function App() {
   const [sourceOutcome, setSourceOutcome] = useState<SourceIntakeOutcome>();
   const [sourceLifecycle, setSourceLifecycle] =
     useState<SourceLifecycleStatus>();
+  const [processing, setProcessing] = useState<ProcessingLifecycleStatus>();
   const [message, setMessage] = useState(
     "Connect the Workbench, register it to the demonstration, then ask the Director to assign synthetic-reviewer.",
   );
@@ -220,6 +222,28 @@ export function App() {
     return () => source.close();
   }, [context?.syntheticActorId, context?.syntheticStatus, registration]);
 
+  useEffect(() => {
+    const sourceVersionId = sourceLifecycle?.sourceVersionId;
+    if (sourceLifecycle?.lifecycleStatus !== "staged" || !sourceVersionId) {
+      return undefined;
+    }
+    let active = true;
+    const refresh = () =>
+      getJson<ProcessingLifecycleStatus>(
+        `/api/v1/source-processing/${encodeURIComponent(sourceVersionId)}`,
+      )
+        .then((status) => {
+          if (active) setProcessing(status);
+        })
+        .catch(() => undefined);
+    void refresh();
+    const interval = window.setInterval(refresh, 500);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [sourceLifecycle?.lifecycleStatus, sourceLifecycle?.sourceVersionId]);
+
   const perform = async (operation: () => Promise<void>) => {
     try {
       setError(false);
@@ -237,8 +261,8 @@ export function App() {
   return (
     <SurfaceShell
       surface={surfaceById("UX-02")}
-      maturityLabel="Gate C · source validation and staging in development"
-      notice="Synthetic demonstration only. This Gate C slice can quarantine and visibly validate text, then request reviewer-controlled staging through AUT-01. It does not yet index, retrieve or answer from that source."
+      maturityLabel="Gate C · visible source processing candidate"
+      notice="Synthetic demonstration only. Gate C shows component-owned quarantine, validation, reviewer-controlled staging and basic KNO-01 processing. It does not index, retrieve, understand or answer from the source."
     >
       <article className="ppl-card ppl-live-card">
         <p className="ppl-card-label">Reviewer Workbench binding</p>
@@ -560,6 +584,7 @@ export function App() {
                       },
                     );
                     setSourceOutcome(outcome);
+                    setProcessing(undefined);
                     const sourceVersionId =
                       outcome.sourceVersion?.sourceVersionId;
                     setSourceLifecycle(
@@ -590,11 +615,11 @@ export function App() {
         {activeView === "wb-source-status" && sourceOutcome && (
           <section className="ppl-semantic-view" aria-live="polite">
             <p className="ppl-eyebrow">WB-SOURCE-STATUS</p>
-            <h2>Source validation and controlled staging</h2>
+            <h2>Source validation, staging and processing</h2>
             <p className="ppl-purpose">
-              The source remains isolated from knowledge processing until its
-              deterministic checks pass and this reviewer requests an AUT-01
-              policy decision. Human authority is unchanged.
+              The source remains isolated from KNO-01 until deterministic checks
+              pass and this reviewer requests an AUT-01 policy decision. Human
+              authority is unchanged.
             </p>
             <div className="ppl-status-grid ppl-runtime-message">
               <span>
@@ -669,6 +694,70 @@ export function App() {
                 {sourceLifecycle.staging.policyDecisionReference}
               </div>
             )}
+            {processing && (
+              <div
+                className="ppl-runtime-message"
+                data-processing-state={processing.lifecycleStatus}
+              >
+                <strong>KNO-01 processing lifecycle</strong>
+                <ol>
+                  {processing.stages.map((stage) => (
+                    <li key={`${stage.state}-${stage.occurredAt}`}>
+                      <strong>{stage.state}</strong> · {stage.occurredAt}
+                      {stage.reasonCode ? ` · ${stage.reasonCode}` : ""}
+                    </li>
+                  ))}
+                </ol>
+                <div className="ppl-status-grid">
+                  <span>
+                    Processing record
+                    <br />
+                    <strong className="ppl-mono">
+                      {processing.processingId}
+                    </strong>
+                  </span>
+                  <span>
+                    Terminal results
+                    <br />
+                    <strong>{processing.terminalCount}</strong>
+                  </span>
+                  <span>
+                    Digest verified
+                    <br />
+                    <strong>
+                      {String(processing.result?.digestVerified ?? false)}
+                    </strong>
+                  </span>
+                  <span>
+                    Bytes · lines · sections
+                    <br />
+                    <strong>
+                      {processing.result
+                        ? `${processing.result.byteCount} · ${processing.result.lineCount} · ${processing.result.sectionCount}`
+                        : "pending"}
+                    </strong>
+                  </span>
+                </div>
+                {processing.result && (
+                  <p>
+                    <strong>Bounded safe preview</strong>
+                    <br />
+                    {processing.result.safePreview}
+                    {processing.result.previewTruncated ? "…" : ""}
+                  </p>
+                )}
+                {processing.reasonCode && (
+                  <p>
+                    Processing stopped safely:{" "}
+                    <strong>{processing.reasonCode}</strong>
+                  </p>
+                )}
+                <p>
+                  Basic digest and structural counts only. No RAG ingestion,
+                  semantic understanding, evidence-quality or compliance claim.
+                </p>
+              </div>
+            )}
             <div className="ppl-button-row">
               <button
                 className="ppl-button"
@@ -698,7 +787,8 @@ export function App() {
             </div>
             <p className="ppl-runtime-message">
               Events: {sourceOutcome.eventTypes.join(", ")}. Source content is
-              intentionally absent from lifecycle, policy and event views.
+              absent from lifecycle, policy, event and Presentation views; only
+              this authorised Workbench receives the bounded processing preview.
             </p>
           </section>
         )}

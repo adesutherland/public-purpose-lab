@@ -451,7 +451,7 @@ paths:
         the authenticated synthetic reviewer, environment, session, purpose
         and authority binding. CNT-01 records quarantine and its bounded
         validation result before responding. It does not stage or process
-        content.
+        content until a separate authorised staging command succeeds.
       security:
         - applicationSession: []
       parameters:
@@ -504,7 +504,8 @@ paths:
         Derives the protected reviewer, environment, session, purpose and
         authority fields at the Presentation Gateway. CNT-01 requests an exact
         AZ-001 decision from deployed AUT-01 and records the conclusive staging
-        state. It does not start knowledge processing.
+        state. The durable staged-source fact is the only input that can start
+        KNO-01 processing.
       security:
         - applicationSession: []
       parameters:
@@ -550,6 +551,51 @@ paths:
               schema:
                 $ref: ../source/a-002-staged-source-release.schema.json
         "401":
+          $ref: "#/components/responses/Refused"
+  /api/v1/source-processing/{source_version_id}:
+    get:
+      tags: [source, knowledge]
+      operationId: getSourceProcessingStatus
+      description: >-
+        Returns K-001 lifecycle state and the bounded Workbench result only
+        after verifying that the caller is the synthetic reviewer bound to the
+        source demonstration session. The result is basic inspection, not RAG
+        ingestion, semantic understanding, evidence quality or compliance.
+      security:
+        - applicationSession: []
+      parameters:
+        - $ref: "#/components/parameters/SourceVersionId"
+      responses:
+        "200":
+          description: Current idempotent KNO-01 processing lifecycle and bounded result.
+          content:
+            application/json:
+              schema:
+                $ref: ../knowledge/k-001-staged-source-processing.schema.json
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
+          $ref: "#/components/responses/Refused"
+  /api/v1/presentation-processing:
+    get:
+      tags: [presentation, knowledge]
+      operationId: getPresentationProcessingProgress
+      description: >-
+        Returns read-only processing state, timings and structural counts for
+        the audience-display binding. Source bodies and bounded previews are
+        deliberately absent, and this route grants no business operation.
+      security:
+        - applicationSession: []
+      responses:
+        "200":
+          description: Safe Presentation progress derived from K-001 state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractValue"
+        "401":
+          $ref: "#/components/responses/Refused"
+        "409":
           $ref: "#/components/responses/Refused"
 components:
   securitySchemes:

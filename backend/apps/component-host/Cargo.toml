@@ -12,6 +12,7 @@ futures-util = "0.3"
 ppl-contracts = { path = "../../crates/contracts" }
 ppl-aut-01 = { path = "../../components/aut-01" }
 ppl-cnt-01 = { path = "../../components/cnt-01" }
+ppl-kno-01 = { path = "../../components/kno-01" }
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
 serde_json = "1"
 sha2 = "0.10"

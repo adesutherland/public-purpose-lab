@@ -30,6 +30,8 @@ interface OperationalEvent {
   status: string;
   occurredAt: string;
   correlationId?: string;
+  causationId?: string;
+  idempotencyKey?: string;
   commandName?: string;
   reasonCode?: string;
   subjectReference?: string;
@@ -54,6 +56,7 @@ export function App() {
   const [mesh, setMesh] = useState<MeshSnapshot>();
   const [events, setEvents] = useState<OperationalEvent[]>([]);
   const [componentFilter, setComponentFilter] = useState("all");
+  const [correlationFilter, setCorrelationFilter] = useState("all");
   const [showReadiness, setShowReadiness] = useState(false);
   const [probeMessage, setProbeMessage] = useState<string>();
   const [message, setMessage] = useState(
@@ -89,10 +92,17 @@ export function App() {
           (event) =>
             (componentFilter === "all" ||
               event.componentId === componentFilter) &&
+            (correlationFilter === "all" ||
+              event.correlationId === correlationFilter) &&
             (showReadiness || event.eventType !== "component.ready"),
         )
-        .slice(0, 18),
-    [componentFilter, events, showReadiness],
+        .slice(0, 36),
+    [componentFilter, correlationFilter, events, showReadiness],
+  );
+  const correlations = useMemo(
+    () =>
+      [...new Set(events.flatMap((event) => event.correlationId ?? []))].sort(),
+    [events],
   );
 
   const runProbe = async () => {
@@ -121,7 +131,9 @@ export function App() {
           </span>
           <span>Public Purpose Lab</span>
         </a>
-        <span className="ppl-maturity">Gate C · source intake active</span>
+        <span className="ppl-maturity">
+          Gate C · DS-03 completion candidate
+        </span>
       </header>
 
       <main>
@@ -130,7 +142,8 @@ export function App() {
           <h1>One mesh. Distinct responsibilities.</h1>
           <p className="ppl-purpose">
             Live readiness and correlated scenario, identity and semantic-view
-            events from the component mesh in this synthetic environment.
+            events from the component mesh in this synthetic environment,
+            including CNT-01 to KNO-01 processing evidence.
           </p>
           <div className="ops-summary" role="status">
             <strong>{mesh?.ready ?? 0}</strong>
@@ -234,6 +247,20 @@ export function App() {
                   ))}
                 </select>
               </label>
+              <label className="ppl-field ops-filter">
+                Correlation
+                <select
+                  value={correlationFilter}
+                  onChange={(event) => setCorrelationFilter(event.target.value)}
+                >
+                  <option value="all">All correlations</option>
+                  {correlations.map((correlation) => (
+                    <option key={correlation} value={correlation}>
+                      {correlation}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="ops-checkbox">
                 <input
                   type="checkbox"
@@ -247,7 +274,7 @@ export function App() {
           <div className="ops-timeline">
             {filteredEvents.length === 0 && (
               <p className="ops-empty-events">
-                No scenario or command outcomes yet. Run Gate B in the Director
+                No scenario or command outcomes yet. Run Gate C in the Director
                 or probe the component mesh.
               </p>
             )}
@@ -259,11 +286,18 @@ export function App() {
                 <span className="ppl-mono">{event.componentId}</span>
                 <strong>{event.eventType}</strong>
                 <span>{event.commandName ?? event.status}</span>
-                <span className="ppl-mono ops-correlation">
-                  {event.subjectReference ??
-                    event.correlationId ??
-                    event.reasonCode ??
-                    "readiness"}
+                <span className="ppl-mono ops-evidence">
+                  evidence {event.eventId}
+                  <br />
+                  subject {event.subjectReference ?? "none"}
+                  <br />
+                  correlation {event.correlationId ?? "none"}
+                  {event.reasonCode ? (
+                    <>
+                      <br />
+                      refusal {event.reasonCode}
+                    </>
+                  ) : null}
                 </span>
               </article>
             ))}
@@ -272,7 +306,7 @@ export function App() {
       </main>
 
       <footer>
-        <span>OPS-01 · O-001 · Gate C working slice</span>
+        <span>OPS-01 · O-001 · Gate C closure candidate</span>
         <span>Synthetic data only · no compliance claim</span>
       </footer>
     </div>

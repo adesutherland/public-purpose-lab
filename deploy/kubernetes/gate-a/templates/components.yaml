@@ -77,6 +77,10 @@ spec:
             - name: PPL_SOURCE_STATE_PATH
               value: /var/lib/public-purpose-lab/source-governance.sqlite
             {{- end }}
+            {{- if .processingState }}
+            - name: PPL_PROCESSING_STATE_PATH
+              value: /var/lib/public-purpose-lab/knowledge-processing.sqlite
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -119,6 +123,10 @@ spec:
             - name: source-state
               mountPath: /var/lib/public-purpose-lab
             {{- end }}
+            {{- if .processingState }}
+            - name: processing-state
+              mountPath: /var/lib/public-purpose-lab
+            {{- end }}
       volumes:
         - name: nkey
           secret:
@@ -135,6 +143,11 @@ spec:
           persistentVolumeClaim:
             claimName: gate-a-source-governance-state
         {{- end }}
+        {{- if .processingState }}
+        - name: processing-state
+          persistentVolumeClaim:
+            claimName: gate-a-knowledge-processing-state
+        {{- end }}
 {{- if .sourceState }}
 ---
 apiVersion: v1
@@ -143,6 +156,21 @@ metadata:
   name: gate-a-source-governance-state
   labels:
     app.kubernetes.io/name: gate-a-source-governance
+    app.kubernetes.io/part-of: public-purpose-lab
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 256Mi
+{{- end }}
+{{- if .processingState }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gate-a-knowledge-processing-state
+  labels:
+    app.kubernetes.io/name: gate-a-knowledge-processing
     app.kubernetes.io/part-of: public-purpose-lab
 spec:
   accessModes: ["ReadWriteOnce"]

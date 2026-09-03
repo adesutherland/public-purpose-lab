@@ -9,7 +9,13 @@ use std::{
     time::{Duration, Instant},
 };
 
-use async_nats::{Client, ConnectOptions};
+use async_nats::{
+    Client, ConnectOptions,
+    jetstream::{
+        self,
+        consumer::{AckPolicy, pull},
+    },
+};
 use axum::{
     Json, Router,
     extract::State,
@@ -23,10 +29,13 @@ use ppl_cnt_01::{SourceLifecycleEvent, SourceStore};
 use ppl_contracts::{
     A001_VERSION, A002_VERSION, AZ001_VERSION, AssertionStatus, AssertionType,
     AuthorisationDecision, AuthorisationDecisionRequest, AuthorisationDecisionStatus,
-    AuthorisationObligation, AuthoritativeAssertion, O001_VERSION, OperationalCommand,
-    OperationalEvent, PrincipalReference, PrincipalType, SourceIntakeCommand, SourceIntakeQuery,
+    AuthorisationObligation, AuthoritativeAssertion, K001_VERSION, O001_VERSION,
+    OperationalCommand, OperationalEvent, PrincipalReference, PrincipalType,
+    ProcessingLifecycleQuery, ProcessingLifecycleState, SourceIntakeCommand, SourceIntakeQuery,
     SourceIntakeStatus, SourceLifecycleQuery, SourceStageCommand, SourceValidationStatus,
+    StagedSourceContent, StagedSourceContentQuery,
 };
+use ppl_kno_01::{ProcessingLifecycleEvent, ProcessingStore, inspect_content};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
@@ -47,6 +56,10 @@ const STALE_AFTER: Duration = Duration::from_secs(15);
 const MAX_EVENTS: usize = 250;
 const SOURCE_AUTHORISATION_SUBJECT: &str = "ppl.gate-c.decisions.AUT-01";
 const SOURCE_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.CNT-01";
+const PROCESSING_LIFECYCLE_EVENT_SUBJECT: &str = "ppl.gate-c.events.KNO-01";
+const SOURCE_PROCESSING_INPUT_SUBJECT: &str = "ppl.gate-c.processing-input.CNT-01";
+const PROCESSING_QUERY_SUBJECT: &str = "ppl.gate-c.queries.KNO-01";
+const SOURCE_STREAM_NAME: &str = "PPL_GATE_C_SOURCE";
 
 #[derive(Clone, Copy)]
 struct ComponentDefinition {
@@ -96,7 +109,7 @@ const COMPONENTS: [ComponentDefinition; 12] = [
     ComponentDefinition {
         id: "KNO-01",
         name: "knowledge-processing",
-        capability: "bounded knowledge-processing boundary",
+        capability: "bounded staged-source processing lifecycle",
         command: "inspect-processing-capability",
     },
     ComponentDefinition {
@@ -146,6 +159,7 @@ struct Config {
     image_digest: String,
     static_directory: Option<PathBuf>,
     source_state_path: Option<PathBuf>,
+    processing_state_path: Option<PathBuf>,
 }
 
 #[derive(Clone)]
@@ -156,6 +170,7 @@ struct AppState {
     events: Arc<RwLock<VecDeque<OperationalEvent>>>,
     idempotency: Arc<Mutex<HashMap<String, String>>>,
     source_store: Option<SourceStore>,
+    processing_store: Option<ProcessingStore>,
 }
 
 #[derive(Clone)]
@@ -209,6 +224,12 @@ async fn run() -> Result<(), SafeError> {
         }
         None => None,
     };
+    let processing_store = match &config.processing_state_path {
+        Some(path) => Some(
+            ProcessingStore::open(path).map_err(|_| SafeError("processing-store-unavailable"))?,
+        ),
+        None => None,
+    };
     let state = AppState {
         config: config.clone(),
         client,
@@ -216,6 +237,7 @@ async fn run() -> Result<(), SafeError> {
         events: Arc::new(RwLock::new(VecDeque::new())),
         idempotency: Arc::new(Mutex::new(HashMap::new())),
         source_store,
+        processing_store,
     };
 
     if config.component.id == "OPS-01" {
@@ -241,6 +263,18 @@ async fn run() -> Result<(), SafeError> {
                 error!(reason = error.0, "source authorisation consumer stopped");
             }
         });
+    }
+    if config.component.id == "KNO-01" {
+        let staged = state.clone();
+        tokio::spawn(async move { consume_staged_sources(staged).await });
+        let queries = state.clone();
+        tokio::spawn(async move {
+            if let Err(error) = consume_processing_queries(queries).await {
+                error!(reason = error.0, "processing query consumer stopped");
+            }
+        });
+        let processor = state.clone();
+        tokio::spawn(async move { reconcile_processing(processor).await });
     }
     let commands = state.clone();
     tokio::spawn(async move {
@@ -348,6 +382,13 @@ async fn contracts(State(state): State<AppState>) -> Json<Value> {
             "contractId": "AZ-001",
             "contractVersion": AZ001_VERSION,
             "status": "agreed"
+        }));
+    }
+    if state.config.component.id == "KNO-01" {
+        contracts.push(json!({
+            "contractId": "K-001",
+            "contractVersion": K001_VERSION,
+            "status": "implemented"
         }));
     }
     Json(json!({
@@ -520,6 +561,11 @@ async fn consume_source_intake(state: AppState) -> Result<(), SafeError> {
         .subscribe("ppl.gate-c.queries.CNT-01")
         .await
         .map_err(|_| SafeError("source-query-subscription-unavailable"))?;
+    let mut processing_inputs = state
+        .client
+        .subscribe(SOURCE_PROCESSING_INPUT_SUBJECT)
+        .await
+        .map_err(|_| SafeError("processing-input-subscription-unavailable"))?;
     let mut retry = tokio::time::interval(Duration::from_secs(2));
 
     loop {
@@ -541,10 +587,29 @@ async fn consume_source_intake(state: AppState) -> Result<(), SafeError> {
                 let response = handle_source_query(&state, &store, &message.payload);
                 respond(&state, reply, response).await?;
             }
+            Some(message) = processing_inputs.next() => {
+                let Some(reply) = message.reply else {
+                    warn!("processing input query without reply subject was refused");
+                    continue;
+                };
+                let response = handle_processing_input_query(&state, &store, &message.payload);
+                respond(&state, reply, response).await?;
+            }
             _ = retry.tick() => publish_source_outbox(&state, &store).await,
             else => return Err(SafeError("source-intake-subscription-closed")),
         }
     }
+}
+
+fn handle_processing_input_query(
+    state: &AppState,
+    store: &SourceStore,
+    payload: &[u8],
+) -> Result<Vec<u8>, ppl_cnt_01::SourceStoreError> {
+    let query: StagedSourceContentQuery = serde_json::from_slice(payload)
+        .map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)?;
+    let response = store.processing_input(&query, &state.config.environment_id, &now())?;
+    serde_json::to_vec(&response).map_err(|_| ppl_cnt_01::SourceStoreError::OutcomeInvalid)
 }
 
 async fn handle_source_command(
@@ -856,6 +921,325 @@ async fn publish_source_outbox(state: &AppState, store: &SourceStore) {
     }
 }
 
+async fn consume_staged_sources(state: AppState) {
+    loop {
+        if let Err(error) = consume_staged_stream_once(&state).await {
+            warn!(reason = error.0, "staged-source consumer will retry");
+        }
+        tokio::time::sleep(Duration::from_secs(2)).await;
+    }
+}
+
+async fn consume_staged_stream_once(state: &AppState) -> Result<(), SafeError> {
+    let store = state
+        .processing_store
+        .clone()
+        .ok_or(SafeError("processing-store-unavailable"))?;
+    let context = jetstream::new(state.client.clone());
+    let stream = context
+        .get_stream(SOURCE_STREAM_NAME)
+        .await
+        .map_err(|_| SafeError("source-stream-unavailable"))?;
+    let consumer = stream
+        .get_or_create_consumer(
+            "knowledge-processing",
+            pull::Config {
+                durable_name: Some("knowledge-processing".to_owned()),
+                description: Some("KNO-01 durable staged-source consumer for Gate C".to_owned()),
+                ack_policy: AckPolicy::Explicit,
+                ack_wait: Duration::from_secs(15),
+                max_deliver: 10,
+                filter_subject: SOURCE_LIFECYCLE_EVENT_SUBJECT.to_owned(),
+                max_ack_pending: 32,
+                ..Default::default()
+            },
+        )
+        .await
+        .map_err(|_| SafeError("processing-consumer-unavailable"))?;
+    let mut messages = consumer
+        .messages()
+        .await
+        .map_err(|_| SafeError("processing-message-stream-unavailable"))?;
+    while let Some(message) = messages.next().await {
+        let message = message.map_err(|_| SafeError("processing-message-delivery-failed"))?;
+        let Ok(event) = serde_json::from_slice::<OperationalEvent>(&message.payload) else {
+            warn!("malformed source lifecycle fact was refused");
+            if let Err(error) = message.ack().await {
+                warn!(reason = %error, "malformed source fact acknowledgement failed");
+            }
+            continue;
+        };
+        if event.event_type != "source.staged" {
+            if let Err(error) = message.ack().await {
+                warn!(reason = %error, "non-staged source fact acknowledgement failed");
+            }
+            continue;
+        }
+        match store.accept(&event, &state.config.environment_id, &now()) {
+            Ok(_) => {
+                publish_processing_outbox(state, &store).await;
+                if let Err(error) = message.ack().await {
+                    warn!(reason = %error, "staged-source acknowledgement failed");
+                }
+            }
+            Err(ppl_kno_01::ProcessingStoreError::EventRefused) => {
+                warn!("staged-source fact failed the KNO-01 boundary checks");
+                if let Err(error) = message.ack().await {
+                    warn!(reason = %error, "refused staged-source acknowledgement failed");
+                }
+            }
+            Err(_) => warn!("staged-source fact remains unacknowledged for reconciliation"),
+        }
+    }
+    Err(SafeError("processing-message-stream-closed"))
+}
+
+async fn consume_processing_queries(state: AppState) -> Result<(), SafeError> {
+    let store = state
+        .processing_store
+        .clone()
+        .ok_or(SafeError("processing-store-unavailable"))?;
+    let mut queries = state
+        .client
+        .subscribe(PROCESSING_QUERY_SUBJECT)
+        .await
+        .map_err(|_| SafeError("processing-query-subscription-unavailable"))?;
+    while let Some(message) = queries.next().await {
+        let Some(reply) = message.reply else {
+            warn!("processing query without reply subject was refused");
+            continue;
+        };
+        let response = handle_processing_query(&state, &store, &message.payload);
+        respond_processing(&state, reply, response).await?;
+    }
+    Err(SafeError("processing-query-subscription-closed"))
+}
+
+fn handle_processing_query(
+    state: &AppState,
+    store: &ProcessingStore,
+    payload: &[u8],
+) -> Result<Vec<u8>, ppl_kno_01::ProcessingStoreError> {
+    let query: ProcessingLifecycleQuery =
+        serde_json::from_slice(payload).map_err(|_| ppl_kno_01::ProcessingStoreError::Invalid)?;
+    if query.contract_id != "K-001"
+        || query.contract_version != K001_VERSION
+        || query.message_type != "processing-lifecycle.query"
+        || query.environment_id != state.config.environment_id
+        || query.source_version_id.is_some() == query.demonstration_session_id.is_some()
+    {
+        return Err(ppl_kno_01::ProcessingStoreError::Invalid);
+    }
+    let status = if let Some(source_version_id) = query.source_version_id {
+        store.status(&source_version_id, &state.config.environment_id)?
+    } else if let Some(session_id) = query.demonstration_session_id {
+        store.latest_for_session(&session_id, &state.config.environment_id)?
+    } else {
+        return Err(ppl_kno_01::ProcessingStoreError::Invalid);
+    };
+    serde_json::to_vec(&status).map_err(|_| ppl_kno_01::ProcessingStoreError::Invalid)
+}
+
+async fn respond_processing(
+    state: &AppState,
+    reply: async_nats::Subject,
+    response: Result<Vec<u8>, ppl_kno_01::ProcessingStoreError>,
+) -> Result<(), SafeError> {
+    let bytes = response.unwrap_or_else(|error| {
+        serde_json::to_vec(&json!({
+            "status": "refused",
+            "code": error.to_string(),
+            "informationProfile": INFORMATION_PROFILE,
+        }))
+        .unwrap_or_default()
+    });
+    state
+        .client
+        .publish(reply, bytes.into())
+        .await
+        .map_err(|_| SafeError("processing-response-publish-failed"))
+}
+
+async fn reconcile_processing(state: AppState) {
+    let Some(store) = state.processing_store.clone() else {
+        return;
+    };
+    let mut retry = tokio::time::interval(Duration::from_millis(250));
+    loop {
+        retry.tick().await;
+        publish_processing_outbox(&state, &store).await;
+        let Ok(source_versions) = store.reconcilable() else {
+            warn!("processing reconciliation state could not be read");
+            continue;
+        };
+        for source_version_id in source_versions {
+            process_source_version(&state, &store, &source_version_id).await;
+        }
+    }
+}
+
+async fn process_source_version(
+    state: &AppState,
+    store: &ProcessingStore,
+    source_version_id: &str,
+) {
+    let Ok(previous) = store.status(source_version_id, &state.config.environment_id) else {
+        return;
+    };
+    let Ok(started) = store.start(source_version_id, &state.config.environment_id, &now()) else {
+        return;
+    };
+    publish_processing_outbox(state, store).await;
+    if previous.lifecycle_status == ProcessingLifecycleState::Accepted {
+        tokio::time::sleep(Duration::from_millis(350)).await;
+    }
+    let query = StagedSourceContentQuery {
+        contract_id: "K-001".to_owned(),
+        contract_version: K001_VERSION.to_owned(),
+        message_type: "staged-source-content.query".to_owned(),
+        query_id: format!("processing-input-query:{}", Uuid::new_v4()),
+        environment_id: state.config.environment_id.clone(),
+        demonstration_session_id: started.demonstration_session_id.clone(),
+        source_version_id: source_version_id.to_owned(),
+        requester_component: "KNO-01".to_owned(),
+        purpose: "bounded-source-processing".to_owned(),
+        correlation_id: started.correlation_id.clone(),
+        causation_id: started.processing_id.clone(),
+        requested_at: now(),
+    };
+    let response = tokio::time::timeout(
+        Duration::from_secs(5),
+        state.client.request(
+            SOURCE_PROCESSING_INPUT_SUBJECT,
+            match serde_json::to_vec(&query) {
+                Ok(bytes) => bytes.into(),
+                Err(_) => return,
+            },
+        ),
+    )
+    .await;
+    let Ok(Ok(message)) = response else {
+        return;
+    };
+    let input = match serde_json::from_slice::<StagedSourceContent>(&message.payload) {
+        Ok(input)
+            if input.contract_id == "K-001"
+                && input.contract_version == K001_VERSION
+                && input.environment_id == state.config.environment_id
+                && input.demonstration_session_id == started.demonstration_session_id
+                && input.source_version_id == source_version_id
+                && input.released_to_component == "KNO-01"
+                && input.purpose == "bounded-source-processing" =>
+        {
+            input
+        }
+        _ => {
+            let _ = store.fail(
+                source_version_id,
+                &state.config.environment_id,
+                "source-input-refused",
+                &now(),
+            );
+            publish_processing_outbox(state, store).await;
+            return;
+        }
+    };
+    match inspect_content(&input) {
+        Ok(result) => {
+            let _ = store.complete(
+                source_version_id,
+                &state.config.environment_id,
+                &result,
+                &now(),
+            );
+        }
+        Err(reason) => {
+            let _ = store.fail(
+                source_version_id,
+                &state.config.environment_id,
+                reason,
+                &now(),
+            );
+        }
+    }
+    publish_processing_outbox(state, store).await;
+}
+
+async fn publish_processing_outbox(state: &AppState, store: &ProcessingStore) {
+    let Ok(events) = store.pending_events() else {
+        warn!("processing event outbox could not be read");
+        return;
+    };
+    for event in events {
+        let operational = processing_operational_event(&state.config, &event);
+        let durable = jetstream::new(state.client.clone())
+            .publish(
+                PROCESSING_LIFECYCLE_EVENT_SUBJECT,
+                match serde_json::to_vec(&operational) {
+                    Ok(bytes) => bytes.into(),
+                    Err(_) => break,
+                },
+            )
+            .await;
+        let durable = match durable {
+            Ok(acknowledgement) => acknowledgement.await.is_ok(),
+            Err(_) => false,
+        };
+        if durable && publish_event(state, &operational).await.is_ok() {
+            if store.mark_published(&event.event_id, &now()).is_err() {
+                warn!(
+                    event_id = event.event_id,
+                    "processing event publication could not be concluded"
+                );
+            }
+        } else {
+            warn!(
+                event_id = event.event_id,
+                "processing event remains pending durable publication"
+            );
+            break;
+        }
+    }
+}
+
+fn processing_operational_event(
+    config: &Config,
+    processing: &ProcessingLifecycleEvent,
+) -> OperationalEvent {
+    let status = match processing.event_type.as_str() {
+        "processing.completed" => "completed",
+        "processing.failed" => "failed",
+        "processing.started" => "processing",
+        _ => "accepted",
+    };
+    OperationalEvent {
+        contract_id: "O-001".to_owned(),
+        contract_version: O001_VERSION.to_owned(),
+        event_id: processing.event_id.clone(),
+        event_type: processing.event_type.clone(),
+        component_id: config.component.id.to_owned(),
+        component_name: config.component.name.to_owned(),
+        instance_id: config.instance_id.clone(),
+        workload_identity: config.workload_identity.clone(),
+        environment_id: config.environment_id.clone(),
+        status: status.to_owned(),
+        capability: config.component.capability.to_owned(),
+        source_revision: config.source_revision.clone(),
+        image_digest: config.image_digest.clone(),
+        occurred_at: processing.occurred_at.clone(),
+        information_profile: INFORMATION_PROFILE.to_owned(),
+        command_name: Some("process-staged-source".to_owned()),
+        correlation_id: Some(processing.correlation_id.clone()),
+        causation_id: Some(processing.causation_id.clone()),
+        idempotency_key: Some(format!(
+            "processing:{}:{}",
+            processing.source_version_id, processing.event_type
+        )),
+        reason_code: processing.reason_code.clone(),
+        subject_reference: Some(processing.source_version_id.clone()),
+    }
+}
+
 fn source_operational_event(config: &Config, source: &SourceLifecycleEvent) -> OperationalEvent {
     OperationalEvent {
         contract_id: "O-001".to_owned(),
@@ -1073,6 +1457,11 @@ fn load_config() -> Result<Config, SafeError> {
         static_directory: env::var("PPL_STATIC_DIRECTORY").ok().map(PathBuf::from),
         source_state_path: if component.id == "CNT-01" {
             Some(PathBuf::from(required_env("PPL_SOURCE_STATE_PATH")?))
+        } else {
+            None
+        },
+        processing_state_path: if component.id == "KNO-01" {
+            Some(PathBuf::from(required_env("PPL_PROCESSING_STATE_PATH")?))
         } else {
             None
         },

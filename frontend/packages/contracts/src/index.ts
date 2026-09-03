@@ -30,6 +30,7 @@ export const m3ContractVersions = {
 export const gateCContractVersions = {
   "A-001": "0.1.0",
   "A-002": "0.1.0",
+  "K-001": "0.1.0",
 } as const;
 
 export type SourceAcquisitionMode = "upload" | "paste";
@@ -119,6 +120,59 @@ export interface SourceStageOutcome {
   readonly code: string;
   readonly sourceStatus: SourceLifecycleStatus;
   readonly eventTypes: readonly string[];
+}
+
+export type ProcessingLifecycleState =
+  "accepted" | "processing" | "completed" | "failed";
+
+export interface ProcessingLifecycleStage {
+  readonly state: ProcessingLifecycleState;
+  readonly occurredAt: string;
+  readonly reasonCode?: string;
+}
+
+export interface BoundedProcessingResult {
+  readonly digestVerified: boolean;
+  readonly byteCount: number;
+  readonly lineCount: number;
+  readonly sectionCount: number;
+  readonly safePreview: string;
+  readonly previewTruncated: boolean;
+}
+
+export interface ProcessingLifecycleStatus {
+  readonly contractId: "K-001";
+  readonly contractVersion: "0.1.0";
+  readonly messageType: "processing-lifecycle.status";
+  readonly statusId: string;
+  readonly processingId: string;
+  readonly environmentId: string;
+  readonly demonstrationSessionId: string;
+  readonly engagementId: string;
+  readonly sourceVersionId: string;
+  readonly correlationId: string;
+  readonly causationId: string;
+  readonly lifecycleStatus: ProcessingLifecycleState;
+  readonly stages: readonly ProcessingLifecycleStage[];
+  readonly result?: BoundedProcessingResult;
+  readonly reasonCode?: string;
+  readonly terminalCount: number;
+  readonly recordedAt: string;
+}
+
+export interface PresentationProcessingProgress {
+  readonly processingId: string;
+  readonly sourceVersionId: string;
+  readonly componentId: "KNO-01";
+  readonly lifecycleStatus: ProcessingLifecycleState;
+  readonly latestOutcome: string;
+  readonly acceptedAt?: string;
+  readonly startedAt?: string;
+  readonly completedAt?: string;
+  readonly byteCount?: number;
+  readonly lineCount?: number;
+  readonly sectionCount?: number;
+  readonly limitation: string;
 }
 
 export type ScenarioLifecycleAction =

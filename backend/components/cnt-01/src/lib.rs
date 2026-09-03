@@ -11,12 +11,12 @@ use std::{
 };
 
 use ppl_contracts::{
-    A001_VERSION, A002_VERSION, AuthorisationDecision, AuthorisationDecisionStatus,
+    A001_VERSION, A002_VERSION, AuthorisationDecision, AuthorisationDecisionStatus, K001_VERSION,
     SourceAcquisitionMode, SourceIntakeCommand, SourceIntakeOutcome, SourceIntakeStatus,
     SourceLifecycleState, SourceLifecycleStatus, SourceStageCommand, SourceStageOutcome,
     SourceStageOutcomeStatus, SourceStagingStatus, SourceStagingSummary, SourceValidationCheck,
     SourceValidationCheckStatus, SourceValidationStatus, SourceValidationSummary,
-    SourceVersionSummary,
+    SourceVersionSummary, StagedSourceContent, StagedSourceContentQuery,
 };
 use rusqlite::{Connection, OptionalExtension, Transaction, params};
 use serde::{Deserialize, Serialize};
@@ -63,6 +63,7 @@ struct StoredSource {
     demonstration_session_id: String,
     engagement_id: String,
     media_type: String,
+    size_bytes: i64,
     digest_value: String,
     content: String,
 }
@@ -228,6 +229,59 @@ impl SourceStore {
     ) -> Result<SourceLifecycleStatus, SourceStoreError> {
         let connection = self.connect()?;
         lifecycle_status(&connection, source_version_id, expected_environment)
+    }
+
+    /// Returns the exact staged body only to the bounded `KNO-01` workload exchange.
+    ///
+    /// This response is protected component traffic. It must not be published to
+    /// lifecycle streams, logs or browser-facing presentation progress.
+    ///
+    /// # Errors
+    /// Refuses an unstaged, cross-environment, cross-session or malformed query.
+    pub fn processing_input(
+        &self,
+        query: &StagedSourceContentQuery,
+        expected_environment: &str,
+        recorded_at: &str,
+    ) -> Result<StagedSourceContent, SourceStoreError> {
+        if query.contract_id != "K-001"
+            || query.contract_version != K001_VERSION
+            || query.message_type != "staged-source-content.query"
+            || query.environment_id != expected_environment
+            || query.requester_component != "KNO-01"
+            || query.purpose != "bounded-source-processing"
+        {
+            return Err(SourceStoreError::OutcomeInvalid);
+        }
+        let connection = self.connect()?;
+        let source = stored_source(&connection, &query.source_version_id, expected_environment)?;
+        let lifecycle =
+            lifecycle_status(&connection, &query.source_version_id, expected_environment)?;
+        if lifecycle.lifecycle_status != SourceLifecycleState::Staged
+            || lifecycle.demonstration_session_id != query.demonstration_session_id
+        {
+            return Err(SourceStoreError::NotFound);
+        }
+        Ok(StagedSourceContent {
+            contract_id: "K-001".to_owned(),
+            contract_version: K001_VERSION.to_owned(),
+            message_type: "staged-source-content.response".to_owned(),
+            response_id: format!("content-response:{}", Uuid::new_v4()),
+            query_id: query.query_id.clone(),
+            environment_id: source.environment_id,
+            demonstration_session_id: source.demonstration_session_id,
+            engagement_id: source.engagement_id,
+            source_version_id: source.source_version_id,
+            media_type: source.media_type,
+            size_bytes: u64::try_from(source.size_bytes)
+                .map_err(|_| SourceStoreError::OutcomeInvalid)?,
+            digest_algorithm: "sha-256".to_owned(),
+            digest_value: source.digest_value,
+            content: source.content,
+            released_to_component: "KNO-01".to_owned(),
+            purpose: query.purpose.clone(),
+            recorded_at: recorded_at.to_owned(),
+        })
     }
 
     /// Applies one reviewer-controlled staging command after an `AZ-001` decision.
@@ -526,7 +580,7 @@ fn stored_source(
     connection
         .query_row(
             "SELECT source_version_id, environment_id, demonstration_session_id,
-                    engagement_id, media_type, digest_value, content_text
+                    engagement_id, media_type, size_bytes, digest_value, content_text
              FROM source_versions
              WHERE source_version_id = ?1 AND environment_id = ?2",
             params![source_version_id, expected_environment],
@@ -537,8 +591,9 @@ fn stored_source(
                     demonstration_session_id: row.get(2)?,
                     engagement_id: row.get(3)?,
                     media_type: row.get(4)?,
-                    digest_value: row.get(5)?,
-                    content: row.get(6)?,
+                    size_bytes: row.get(5)?,
+                    digest_value: row.get(6)?,
+                    content: row.get(7)?,
                 })
             },
         )
@@ -1400,6 +1455,70 @@ mod tests {
         let encoded = serde_json::to_string(&staged).expect("metadata-only outcome");
         assert!(!encoded.contains("Synthetic policy text"));
         assert_eq!(reopened.pending_events().expect("outbox").len(), 4);
+    }
+
+    #[test]
+    fn protected_processing_input_requires_the_exact_staged_session() {
+        let directory = tempdir().expect("temporary directory");
+        let store = SourceStore::open(directory.path().join("source.sqlite")).expect("store");
+        let text = "# Synthetic source\n\nBounded processing input.";
+        let intake = store
+            .apply(
+                &command(text, "source-intake:test-processing-input"),
+                "environment-test-0001",
+                "2026-09-03T09:00:00Z",
+            )
+            .expect("intake");
+        let source_version_id = intake
+            .source_version
+            .expect("source version")
+            .source_version_id;
+        store
+            .validate_source(
+                &source_version_id,
+                "environment-test-0001",
+                "2026-09-03T09:00:01Z",
+            )
+            .expect("validated");
+        let stage = stage_command(&source_version_id, "source-stage:test-processing-input");
+        store
+            .stage(
+                &stage,
+                &decision(&stage, AuthorisationDecisionStatus::Permit, "policy-permit"),
+                "environment-test-0001",
+                "2026-09-03T09:00:02Z",
+            )
+            .expect("staged");
+        let query = StagedSourceContentQuery {
+            contract_id: "K-001".to_owned(),
+            contract_version: K001_VERSION.to_owned(),
+            message_type: "staged-source-content.query".to_owned(),
+            query_id: "processing-input-query:test".to_owned(),
+            environment_id: "environment-test-0001".to_owned(),
+            demonstration_session_id: "session:test-0001".to_owned(),
+            source_version_id,
+            requester_component: "KNO-01".to_owned(),
+            purpose: "bounded-source-processing".to_owned(),
+            correlation_id: "session:test-0001".to_owned(),
+            causation_id: "processing:test-0001".to_owned(),
+            requested_at: "2026-09-03T09:00:03Z".to_owned(),
+        };
+        let response = store
+            .processing_input(&query, "environment-test-0001", "2026-09-03T09:00:04Z")
+            .expect("protected content response");
+        assert_eq!(response.content, text);
+        assert_eq!(response.released_to_component, "KNO-01");
+
+        let mut wrong_session = query;
+        wrong_session.demonstration_session_id = "session:other-0001".to_owned();
+        assert!(matches!(
+            store.processing_input(
+                &wrong_session,
+                "environment-test-0001",
+                "2026-09-03T09:00:05Z"
+            ),
+            Err(SourceStoreError::NotFound)
+        ));
     }
 
     #[test]

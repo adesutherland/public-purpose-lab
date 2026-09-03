@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:public-purpose-lab:contract:K-001:0.1.0",
+  "title": "K-001 staged source processing",
+  "oneOf": [
+    { "$ref": "#/$defs/contentQuery" },
+    { "$ref": "#/$defs/contentResponse" },
+    { "$ref": "#/$defs/lifecycleQuery" },
+    { "$ref": "#/$defs/lifecycleStatus" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9:._-]+$"
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100,
+      "pattern": "^[a-z][a-z0-9-]+$"
+    },
+    "contentQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "queryId",
+        "environmentId",
+        "demonstrationSessionId",
+        "sourceVersionId",
+        "requesterComponent",
+        "purpose",
+        "correlationId",
+        "causationId",
+        "requestedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "K-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "staged-source-content.query" },
+        "queryId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "requesterComponent": { "const": "KNO-01" },
+        "purpose": { "const": "bounded-source-processing" },
+        "correlationId": { "$ref": "#/$defs/identifier" },
+        "causationId": { "$ref": "#/$defs/identifier" },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "contentResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "responseId",
+        "queryId",
+        "environmentId",
+        "demonstrationSessionId",
+        "engagementId",
+        "sourceVersionId",
+        "mediaType",
+        "sizeBytes",
+        "digestAlgorithm",
+        "digestValue",
+        "content",
+        "releasedToComponent",
+        "purpose",
+        "recordedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "K-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "staged-source-content.response" },
+        "responseId": { "$ref": "#/$defs/identifier" },
+        "queryId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "engagementId": { "const": "engagement:harbour-support-review" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "mediaType": { "enum": ["text/plain", "text/markdown"] },
+        "sizeBytes": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "digestAlgorithm": { "const": "sha-256" },
+        "digestValue": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "content": { "type": "string", "minLength": 1, "maxLength": 65536 },
+        "releasedToComponent": { "const": "KNO-01" },
+        "purpose": { "const": "bounded-source-processing" },
+        "recordedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "lifecycleQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "queryId",
+        "environmentId",
+        "requestedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "K-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "processing-lifecycle.query" },
+        "queryId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "requestedAt": { "type": "string", "format": "date-time" }
+      },
+      "oneOf": [
+        {
+          "required": ["sourceVersionId"],
+          "properties": { "sourceVersionId": {} },
+          "not": {
+            "required": ["demonstrationSessionId"],
+            "properties": { "demonstrationSessionId": {} }
+          }
+        },
+        {
+          "required": ["demonstrationSessionId"],
+          "properties": { "demonstrationSessionId": {} },
+          "not": {
+            "required": ["sourceVersionId"],
+            "properties": { "sourceVersionId": {} }
+          }
+        }
+      ]
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "occurredAt"],
+      "properties": {
+        "state": { "enum": ["accepted", "processing", "completed", "failed"] },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "reasonCode": { "$ref": "#/$defs/reasonCode" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "digestVerified",
+        "byteCount",
+        "lineCount",
+        "sectionCount",
+        "safePreview",
+        "previewTruncated"
+      ],
+      "properties": {
+        "digestVerified": { "const": true },
+        "byteCount": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "lineCount": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "sectionCount": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "safePreview": { "type": "string", "maxLength": 240 },
+        "previewTruncated": { "type": "boolean" }
+      }
+    },
+    "lifecycleStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "contractVersion",
+        "messageType",
+        "statusId",
+        "processingId",
+        "environmentId",
+        "demonstrationSessionId",
+        "engagementId",
+        "sourceVersionId",
+        "correlationId",
+        "causationId",
+        "lifecycleStatus",
+        "stages",
+        "terminalCount",
+        "recordedAt"
+      ],
+      "properties": {
+        "contractId": { "const": "K-001" },
+        "contractVersion": { "const": "0.1.0" },
+        "messageType": { "const": "processing-lifecycle.status" },
+        "statusId": { "$ref": "#/$defs/identifier" },
+        "processingId": { "$ref": "#/$defs/identifier" },
+        "environmentId": { "$ref": "#/$defs/identifier" },
+        "demonstrationSessionId": { "$ref": "#/$defs/identifier" },
+        "engagementId": { "const": "engagement:harbour-support-review" },
+        "sourceVersionId": { "$ref": "#/$defs/identifier" },
+        "correlationId": { "$ref": "#/$defs/identifier" },
+        "causationId": { "$ref": "#/$defs/identifier" },
+        "lifecycleStatus": {
+          "enum": ["accepted", "processing", "completed", "failed"]
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/stage" }
+        },
+        "result": { "$ref": "#/$defs/result" },
+        "reasonCode": { "$ref": "#/$defs/reasonCode" },
+        "terminalCount": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "recordedAt": { "type": "string", "format": "date-time" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "lifecycleStatus": { "const": "completed" } }
+          },
+          "then": {
+            "required": ["result"],
+            "properties": {
+              "result": {},
+              "terminalCount": { "const": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "lifecycleStatus": { "const": "failed" } } },
+          "then": {
+            "required": ["reasonCode"],
+            "properties": {
+              "reasonCode": {},
+              "terminalCount": { "const": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "lifecycleStatus": { "enum": ["accepted", "processing"] }
+            }
+          },
+          "then": { "properties": { "terminalCount": { "const": 0 } } }
+        }
+      ]
+    }
+  }
+}

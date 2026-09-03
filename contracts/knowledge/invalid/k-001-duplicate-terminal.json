@@ -1,0 +1,29 @@
+{
+  "contractId": "K-001",
+  "contractVersion": "0.1.0",
+  "messageType": "processing-lifecycle.status",
+  "statusId": "processing-status:invalid-example",
+  "processingId": "processing:invalid-example",
+  "environmentId": "environment-gate-c-example",
+  "demonstrationSessionId": "session:gate-c-example",
+  "engagementId": "engagement:harbour-support-review",
+  "sourceVersionId": "source-version:gate-c-example",
+  "correlationId": "session:gate-c-example",
+  "causationId": "event:source-staged-example",
+  "lifecycleStatus": "completed",
+  "stages": [
+    { "state": "accepted", "occurredAt": "2026-09-03T10:00:00Z" },
+    { "state": "processing", "occurredAt": "2026-09-03T10:00:01Z" },
+    { "state": "completed", "occurredAt": "2026-09-03T10:00:02Z" }
+  ],
+  "result": {
+    "digestVerified": true,
+    "byteCount": 12,
+    "lineCount": 1,
+    "sectionCount": 1,
+    "safePreview": "synthetic",
+    "previewTruncated": false
+  },
+  "terminalCount": 2,
+  "recordedAt": "2026-09-03T10:00:02Z"
+}

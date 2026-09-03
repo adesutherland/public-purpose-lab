@@ -146,7 +146,7 @@ export function App() {
           action,
           expectedState: session.state,
           expectedRevision: session.revision,
-          reason: `Presenter requested ${action} in Gate B.`,
+          reason: `Presenter requested ${action} in Gate C.`,
         },
       );
       const next = result.successor ?? result.session;
@@ -188,7 +188,7 @@ export function App() {
           action: "prepare",
           expectedState: "preparing",
           expectedRevision: revision,
-          reason: "Prepare the approved Gate B scenario.",
+          reason: "Prepare the approved Gate C DS-03 scenario.",
         },
       );
       const next = await refresh(session.sessionId);
@@ -226,8 +226,8 @@ export function App() {
   return (
     <SurfaceShell
       surface={surfaceById("UX-03")}
-      maturityLabel="Gate B · functional demonstration"
-      notice="Synthetic development demonstration only. The Director sequences presentation state; it cannot claim a business action or compliance outcome."
+      maturityLabel="Gate C · DS-03 finishing candidate"
+      notice="Synthetic development demonstration only. The Director sequences presentation views and observes progress; CNT-01 and KNO-01 own every business state change."
     >
       <article className="ppl-card ppl-live-card">
         <p className="ppl-card-label">DIR-ENVIRONMENT · sign-in and trust</p>
@@ -349,7 +349,7 @@ export function App() {
 
       {session && (
         <article className="ppl-card ppl-live-card">
-          <p className="ppl-card-label">DIR-RUN · approved Gate B journey</p>
+          <p className="ppl-card-label">DIR-RUN · approved Gate C journey</p>
           <div className="ppl-status-grid ppl-runtime-message">
             <span>
               Session
@@ -442,6 +442,21 @@ export function App() {
               disabled={!running}
               onClick={() =>
                 void requestView(
+                  "reviewer-workbench",
+                  "wb-source-status",
+                  "Inspect the component-owned source lifecycle",
+                  "Show validation, reviewer staging and KNO-01 processing for the exact immutable source version.",
+                )
+              }
+            >
+              Show Workbench processing
+            </button>
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={!running}
+              onClick={() =>
+                void requestView(
                   "audience-display",
                   "pres-intro",
                   "A governed source, not a magic answer",
@@ -480,6 +495,21 @@ export function App() {
               }
             >
               Open source intake
+            </button>
+            <button
+              className="ppl-button"
+              type="button"
+              disabled={!running}
+              onClick={() =>
+                void requestView(
+                  "audience-display",
+                  "pres-progress",
+                  "A staged source moves through accountable processing",
+                  "Show KNO-01 acceptance, processing and terminal outcome without exposing source content or transferring business control.",
+                )
+              }
+            >
+              Show processing progress
             </button>
             <button
               className="ppl-button ppl-button-secondary"

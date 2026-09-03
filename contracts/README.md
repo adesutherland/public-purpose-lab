@@ -33,6 +33,11 @@ semantics but is not a schema, runtime or deployment claim.
 catalogue status accepts the semantics without implying a canonical schema,
 implementation or qualified deployment.
 
+`A-001`, `A-002` and `K-001` provide the Gate C governed-source contracts at
+version `0.1.0`. `K-001` covers only staged-source receipt, protected content
+handoff, visible lifecycle and deterministic digest/count/preview processing.
+It does not claim RAG ingestion, retrieval or semantic understanding.
+
 JSON Schema is the canonical representation; it does not select OpenAPI,
 AsyncAPI, CloudEvents, Protobuf, an event broker or an API framework. Run
 `pnpm check:contracts` to compile every registered schema and verify its

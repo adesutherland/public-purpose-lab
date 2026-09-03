@@ -44,6 +44,14 @@ const contractSets = [
     statuses: { "A-001": "implemented", "A-002": "working-draft" },
     versions: { "A-001": "0.1.0", "A-002": "0.1.0" },
   },
+  {
+    name: "knowledge",
+    ids: ["K-001"],
+    fixtures: "contracts/knowledge/fixtures.json",
+    compatibility: "contracts/knowledge/compatibility.json",
+    statuses: { "K-001": "implemented" },
+    versions: { "K-001": "0.1.0" },
+  },
 ];
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 

@@ -102,7 +102,7 @@ helm upgrade --install nats nats/nats \
   --set-json 'config.merge.authorization.users[0].permissions.publish=["ppl.m3.to-presentation.*","ppl.m3.to-identity.*","ppl.m3.events.director","ppl.gate-a.events.CTL-01","$JS.>"]' \
   --set-json 'config.merge.authorization.users[0].permissions.subscribe=["ppl.m3.to-director.*","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[1].nkey=$presentation_public" \
-  --set-json 'config.merge.authorization.users[1].permissions.publish=["ppl.m3.to-director.*","ppl.gate-a.events.CTL-02","ppl.gate-c.commands.CNT-01","ppl.gate-c.queries.CNT-01","$JS.>"]' \
+  --set-json 'config.merge.authorization.users[1].permissions.publish=["ppl.m3.to-director.*","ppl.gate-a.events.CTL-02","ppl.gate-c.commands.CNT-01","ppl.gate-c.queries.CNT-01","ppl.gate-c.queries.KNO-01","$JS.>"]' \
   --set-json 'config.merge.authorization.users[1].permissions.subscribe=["ppl.m3.to-presentation.*","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[2].nkey=$identity_public" \
   --set-json 'config.merge.authorization.users[2].permissions.publish=["ppl.m3.to-presentation.synthetic-grant","ppl.m3.to-director.identity-outcome","ppl.gate-a.events.IAM-01","$JS.>"]' \
@@ -115,10 +115,10 @@ helm upgrade --install nats nats/nats \
   --set-json 'config.merge.authorization.users[4].permissions.subscribe=["ppl.gate-a.commands.DOM-01","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[5].nkey=$source_governance_public" \
   --set-json 'config.merge.authorization.users[5].permissions.publish=["ppl.gate-a.events.CNT-01","ppl.gate-c.events.CNT-01","ppl.gate-c.decisions.AUT-01","_INBOX.>"]' \
-  --set-json 'config.merge.authorization.users[5].permissions.subscribe=["ppl.gate-a.commands.CNT-01","ppl.gate-c.commands.CNT-01","ppl.gate-c.queries.CNT-01","_INBOX.>"]' \
+  --set-json 'config.merge.authorization.users[5].permissions.subscribe=["ppl.gate-a.commands.CNT-01","ppl.gate-c.commands.CNT-01","ppl.gate-c.queries.CNT-01","ppl.gate-c.processing-input.CNT-01","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[6].nkey=$knowledge_processing_public" \
-  --set-json 'config.merge.authorization.users[6].permissions.publish=["ppl.gate-a.events.KNO-01"]' \
-  --set-json 'config.merge.authorization.users[6].permissions.subscribe=["ppl.gate-a.commands.KNO-01","_INBOX.>"]' \
+  --set-json 'config.merge.authorization.users[6].permissions.publish=["ppl.gate-a.events.KNO-01","ppl.gate-c.events.KNO-01","ppl.gate-c.processing-input.CNT-01","_INBOX.>","$JS.>"]' \
+  --set-json 'config.merge.authorization.users[6].permissions.subscribe=["ppl.gate-a.commands.KNO-01","ppl.gate-c.queries.KNO-01","_INBOX.>"]' \
   --set-string "config.merge.authorization.users[7].nkey=$review_workflow_public" \
   --set-json 'config.merge.authorization.users[7].permissions.publish=["ppl.gate-a.events.WRK-01"]' \
   --set-json 'config.merge.authorization.users[7].permissions.subscribe=["ppl.gate-a.commands.WRK-01","_INBOX.>"]' \
