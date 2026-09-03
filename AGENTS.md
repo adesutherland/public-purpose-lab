@@ -64,5 +64,14 @@ repository owns website presentation and deployment.
   correct the affected material, rerun checks and walkthrough evidence in
   proportion to the change, and publish a new head that supersedes the earlier
   report. Do not repeat unaffected evidence merely to record approval.
+- Treat risk-assessed efficiency as part of quality. Before rebuilding,
+  redeploying, rerunning or regenerating evidence, identify whether the change
+  can materially affect runtime behaviour, user-visible presentation,
+  contracts, security or the claim being evidenced. Reuse an already validated
+  image, deployment, test result or screenshot set for documentation- and
+  evidence-only corrections when those risks are unaffected, recording its
+  actual revision, digest and provenance. Do not churn artefact fingerprints or
+  repeat publication without a material assurance benefit; where risk is
+  affected, repeat only the checks and evidence proportionate to that risk.
 - Never commit secrets, personal data, confidential material, or unlicensed
   third-party assets.

@@ -25,6 +25,11 @@ PDF distribution copy are published together as
 - If review identifies an exception, the affected implementation or evidence
   is corrected, checks and walkthrough evidence are repeated in proportion to
   the change, and a new candidate is published.
+- Risk-assess evidence reuse before creating a new build or fingerprint. An
+  evidence- or documentation-only correction reuses the validated runtime and
+  unaffected evidence, with its actual digest and provenance, unless it can
+  change behaviour, presentation, contracts, security or the evidence claim.
+  Rebuild and repeat only the assurance work needed for a material risk.
 - The latest repository head is canonical. A corrected report supersedes the
   earlier report retained in Git history; a separate invalidation artefact is
   unnecessary unless an exceptional governance or safety issue requires one.
@@ -40,3 +45,4 @@ candidate is not an approved gate until founder review succeeds.
 - [M3.4 managed-hosted identity and resilience](m3-4-managed-hosted-identity-and-resilience.md)
 - [Gate A deployed component mesh show-and-tell](gate-a-component-mesh-show-and-tell.md)
 - [Gate B environment, identity and portal orchestration show-and-tell](gate-b-orchestration-show-and-tell.md)
+- [Gate C source validation and staged release progress show-and-tell](gate-c-validation-and-staging-show-and-tell.md)

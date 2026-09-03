@@ -124,6 +124,13 @@ is expanded further.
     no status-only change or repeated evidence cycle; an exception is corrected
     and re-evidenced only in proportion to its effect, and the new head
     supersedes the earlier report.
+14. **Make assurance risk-assessed and efficient.** Before rebuilding,
+    redeploying or regenerating evidence, determine whether the change can
+    affect runtime behaviour, presentation, contracts, security or the claim
+    under review. Reuse validated artefacts and their recorded fingerprints for
+    evidence-only corrections when these risks are unchanged. Avoid fingerprint
+    and publication churn that adds no assurance; repeat only the checks and
+    evidence proportionate to material risk.
 
 ## Parallel delivery model
 
@@ -582,20 +589,19 @@ Status: Gate A and Gate B accepted and closed; Gate C authorised as the active
 delivery gate — detailed functional baseline approved by the founders on 1
 September 2026
 
-Current Gate C increment: the founders accepted the `A-001` upload/paste,
-authenticated receipt and component-owned quarantine baseline and its initial
-SQLite/PVC and durable-event binding on 3 September 2026. The implemented
-increment provides immutable quarantine, restart-safe idempotency, visible
-source status and correlated metadata-only operational events. Validation,
-reviewer release to staging and the knowledge-processing lifecycle remain
-required before Gate C can close. This is a current baseline, not a claim that
-the whole DS-03 flow is complete.
+Current Gate C baseline: the founders accepted the `A-001` upload/paste,
+authenticated receipt and component-owned quarantine baseline on 3 September 2026. The published `A-002` slice adds visible bounded validation, a named
+reviewer staging request, an exact protected-action decision from deployed
+`AUT-01`, and durable staged or refused state. Its progress/show-and-tell
+evidence is final subject to review sign-off by exception. This remains a
+current baseline, not a claim that the whole DS-03 flow is complete.
 
-Active implementation slice: define and exercise `A-002` so `CNT-01` records
-visible bounded validation results, a named synthetic reviewer can request
-release, deployed `AUT-01` evaluates the exact protected action, and `CNT-01`
-records either staged or refused state with durable metadata-only evidence.
-This slice does not call `KNO-01` or claim knowledge processing.
+Next implementation slice: exercise DS-03 steps 7 and 9 so `KNO-01` consumes a
+staged-source fact, records idempotent receipt, emits a visible processing
+lifecycle, performs only the approved basic text-processing step, and
+reconciles after restart without a duplicate terminal result. This slice does
+not claim RAG ingestion or semantic understanding. Gate C closes only after the
+complete DS-03 path and adverse cases are walked and evidenced.
 
 The founders approved the six-scenario catalogue direction on 31 August 2026
 and its detailed functional baseline on 1 September 2026. The

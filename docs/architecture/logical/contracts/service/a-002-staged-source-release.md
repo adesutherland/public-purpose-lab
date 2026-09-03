@@ -1,6 +1,7 @@
 # A-002 — Staged source release
 
-Status: Working draft implemented for the Gate C validation and staging slice
+Status: Implemented Gate C validation and staging baseline; final subject to
+review sign-off by exception
 
 Version: `0.1.0`
 
@@ -82,8 +83,8 @@ outbox recovery path.
 - policy decision tests: `backend/components/aut-01/src/lib.rs`; and
 - end-to-end system check: `tools/smoke-m3-native.sh`.
 
-This working contract will be included in the complete Gate C candidate
-published as final subject to review sign-off by exception. Until that
-candidate is exercised and published, it remains an in-development baseline.
-Acceptance will qualify only the bounded synthetic, single-instance Gate C
-validation and staging transaction.
+The validation and staging slice is exercised in the
+[Gate C progress and show-and-tell](../../../evidence/gate-c-validation-and-staging-show-and-tell.md).
+Gate C remains active until the later `KNO-01` processing lifecycle and the
+complete DS-03 acceptance path are exercised. Review sign-off qualifies only
+this bounded synthetic, single-instance validation and staging transaction.
